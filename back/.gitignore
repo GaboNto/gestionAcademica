@@ -1,0 +1,49 @@
+# --- Node / TypeScript ---
+node_modules/
+dist/
+build/
+.tmp/
+temp/
+tmp/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+package-lock.json
+# ↑ Si prefieres versionar el lockfile, elimina esta línea.
+
+# Compilación TS / cachés
+*.tsbuildinfo
+.eslintcache
+.nyc_output/
+coverage/
+
+# --- Entornos / Config ---
+.env
+.env.*          # .env.development, .env.production, etc.
+!.env.example   # Deja un ejemplo versionado si quieres
+
+# --- SO / IDE ---
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Linux
+*~
+
+# VS Code / JetBrains
+.vscode/
+.idea/
+*.iml
+
+# --- Herramientas varias ---
+.eslintrc.js.local
+.prettier-cache
+.cache/
+.parcel-cache/
