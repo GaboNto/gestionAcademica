@@ -1,0 +1,307 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")  
+}
+
+// ---------------------------------------------------------------------
+// Enums útiles
+// ---------------------------------------------------------------------
+enum EstadoPractica {
+  PENDIENTE
+  EN_CURSO
+  FINALIZADA
+  RECHAZADA
+}
+
+enum EstadoActividad {
+  PENDIENTE
+  APROBADA
+  OBSERVADA
+}
+
+enum TipoCentro {
+  PARTICULAR
+  PARTICULAR_SUBVENCIONADO @map("PARTICULAR SUBVENCIONADO")
+  SLEP
+
+}
+
+// ---------------------------------------------------------------------
+// 1) ESTUDIANTE
+//    1 Estudiante ———< N Prácticas  (1:N)
+//    (Se elimina relación con encuestas, como solicitaste)
+// ---------------------------------------------------------------------
+model Estudiante {
+  rut                   String   @id
+  nombre                String
+  genero                String?
+  anio_nacimiento       DateTime?
+  anio_ingreso          Int?
+  plan                  String?
+  avance                Float?
+  puntaje_ponderado     Float?
+  puntaje_psu           Float?
+  promedio              Float?
+  fono                  Int?
+  email                 String?
+  direccion             String?
+  sistema_ingreso       String?
+  numero_inscripciones Int?
+
+  // 1:N → Práctica
+  practicas             Practica[]
+
+  @@map("estudiante")
+}
+
+// ---------------------------------------------------------------------
+// 2) PRACTICA
+//    N Prácticas ———> 1 Estudiante (N:1)
+//    N Prácticas ———> 1 CentroEducativo (N:1)
+//    N Prácticas ———> 1 Colaborador (supervisa) (N:1)
+//    1 Práctica ———< N Actividades (1:N)
+// ---------------------------------------------------------------------
+model Practica {
+  id             Int             @id @default(autoincrement())
+  estado         EstadoPractica
+  fecha_inicio   DateTime
+  fecha_termino  DateTime?
+  tipo           String?
+
+  // N:1 → Estudiante
+  estudianteRut  String
+  estudiante     Estudiante      @relation(fields: [estudianteRut], references: [rut])
+
+  // N:1 → CentroEducativo (se desarrolla en)
+  centroId       Int
+  centro         CentroEducativo @relation(fields: [centroId], references: [id])
+
+  // N:1 → Colaborador (supervisa)
+  colaboradorId  Int
+  colaborador    Colaborador     @relation(fields: [colaboradorId], references: [id])
+
+  // 1:N → Actividad (tiene)
+  actividades    Actividad[]
+
+  @@map("practica")
+}
+
+// ---------------------------------------------------------------------
+// 3) CENTRO EDUCATIVO
+//    1 Centro ———< N Prácticas (1:N)
+//    1 Centro ———< N TrabajadorEduc (1:N)
+// ---------------------------------------------------------------------
+model CentroEducativo {
+  id              Int       @id @default(autoincrement())
+  nombre          String
+  region          String?
+  comuna          String?
+  direccion       String?   // (direccion) compuesta opcional
+  nombre_calle    String?
+  numero_calle    Int?
+  telefono        Int?
+  correo          String?
+  tipo            TipoCentro?
+  convenio        String?
+  url_rrss        String?
+
+  // 1:N ← Prácticas que se desarrollan aquí
+  practicas       Practica[]
+
+  // 1:N ← Trabajadores del centro
+  trabajadores    TrabajadorEduc[]
+
+  @@map("centro_educativo")
+}
+
+// ---------------------------------------------------------------------
+// 4) TRABAJADOR EDUC
+//    N Trabajadores ———> 1 Centro (N:1)
+// ---------------------------------------------------------------------
+model TrabajadorEduc {
+  id        Int     @id @default(autoincrement())
+  rut       String  @unique
+  nombre    String
+  rol       String?
+  correo    String?  // (O) opcional
+  telefono  Int?  // (O) opcional
+
+  centroId  Int
+  centro    CentroEducativo @relation(fields: [centroId], references: [id])
+
+  @@map("trabajador_educ")
+}
+
+// ---------------------------------------------------------------------
+// 5) COLABORADOR
+//    1 Colaborador ———< N Prácticas (supervisa) (1:N)
+//    1 Colaborador ———< N EncuestaColaborador (1:N)  [opcional]
+// ---------------------------------------------------------------------
+model Colaborador {
+  id                Int        @id @default(autoincrement())
+  rut               String     @unique
+  nombre            String
+  correo            String?
+  direccion         String?
+  telefono          Int?
+  tipo              String?
+  cargo             String?
+  universidad_egreso String?
+
+  // 1:N ← Prácticas que supervisa
+  practicas         Practica[]
+
+  // 1:N ← Encuestas respondidas por el colaborador (si aplica)
+  encuestas         EncuestaColaborador[]
+
+  @@map("colaborador")
+}
+
+// ---------------------------------------------------------------------
+// 6) ACTIVIDAD
+//    N Actividades ———> 1 Práctica (N:1)
+// ---------------------------------------------------------------------
+model Actividad {
+  id             Int            @id @default(autoincrement())
+  titulo         String
+  descripcion    String?
+  estado         EstadoActividad
+  fecha_registro DateTime       @default(now())
+  evidencia      String?        // URL o ruta
+  rut            String?        // (aparece en el DER; si es RUN responsable)
+
+  practicaId     Int
+  practica       Practica       @relation(fields: [practicaId], references: [id])
+
+  @@map("actividad")
+}
+
+// ---------------------------------------------------------------------
+// 7) USUARIO (autenticación/roles del sistema)
+// ---------------------------------------------------------------------
+model Usuario {
+  id          Int     @id @default(autoincrement())
+  nombre      String
+  correo      String  @unique
+  rol         String
+  contrasena  String
+
+  @@map("usuario")
+}
+
+// ---------------------------------------------------------------------
+// 8) CARTA_SOLICITUD (independiente en el DER)
+// ---------------------------------------------------------------------
+model CartaSolicitud {
+  id              Int      @id @default(autoincrement())
+  numero_folio    String   @unique
+  fecha           DateTime
+  direccion_emisor String?
+  url_archivo     String?
+
+  @@map("carta_solicitud")
+}
+
+// ---------------------------------------------------------------------
+// 9) PREGUNTA — ALTERNATIVA — ENCUESTAS
+//    1 Pregunta ———< N Alternativas (1:N)
+//    M:N entre EncuestaEstudiante y Pregunta (vía tabla puente)
+//    M:N entre EncuestaColaborador y Pregunta (vía tabla puente)
+//    *** NO hay relación Estudiante ↔ Encuesta (eliminada) ***
+// ---------------------------------------------------------------------
+model Pregunta {
+  id           Int           @id @default(autoincrement())
+  descripcion  String
+
+  // 1:N → Alternativa
+  alternativas Alternativa[]
+
+  // M:N → EncuestaEstudiante (vía tabla puente)
+  encuestasEstudiante EncuestaEstudiantePregunta[]
+
+  // M:N → EncuestaColaborador (vía tabla puente)
+  encuestasColaborador EncuestaColaboradorPregunta[]
+
+  @@map("pregunta")
+}
+
+model Alternativa {
+  id          Int      @id @default(autoincrement())
+  descripcion String
+  puntaje     Int
+
+  // N:1 → Pregunta
+  preguntaId  Int
+  pregunta    Pregunta @relation(fields: [preguntaId], references: [id])
+
+  @@map("alternativa")
+}
+
+// -------------------- Encuestas --------------------
+
+// Encuesta del estudiante (sin FK a Estudiante por tu instrucción)
+model EncuestaEstudiante {
+  id                 Int       @id @default(autoincrement())
+  id_encuesta        String?   @unique
+  nombre_estudiante  String?
+  nombre_tallerista  String?
+  nombre_centro      String?
+  nombre_colaborador String?
+  nivel_practica     String?
+  fecha              DateTime?
+  observacion        String?
+
+  // M:N con Pregunta (tabla puente)
+  preguntas          EncuestaEstudiantePregunta[]
+
+  @@map("encuesta_estudiante")
+}
+
+// Encuesta del colaborador (puede vincularse al Colaborador)
+model EncuestaColaborador {
+  id                 Int      @id @default(autoincrement())
+  nombre_colaborador String?
+  nombre_colegio     String?
+  sugerencias        String?
+  cumple_perfil      Boolean?
+  evaluacion         Int?
+
+  // Opcional: N:1 → Colaborador (si decides guardar vínculo real)
+  colaboradorId      Int?
+  colaborador        Colaborador? @relation(fields: [colaboradorId], references: [id])
+
+  // M:N con Pregunta (tabla puente)
+  preguntas          EncuestaColaboradorPregunta[]
+
+  @@map("encuesta_colaborador")
+}
+
+// -------------------- Tablas puente M:N --------------------
+
+// M:N entre EncuestaEstudiante y Pregunta
+model EncuestaEstudiantePregunta {
+  encuestaId Int
+  preguntaId Int
+
+  encuesta   EncuestaEstudiante @relation(fields: [encuestaId], references: [id])
+  pregunta   Pregunta           @relation(fields: [preguntaId], references: [id])
+
+  @@id([encuestaId, preguntaId])
+  @@map("enc_est_preg")
+}
+
+// M:N entre EncuestaColaborador y Pregunta
+model EncuestaColaboradorPregunta {
+  encuestaId Int
+  preguntaId Int
+
+  encuesta   EncuestaColaborador @relation(fields: [encuestaId], references: [id])
+  pregunta   Pregunta            @relation(fields: [preguntaId], references: [id])
+
+  @@id([encuestaId, preguntaId])
+  @@map("enc_colab_preg")
+}

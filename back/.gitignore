@@ -47,3 +47,5 @@ Desktop.ini
 .prettier-cache
 .cache/
 .parcel-cache/
+
+/generated/prisma
