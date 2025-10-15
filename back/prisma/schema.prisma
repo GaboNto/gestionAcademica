@@ -153,7 +153,7 @@ model Colaborador {
   correo            String?
   direccion         String?
   telefono          Int?
-  tipo              String?
+  tipo              TipoColaborador?
   cargo             String?
   universidad_egreso String?
 
