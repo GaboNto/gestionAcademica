@@ -1,0 +1,64 @@
+.dashboard { padding: 16px; }
+
+.header {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 12px;
+}
+.back {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: none; border: 1px solid #e5e7eb; padding: 6px 10px; border-radius: 10px;
+  color: #1e88e5; cursor: pointer; transition: background .15s ease;
+}
+.back:hover { background: #f1f5f9; }
+
+.headline h2 { margin: 0; }
+.headline p { margin: 2px 0 0; color: #64748b; font-size: 13px; }
+.spacer { flex: 1 1 auto; }
+
+/* User card */
+.user-card {
+  display: flex; align-items: center; gap: 12px;
+  margin: 10px 0 18px; padding: 14px;
+  border-radius: 14px;
+}
+.avatar {
+  width: 54px; height: 54px; border-radius: 50%;
+  display: grid; place-items: center; background: #e3f2fd; color: #1e88e5;
+  font-size: 28px;
+}
+.user-texts h3 { margin: 0; }
+.role-badge {
+  display: inline-block; margin-top: 4px;
+  padding: 4px 10px; border-radius: 999px; font-size: 12px;
+  background: #eef2ff; color: #3949ab;
+}
+
+/* Grid de tarjetas */
+.cards {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.option-card { border-radius: 14px; padding: 16px; }
+.card-click { cursor: pointer; transition: box-shadow .2s ease, transform .05s ease; }
+.card-click:hover { box-shadow: 0 8px 22px rgba(0,0,0,.08); transform: translateY(-1px); }
+.elev { border: 1px solid #e5e7eb; }
+
+.opt-top { display: flex; align-items: center; gap: 10px; }
+.opt-icon {
+  width: 42px; height: 42px; border-radius: 50%;
+  display: grid; place-items: center; background: #f1f5f9; color: #475569;
+}
+.opt-desc { color: #475569; margin: 8px 0 12px; }
+
+.sublist { display: grid; gap: 8px; margin-top: 4px; }
+.subitem {
+  border: 1px solid #e5e7eb; border-radius: 10px; padding: 10px;
+  transition: background .15s ease;
+}
+.subitem:hover { background: #f8fafc; }
+.subitem-title { font-weight: 600; }
+.subitem-desc { color: #64748b; font-size: 13px; margin-top: 2px; }
+
+.opt-btn {
+  margin-top: 12px; border-radius: 10px;
+}

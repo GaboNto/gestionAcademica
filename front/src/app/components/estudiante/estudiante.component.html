@@ -1,0 +1,48 @@
+<div class="container section">
+  <div class="header">
+    <button mat-stroked-button color="primary" routerLink="/dashboard" class="btn-back">
+      <mat-icon>arrow_back</mat-icon> Volver al Dashboard
+    </button>
+    <h1>Lista de Estudiantes ({{ filtered().length }})</h1>
+    <div class="spacer"></div>
+  </div>
+
+  <!-- BUSCADOR -->
+  <mat-card class="elev">
+    <mat-card-content>
+      <mat-form-field class="w-100" appearance="outline">
+        <mat-label>Buscar por nombre, RUT o código…</mat-label>
+        <input matInput [(ngModel)]="searchTerm" />
+      </mat-form-field>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- LISTA -->
+  <mat-card class="elev">
+    <mat-card-content>
+      <div *ngIf="!filtered().length" class="empty">
+        <mat-icon>school</mat-icon>
+        <p>No hay estudiantes registrados</p>
+      </div>
+
+      <div *ngFor="let s of filtered()" class="row">
+        <div class="col">
+          <h3>{{ s.name }}</h3>
+          <div class="grid3">
+            <div><b>RUT:</b> {{ s.rut }}</div>
+            <div><b>Código:</b> {{ s.code }}</div>
+            <div><b>Nivel:</b> {{ s.level }}</div>
+            <div><b>Cohorte:</b> {{ s.cohort }}</div>
+            <div><b>Email:</b> {{ s.email }}</div>
+            <div><b>Teléfono:</b> {{ s.phone }}</div>
+          </div>
+        </div>
+        <div class="actions">
+          <button mat-icon-button matTooltip="Eliminar" (click)="delete(s.id)">
+            <mat-icon color="warn">delete</mat-icon>
+          </button>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

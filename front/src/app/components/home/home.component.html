@@ -1,0 +1,76 @@
+<!-- HERO -->
+<section class="hero">
+  <div class="container">
+    <h1 class="hero__title">Sistema de Gestión de Prácticas Profesionales</h1>
+    <p class="hero__subtitle">Carrera de Pedagogía en Historia, Geografía y Ciencias Sociales</p>
+    <p class="hero__note">Acceso simplificado para pruebas de diseño</p>
+  </div>
+</section>
+
+<!-- TARJETAS -->
+<section class="container section">
+  <div class="role-grid">
+    <!-- Coordinadora de Prácticas -->
+    <mat-card class="role-card">
+      <div class="icon blue"><mat-icon>school</mat-icon></div>
+      <h3 class="title">Coordinadora de Prácticas</h3>
+      <p class="name">Carolina Quintana</p>
+      <p class="desc">
+        Registra estudiantes, colegios y gestiona el proceso de prácticas.
+      </p>
+
+      <h4 class="perm-title">Permisos:</h4>
+      <ul class="perm-list">
+        <li>Gestionar centros educativos</li>
+        <li>Gestionar estudiantes</li>
+        <li>Asignar prácticas</li>
+        <li>Gestionar colaboradores</li>
+        <li>Ver reportes e historial</li>
+      </ul>
+
+      <button mat-raised-button class="cta blue" (click)="selectRole('practicas')">
+        Acceder como Coordinadora de Prácticas
+      </button>
+    </mat-card>
+
+    <!-- Coordinadora de Vinculación -->
+    <mat-card class="role-card">
+      <div class="icon green"><mat-icon>groups</mat-icon></div>
+      <h3 class="title">Coordinadora de Vinculación</h3>
+      <p class="name">Claudia Palomo</p>
+      <p class="desc">
+        Registra y administra los resultados de las encuestas.
+      </p>
+
+      <h4 class="perm-title">Permisos:</h4>
+      <ul class="perm-list">
+        <li>Registrar encuestas</li>
+      </ul>
+
+      <button mat-raised-button class="cta green" (click)="selectRole('vinculacion')">
+        Acceder como Coordinadora de Vinculación
+      </button>
+    </mat-card>
+
+    <!-- Jefatura de Carrera -->
+    <mat-card class="role-card">
+      <div class="icon purple"><mat-icon>description</mat-icon></div>
+      <h3 class="title">Jefatura de Carrera</h3>
+      <p class="name">Johana Rojas</p>
+      <p class="desc">
+        Visualiza reportes globales y gestiona cartas de presentación.
+      </p>
+
+      <h4 class="perm-title">Permisos:</h4>
+      <ul class="perm-list">
+        <li>Reportes completos</li>
+        <li>Generar cartas</li>
+        <li>Supervisión general</li>
+      </ul>
+
+      <button mat-raised-button class="cta purple" (click)="selectRole('jefatura')">
+        Acceder como Jefatura de Carrera
+      </button>
+    </mat-card>
+  </div>
+</section>

@@ -1,0 +1,54 @@
+<div class="dashboard" [ngClass]="themeClass">
+  <!-- ===== HEADER ===== -->
+  <div class="header">
+    <button class="back" (click)="go('/')">
+      <span class="material-icons">arrow_back</span>
+      Cambiar Rol
+    </button>
+
+    <div class="headline">
+      <h2>Dashboard</h2>
+      <p>Sistema de Prácticas Profesionales</p>
+    </div>
+
+    <div class="spacer"></div>
+  </div>
+
+  <!-- ===== USER CARD ===== -->
+  <mat-card class="user-card elev">
+    <div class="avatar">
+      <span class="material-icons">{{ user.icon }}</span>
+    </div>
+    <div class="user-texts">
+      <h3>{{ user.name }}</h3>
+      <span class="role-badge">{{ user.roleLabel }}</span>
+    </div>
+  </mat-card>
+
+  <!-- ===== GRID DE OPCIONES ===== -->
+  <div class="cards">
+    <mat-card class="option-card elev card-click" *ngFor="let c of cards" (click)="go(c.route)">
+      <div class="opt-top">
+        <div class="opt-icon">
+          <span class="material-icons">{{ c.icon }}</span>
+        </div>
+        <h3>{{ c.title }}</h3>
+      </div>
+
+      <p *ngIf="c.desc" class="opt-desc">{{ c.desc }}</p>
+
+      <ng-container *ngIf="c.subItems?.length">
+        <div class="sublist">
+          <div class="subitem" *ngFor="let s of c.subItems" (click)="$event.stopPropagation(); go(s.route)">
+            <div class="subitem-title">{{ s.title }}</div>
+            <div class="subitem-desc" *ngIf="s.desc">{{ s.desc }}</div>
+          </div>
+        </div>
+      </ng-container>
+
+      <button mat-stroked-button class="opt-btn" (click)="$event.stopPropagation(); go(c.route)">
+        Acceder
+      </button>
+    </mat-card>
+  </div>
+</div>

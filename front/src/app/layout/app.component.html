@@ -1,0 +1,53 @@
+<mat-sidenav-container class="shell">
+  <!-- SIDEBAR -->
+  <mat-sidenav #sidenav class="side" mode="side" [opened]="isSidenavOpened">
+    <!-- Usuario -->
+    <div class="side__header">
+      <div class="avatar"><mat-icon>{{ user.icon }}</mat-icon></div>
+      <div class="who">
+        <div class="name">{{ user.name }}</div>
+        <div class="role">{{ user.roleLabel }}</div>
+      </div>
+    </div>
+
+
+    <mat-divider></mat-divider>
+
+    <!-- Navegación -->
+    <mat-nav-list>
+      <a mat-list-item
+         *ngFor="let item of nav"
+         [routerLink]="item.route"
+         routerLinkActive="active"
+         [routerLinkActiveOptions]="{ exact: true }"
+         (click)="sidenav.mode === 'over' && sidenav.close()">
+        <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
+        <span matListItemTitle>{{ item.label }}</span>
+      </a>
+    </mat-nav-list>
+
+    <!-- Footer -->
+    <div class="side__footer">
+      <button mat-stroked-button color="primary" (click)="logout()">
+        <mat-icon>logout</mat-icon>
+        Cerrar sesión
+      </button>
+    </div>
+  </mat-sidenav>
+
+  <!-- CONTENIDO -->
+  <mat-sidenav-content class="content">
+    <mat-toolbar class="topbar" color="primary">
+      <button mat-icon-button class="menu-btn" (click)="toggleSidenav(sidenav)">
+        <mat-icon>menu</mat-icon>
+      </button>
+      <span class="title">{{ appTitle }}</span>
+      <span class="spacer"></span>
+      <a mat-button routerLink="/">Inicio</a>
+    </mat-toolbar>
+
+    <main class="page">
+      <router-outlet></router-outlet>
+    </main>
+  </mat-sidenav-content>
+</mat-sidenav-container>

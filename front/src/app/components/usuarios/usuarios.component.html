@@ -1,0 +1,61 @@
+<div class="container section">
+  <!-- ===== HEADER ===== -->
+  <div class="header">
+    <button mat-stroked-button color="primary" routerLink="/dashboard" class="btn-back">
+      <mat-icon>arrow_back</mat-icon>
+      Volver al Dashboard
+    </button>
+
+    <div class="headline">
+      <h1>Gestión de Usuarios</h1>
+      <p class="muted">Administra roles, permisos y accesos</p>
+    </div>
+
+    <div class="spacer"></div>
+  </div>
+
+  <!-- ===== LISTADO ===== -->
+  <div class="list">
+    <mat-card class="usuarios elev card-click" *ngFor="let u of usuarios">
+      <mat-card-content>
+        <div class="grid">
+          <!-- Columna 1: Información básica -->
+          <div>
+            <h3 class="name">{{ u.name }}</h3>
+            <div class="muted">{{ u.email }}</div>
+            <div class="role" [style.background]="roleColor(u.role)">
+              {{ u.roleLabel }}
+            </div>
+          </div>
+
+          <!-- Columna 2: Estado y último acceso -->
+          <div>
+            <div class="label">Estado</div>
+            <div class="pill pill--ok">{{ u.status }}</div>
+            <div class="tiny">Último acceso: {{ u.lastLogin }}</div>
+          </div>
+
+          <!-- Columna 3: Permisos -->
+          <div>
+            <div class="label">Permisos</div>
+            <div class="chips">
+              <span class="chip" *ngFor="let p of u.permissions">{{ label(p) }}</span>
+            </div>
+          </div>
+
+          <!-- Columna 4: Acciones -->
+          <div class="actions">
+            <button mat-stroked-button>
+              <mat-icon>settings</mat-icon>
+              Editar
+            </button>
+            <button mat-stroked-button>
+              <mat-icon>verified_user</mat-icon>
+              Permisos
+            </button>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

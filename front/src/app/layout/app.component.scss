@@ -1,0 +1,49 @@
+/* Layout base */
+.shell { height: 100vh; }
+.side  { width: 260px; border-right: 1px solid #e5e7eb; }
+.content { background: #f7f9fc; }
+
+/* Topbar */
+.topbar { position: sticky; top: 0; z-index: 10; }
+.menu-btn { margin-right: 8px; }
+.title { font-weight: 700; }
+.spacer { flex: 1 1 auto; }
+
+/* Sidebar header */
+.side__header {
+  display: flex; align-items: center; gap: 10px;
+  padding: 14px 16px; border-bottom: 1px solid #eef2f7;
+}
+.avatar {
+  width: 42px; height: 42px; border-radius: 50%;
+  display: grid; place-items: center; background: #e3f2fd; color: #1976d2;
+}
+.who .name { font-weight: 600; line-height: 1.1; }
+.who .role { font-size: 12px; color: #64748b; }
+
+/* Funciones del rol */
+.side__section { padding: 12px 16px; }
+.section-title {
+  display: flex; align-items: center; gap: 6px;
+  font-weight: 600; color: #334155; margin-bottom: 6px;
+}
+.perm-list { margin: 0; padding-left: 18px; color: #475569; font-size: 13px; }
+.perm-list li { margin: 4px 0; }
+
+/* Items activos en la lista */
+a.mat-mdc-list-item.active {
+  background: #e8f0fe;
+  border-left: 3px solid #1976d2;
+}
+
+/* Footer del sidebar */
+.side__footer { margin: 12px; }
+
+/* Contenido */
+.page { padding: 16px; }
+
+/* Responsive: en pantallas pequeñas el sidenav pasa a overlay */
+@media (max-width: 960px) {
+  .side { width: 260px; }
+  .shell ::ng-deep mat-sidenav { position: fixed !important; }
+}

@@ -1,0 +1,30 @@
+.container { max-width: 1120px; margin: 16px auto; padding: 0 16px; }
+.section { margin-top: 8px; }
+
+/* Header */
+.header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.btn-back { border-radius: 10px; }
+.headline h1 { margin: 0; font-size: 22px; }
+.spacer { flex: 1 1 auto; }
+
+/* Tarjeta */
+.elev { border: 1px solid #e5e7eb; border-radius: 14px; }
+
+/* Empty state */
+.empty {
+  text-align: center; padding: 24px 6px; color: #64748b;
+}
+.empty mat-icon { font-size: 42px; width: 42px; height: 42px; display: block; margin: 0 auto 6px; }
+
+/* Listado */
+.row {
+  display: grid; grid-template-columns: 1fr auto; gap: 12px;
+  border: 1px solid #eef2f7; border-radius: 10px; padding: 12px; margin: 8px 0;
+  transition: background .15s ease, box-shadow .15s ease;
+}
+.row:hover { background: #f8fafc; box-shadow: 0 4px 12px rgba(0,0,0,.04); }
+.col h3 { margin: 0 0 6px; }
+.actions { display: flex; align-items: start; }
+.grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+@media (max-width: 900px) { .grid3 { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 600px) { .grid3 { grid-template-columns: 1fr; } }

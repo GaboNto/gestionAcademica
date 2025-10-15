@@ -1,0 +1,70 @@
+/* Contenedor base */
+.container { max-width: 1120px; margin: 16px auto; padding: 0 16px; }
+.section { margin-top: 8px; }
+
+/* Header */
+.header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.btn-back { border-radius: 10px; }
+.headline h1 { margin: 0; font-size: 22px; }
+.headline .muted { margin: 2px 0 0; font-size: 13px; }
+.spacer { flex: 1 1 auto; }
+
+/* Lista */
+.list { display: grid; gap: 12px; }
+.elev { border: 1px solid #e5e7eb; border-radius: 14px; }
+.card-click { transition: box-shadow .2s ease, transform .05s ease; cursor: pointer; }
+.card-click:hover { box-shadow: 0 8px 22px rgba(0,0,0,.08); transform: translateY(-1px); }
+
+/* Grid de 4 columnas */
+.usuarios .grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1.3fr 1fr;
+  gap: 12px;
+}
+@media (max-width: 1000px) {
+  .usuarios .grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 640px) {
+  .usuarios .grid { grid-template-columns: 1fr; }
+}
+
+/* Tipos y helpers */
+h3.name { margin: 0 0 4px; }
+.muted { color: #64748b; }
+.tiny { font-size: 12px; color: #94a3b8; margin-top: 4px; }
+.label { font-weight: 600; color: #344054; margin-bottom: 6px; }
+
+/* Rol badge */
+.role {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-size: 12px;
+  margin-top: 6px;
+}
+
+/* Estado (pill) */
+.pill {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid #cbd5e1;
+  font-size: 12px;
+}
+.pill--ok   { background: #e8f5e9; color: #2e7d32; }
+.pill--warn { background: #fff8e1; color: #ef6c00; }
+.pill--bad  { background: #ffebee; color: #c62828; }
+
+/* Chips de permisos */
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 12px;
+  background: #fff;
+}
+
+/* Acciones */
+.actions { display: flex; gap: 8px; align-items: flex-start; }
+.actions button { border-radius: 10px; }

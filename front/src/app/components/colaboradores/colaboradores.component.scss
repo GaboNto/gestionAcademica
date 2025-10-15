@@ -1,0 +1,63 @@
+/* Contenedor base */
+.container { max-width: 1120px; margin: 16px auto; padding: 0 16px; }
+.section { margin-top: 8px; }
+
+/* Header */
+.header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.btn-back { border-radius: 10px; }
+.btn-add  { border-radius: 10px; white-space: nowrap; }
+.headline h1 { margin: 0; font-size: 22px; }
+.muted { color: #64748b; font-size: 13px; margin: 2px 0 0; }
+.spacer { flex: 1 1 auto; }
+
+/* Card base */
+.elev { border: 1px solid #e5e7eb; border-radius: 14px; }
+.card-click { cursor: pointer; transition: box-shadow .2s ease, transform .05s ease; }
+.card-click:hover { box-shadow: 0 8px 22px rgba(0,0,0,.08); transform: translateY(-1px); }
+
+/* Filtros */
+.filters { display: grid; grid-template-columns: 1fr 240px; gap: 12px; }
+.role-filter { min-width: 200px; }
+.flex1 { flex: 1 1 auto; }
+@media (max-width: 720px) { .filters { grid-template-columns: 1fr; } }
+
+/* Formulario alta */
+.form-card { margin-top: 12px; }
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px; margin-top: 6px;
+}
+.form-actions { display: flex; justify-content: flex-end; margin-top: 8px; }
+@media (max-width: 1024px) { .form-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 640px)  { .form-grid { grid-template-columns: 1fr; } }
+
+/* Tarjetas */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin-top: 12px;
+}
+
+/* Avatar por rol */
+.avatar { display: grid; place-items: center; border-radius: 50%; width: 44px; height: 44px; }
+.avatar.blue   { background: #e3f2fd; color: #1e88e5; }
+.avatar.purple { background: #f3e5f5; color: #8e24aa; }
+.avatar.green  { background: #e8f5e9; color: #2e7d32; }
+.avatar.teal   { background: #e0f2f1; color: #00695c; } /* Tallerista */
+
+/* Badge de estado */
+.coll .badge {
+  display: inline-block; padding: 4px 8px; border-radius: 8px;
+  font-size: 12px; margin: 4px 0;
+}
+.badge.green { background: #e8f5e9; color: #2e7d32; }
+.badge.red   { background: #ffebee; color: #c62828; }
+
+/* Textos */
+.mt { margin-top: 4px; }
+
+/* Empty */
+.empty { margin-top: 12px; }
+.empty__content { display: grid; place-items: center; gap: 8px; }

@@ -1,0 +1,58 @@
+/* Contenedor base */
+.container { max-width: 1120px; margin: 0 auto; padding: 0 16px; }
+.section { margin: 18px 0 32px; }
+
+/* HERO */
+.hero {
+  background:
+    radial-gradient(900px 380px at 10% -20%, rgba(99,102,241,.12), transparent 60%),
+    linear-gradient(180deg, #f3f6fb, #ffffff);
+  border-bottom: 1px solid #e9edf5;
+  text-align: center; padding: 22px 0 16px;
+}
+.hero__title { margin: 0; font-weight: 800; letter-spacing: .2px; }
+.hero__subtitle { margin: 6px 0 0; color:#4b5563; }
+.hero__note { margin: 6px 0 0; color:#6b7280; font-size: 12px; }
+
+/* GRID */
+.role-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+@media (max-width: 1024px) { .role-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 680px)  { .role-grid { grid-template-columns: 1fr; } }
+
+/* CARD */
+.role-card {
+  background:#fff; border:1px solid #e5e7eb; border-radius: 14px;
+  padding: 18px; display:flex; flex-direction:column; gap: 10px;
+  box-shadow: 0 1px 0 rgba(0,0,0,.02);
+  transition: box-shadow .2s ease, transform .05s ease;
+}
+.role-card:hover { box-shadow: 0 10px 24px rgba(0,0,0,.08); transform: translateY(-1px); }
+
+/* ICONO CIRCULAR */
+.icon {
+  width:56px; height:56px; border-radius:50%; display:grid; place-items:center;
+  margin: 0 auto 2px; font-size: 28px;
+}
+.icon.blue   { background:#e3f2fd; color:#1976d2; }
+.icon.green  { background:#e8f5e9; color:#2e7d32; }
+.icon.purple { background:#f3e5f5; color:#8e24aa; }
+
+/* TEXTOS */
+.title { text-align:center; margin: 0; font-size: 18px; }
+.name  { text-align:center; margin: -2px 0 6px; color:#6b7280; font-size: 12px; }
+.desc  { text-align:center; color:#4b5563; margin: 2px 0 8px; }
+
+/* PERMISOS */
+.perm-title { margin: 0; font-size: 12px; color:#334155; letter-spacing:.2px; }
+.perm-list  { margin: 6px 0 10px 18px; color:#475569; }
+.perm-list li { margin: 4px 0; }
+
+/* BOTÓN CTA */
+.cta { width:100%; border-radius: 10px; font-weight: 700; padding: 10px 14px; }
+.cta.blue   { background:#1e67d6; color:#fff; }
+.cta.green  { background:#2e7d32; color:#fff; }
+.cta.purple { background:#7b1fa2; color:#fff; }
