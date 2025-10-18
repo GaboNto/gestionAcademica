@@ -12,18 +12,18 @@ import { MatInputModule }  from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
-type RolColaborador = 'Supervisor' | 'Colaborador' | 'Tallerista';
-type Estado = 'Activo' | 'Inactivo';
+type RolColaborador = 'Tutor' | 'Colaborador' | 'Tallerista';
 
 interface Colaborador {
   nombre: string;
   centro_educativo: string;
-  estado: Estado;
   role: RolColaborador;
   especialidad?: string;
   experiencia?: string;
   email: string;
   telefono?: string;
+  rut?: string;
+  direccion?: string;
 }
 
 @Component({
@@ -45,6 +45,7 @@ export class ColaboradoresComponent {
 
   // UI
   showForm = false;
+  selectedColaborador: Colaborador | null = null;
 
   // filtros
   searchTerm = '';
@@ -52,8 +53,7 @@ export class ColaboradoresComponent {
 
   // formulario
   newColaborador: Partial<Colaborador> = {
-    role: 'Supervisor',
-    estado: 'Activo'
+    role: 'Tutor'
   };
 
   // datos
@@ -61,32 +61,35 @@ export class ColaboradoresComponent {
     {
       nombre: 'Juan Pérez',
       centro_educativo: 'Colegio A',
-      estado: 'Activo',
-      role: 'Supervisor',
-      especialidad: 'Matemáticas',
-      experiencia: '5 años',
+      role: 'Tutor',
+      especialidad: 'Profesor de Matemáticas',
+      experiencia: 'Universidad de Chile',
       email: 'juan@example.com',
-      telefono: '+56 9 1111 2222'
+      telefono: '+56 9 1111 2222',
+      rut: '12.345.678-9',
+      direccion: 'Av. Libertador Bernardo O\'Higgins 123, Santiago, Región Metropolitana'
     },
     {
       nombre: 'María López',
       centro_educativo: 'Colegio B',
-      estado: 'Inactivo',
       role: 'Colaborador',
-      especialidad: 'Lenguaje',
-      experiencia: '2 años',
+      especialidad: 'Profesora de Lenguaje',
+      experiencia: 'Pontificia Universidad Católica',
       email: 'maria@example.com',
-      telefono: '+56 9 3333 4444'
+      telefono: '+56 9 3333 4444',
+      rut: '98.765.432-1',
+      direccion: 'Calle Los Robles 456, Providencia, Región Metropolitana'
     },
     {
       nombre: 'Daniel Soto',
       centro_educativo: 'Colegio C',
-      estado: 'Activo',
       role: 'Tallerista',
-      especialidad: 'Taller de Patrimonio',
-      experiencia: '3 años',
+      especialidad: 'Coordinador de Taller de Patrimonio',
+      experiencia: 'Universidad de Santiago',
       email: 'daniel@example.com',
-      telefono: '+56 9 5555 6666'
+      telefono: '+56 9 5555 6666',
+      rut: '11.222.333-4',
+      direccion: 'Pasaje Las Flores 789, Las Condes, Región Metropolitana'
     }
   ];
 
@@ -103,6 +106,15 @@ export class ColaboradoresComponent {
   // navegación
   goBack() { this.router.navigate(['/dashboard']); }
 
+  // detalles
+  viewDetails(colaborador: Colaborador) {
+    this.selectedColaborador = colaborador;
+  }
+
+  closeDetails() {
+    this.selectedColaborador = null;
+  }
+
   // UI
   toggleForm() { this.showForm = !this.showForm; }
 
@@ -118,8 +130,8 @@ export class ColaboradoresComponent {
     const c = this.newColaborador;
 
     // validación mínima
-    if (!c?.nombre || !c?.email || !c?.centro_educativo || !c?.role) {
-      this.snack.open('Completa nombre, email, centro y rol.', 'Cerrar', { duration: 2500 });
+    if (!c?.nombre || !c?.email || !c?.role) {
+      this.snack.open('Completa nombre, email y rol.', 'Cerrar', { duration: 2500 });
       return;
     }
     // evitar duplicados por email
@@ -132,20 +144,21 @@ export class ColaboradoresComponent {
     const nuevo: Colaborador = {
       nombre: c.nombre.trim(),
       email: c.email!.trim(),
-      centro_educativo: c.centro_educativo!.trim(),
+      centro_educativo: 'Sin especificar', // Valor por defecto
       role: c.role as RolColaborador,
-      estado: (c.estado as Estado) ?? 'Activo',
       especialidad: c.especialidad?.trim(),
       experiencia: c.experiencia?.trim(),
-      telefono: c.telefono?.trim()
+      telefono: c.telefono?.trim(),
+      rut: c.rut?.trim(),
+      direccion: c.direccion?.trim()
     };
 
     this.colaboradores.unshift(nuevo);
     this.persist();
     this.snack.open('Colaborador agregado.', 'OK', { duration: 2000 });
 
-    // reset form (mantengo rol y estado por comodidad)
-    this.newColaborador = { role: c.role, estado: c.estado ?? 'Activo' };
+    // reset form (mantengo rol por comodidad)
+    this.newColaborador = { role: c.role };
     this.showForm = false;
   }
 
@@ -168,7 +181,7 @@ export class ColaboradoresComponent {
         !term ||
         c.nombre.toLowerCase().includes(term) ||
         c.email.toLowerCase().includes(term) ||
-        c.centro_educativo.toLowerCase().includes(term);
+        (c.especialidad && c.especialidad.toLowerCase().includes(term));
 
       const matchRole = this.selectedRole === 'all' || c.role === this.selectedRole;
 
@@ -176,8 +189,4 @@ export class ColaboradoresComponent {
     });
   }
 
-  statusClass(estado: string): string {
-    const greenStatuses = ['Activo', 'Disponible', 'Aprobado'];
-    return greenStatuses.includes(estado) ? 'badge green' : 'badge red';
-  }
 }

@@ -1,13 +1,9 @@
 <div class="container section">
   <!-- HEADER -->
   <div class="header">
-    <button mat-stroked-button color="primary" (click)="goBack()" class="btn-back">
-      <mat-icon>arrow_back</mat-icon> Volver al Dashboard
-    </button>
-
+    
     <div class="headline">
       <h1>Gestión de Colaboradores</h1>
-      <p class="muted">Filtrar</p>
     </div>
 
     <div class="spacer"></div>
@@ -19,138 +15,156 @@
     </button>
   </div>
 
-  <!-- FILTROS -->
-  <mat-card class="elev">
-    <mat-card-title>Filtros de Búsqueda</mat-card-title>
-    <mat-card-content>
-      <div class="filters">
-        <mat-form-field appearance="outline" class="flex1">
-          <mat-label>Nombre, email o colegio…</mat-label>
-          <input matInput [(ngModel)]="searchTerm" />
-        </mat-form-field>
+  <!-- FILTROS INTEGRADOS -->
+  <div class="filters-section">
+    <div class="filters">
+      <mat-form-field appearance="outline" class="flex1">
+        <mat-label>Buscar por nombre, email o cargo…</mat-label>
+        <input matInput [(ngModel)]="searchTerm" />
+      </mat-form-field>
 
-        <mat-form-field appearance="outline" class="role-filter">
-          <mat-label>Rol</mat-label>
-          <mat-select [(ngModel)]="selectedRole">
-            <mat-option value="all">Todos</mat-option>
-            <mat-option value="Supervisor">Supervisor</mat-option>
-            <mat-option value="Colaborador">Colaborador</mat-option>
-            <mat-option value="Tallerista">Tallerista</mat-option>
-          </mat-select>
-        </mat-form-field>
-      </div>
-    </mat-card-content>
-  </mat-card>
+      <mat-form-field appearance="outline" class="role-filter">
+        <mat-label>Rol</mat-label>
+        <mat-select [(ngModel)]="selectedRole">
+          <mat-option value="all">Todos</mat-option>
+          <mat-option value="Tutor">Tutor</mat-option>
+          <mat-option value="Colaborador">Colaborador</mat-option>
+          <mat-option value="Tallerista">Tallerista</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+  </div>
 
   <!-- FORMULARIO (colapsable por botón) -->
-  <mat-card class="elev form-card" *ngIf="showForm">
-    <mat-card-header>
-      <div mat-card-avatar class="avatar green">
-        <mat-icon>person_add</mat-icon>
-      </div>
-      <mat-card-title>Agregar colaborador</mat-card-title>
-      <mat-card-subtitle>Completa los datos mínimos para registrarlo</mat-card-subtitle>
-    </mat-card-header>
-
-    <mat-card-content>
-      <form class="form-grid">
-        <mat-form-field appearance="outline">
-          <mat-label>Nombre completo</mat-label>
-          <input matInput [(ngModel)]="newColaborador.nombre" name="nombre" required />
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>Email</mat-label>
-          <input matInput [(ngModel)]="newColaborador.email" name="email" type="email" required />
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>Teléfono</mat-label>
-          <input matInput [(ngModel)]="newColaborador.telefono" name="telefono" placeholder="+56 9 ..." />
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>Centro educativo</mat-label>
-          <input matInput [(ngModel)]="newColaborador.centro_educativo" name="centro" required />
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>Rol</mat-label>
-          <mat-select [(ngModel)]="newColaborador.role" name="role" required>
-            <mat-option value="Supervisor">Supervisor</mat-option>
-            <mat-option value="Colaborador">Colaborador</mat-option>
-            <mat-option value="Tallerista">Tallerista</mat-option>
-          </mat-select>
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>Especialidad</mat-label>
-          <input matInput [(ngModel)]="newColaborador.especialidad" name="especialidad" placeholder="Historia, Lenguaje…" />
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>Experiencia</mat-label>
-          <input matInput [(ngModel)]="newColaborador.experiencia" name="experiencia" placeholder="5 años, 2 semestres…" />
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>Estado</mat-label>
-          <mat-select [(ngModel)]="newColaborador.estado" name="estado">
-            <mat-option value="Activo">Activo</mat-option>
-            <mat-option value="Inactivo">Inactivo</mat-option>
-          </mat-select>
-        </mat-form-field>
-      </form>
-
-      <div class="form-actions">
-        <button mat-raised-button color="primary" (click)="addColaborador()">
-          <mat-icon>save</mat-icon> Agregar colaborador
+  <div class="form-container" [class.form-open]="showForm">
+    <mat-card class="elev form-card" *ngIf="showForm">
+      <mat-card-header class="form-header">
+        <div class="form-title-section">
+          <div class="form-icon">
+            <mat-icon>person_add</mat-icon>
+          </div>
+          <div class="form-titles">
+            <h2>Agregar colaborador</h2>
+            <p>Completa los datos para registrar un nuevo colaborador</p>
+          </div>
+        </div>
+        <button mat-icon-button (click)="toggleForm()" class="close-form-btn">
+          <mat-icon>close</mat-icon>
         </button>
+      </mat-card-header>
+
+      <mat-card-content class="form-content">
+        <form class="form-grid">
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Nombre completo</mat-label>
+              <input matInput [(ngModel)]="newColaborador.nombre" name="nombre" required />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>RUT</mat-label>
+              <input matInput [(ngModel)]="newColaborador.rut" name="rut" placeholder="12.345.678-9" />
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Email</mat-label>
+              <input matInput [(ngModel)]="newColaborador.email" name="email" type="email" required />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Teléfono</mat-label>
+              <input matInput [(ngModel)]="newColaborador.telefono" name="telefono" placeholder="+56 9 ..." />
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="form-field full-width">
+              <mat-label>Dirección</mat-label>
+              <input matInput [(ngModel)]="newColaborador.direccion" name="direccion" placeholder="Calle 123, Comuna, Región" />
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Rol</mat-label>
+              <mat-select [(ngModel)]="newColaborador.role" name="role" required>
+                <mat-option value="Tutor">Tutor</mat-option>
+                <mat-option value="Colaborador">Colaborador</mat-option>
+                <mat-option value="Tallerista">Tallerista</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Cargo</mat-label>
+              <input matInput [(ngModel)]="newColaborador.especialidad" name="especialidad" placeholder="Profesor de Historia, Coordinador…" />
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="form-field full-width">
+              <mat-label>Universidad de egreso</mat-label>
+              <input matInput [(ngModel)]="newColaborador.experiencia" name="experiencia" placeholder="Universidad de Chile, PUC…" />
+            </mat-form-field>
+          </div>
+        </form>
+
+        <div class="form-actions">
+          <button mat-stroked-button (click)="toggleForm()" class="cancel-btn">
+            Cancelar
+          </button>
+          <button mat-raised-button color="primary" (click)="addColaborador()" class="submit-btn">
+            <mat-icon>person_add</mat-icon> 
+            Añadir
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- LISTADO DE COLABORADORES -->
+  <mat-card class="elev">
+    <mat-card-content class="list-container">
+      <div class="list-item" *ngFor="let c of filtered()">
+        <div class="item-content">
+          <!-- Avatar y nombre -->
+          <div class="item-main">
+            <div
+              class="avatar-small"
+              [ngClass]="c.role === 'Tutor' ? 'blue' : c.role === 'Tallerista' ? 'teal' : 'purple'">
+              <mat-icon>
+                {{ c.role === 'Tutor' ? 'supervisor_account' : c.role === 'Tallerista' ? 'handyman' : 'person' }}
+              </mat-icon>
+            </div>
+            <div class="item-info">
+              <h3>{{ c.nombre }}</h3>
+              <p class="muted">{{ c.email }}</p>
+            </div>
+          </div>
+
+          <!-- Rol y cargo -->
+          <div class="item-role">
+            <strong>{{ c.role }}</strong>
+            <span *ngIf="c.especialidad"> · {{ c.especialidad }}</span>
+          </div>
+
+          <!-- Acciones -->
+          <div class="item-actions">
+            <button mat-icon-button color="accent" (click)="viewDetails(c)" title="Ver más información">
+              <mat-icon>visibility</mat-icon>
+            </button>
+            <button mat-icon-button color="primary" title="Editar">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button mat-icon-button color="warn" (click)="remove(c)" title="Eliminar">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+        </div>
       </div>
     </mat-card-content>
   </mat-card>
-
-  <!-- TARJETAS -->
-  <div class="cards">
-    <mat-card class="coll elev card-click" *ngFor="let c of filtered()">
-      <mat-card-header>
-        <div
-          mat-card-avatar
-          class="avatar"
-          [ngClass]="c.role === 'Supervisor' ? 'blue' : c.role === 'Tallerista' ? 'teal' : 'purple'">
-          <mat-icon>
-            {{ c.role === 'Supervisor' ? 'supervisor_account' : c.role === 'Tallerista' ? 'handyman' : 'person' }}
-          </mat-icon>
-        </div>
-        <mat-card-title>{{ c.nombre }}</mat-card-title>
-        <mat-card-subtitle>{{ c.centro_educativo }}</mat-card-subtitle>
-      </mat-card-header>
-
-      <mat-card-content>
-        <div class="badge" [ngClass]="statusClass(c.estado)">
-          {{ c.estado }}
-        </div>
-
-        <div class="mt">
-          <b>{{ c.role }}</b> · {{ c.especialidad || '—' }}
-        </div>
-
-        <div class="muted">Experiencia: {{ c.experiencia || '—' }}</div>
-        <div class="muted"> {{ c.email }}</div>
-        <div class="muted"> {{ c.telefono || '—' }}</div>
-      </mat-card-content>
-
-      <mat-card-actions>
-        <button mat-stroked-button color="primary">
-          <mat-icon>edit</mat-icon> Editar
-        </button>
-
-        <button mat-stroked-button color="warn" (click)="remove(c)">
-          <mat-icon>delete</mat-icon> Eliminar
-        </button>
-      </mat-card-actions>
-    </mat-card>
-  </div>
 
   <!-- EMPTY -->
   <mat-card *ngIf="!filtered().length" class="elev empty">
@@ -159,4 +173,69 @@
       <p>No se encontraron colaboradores con los filtros seleccionados.</p>
     </mat-card-content>
   </mat-card>
+
+  <!-- DIALOGO DETALLES -->
+  <div class="details-dialog" *ngIf="selectedColaborador">
+    <div class="dialog-overlay" (click)="closeDetails()"></div>
+    <div class="dialog-content">
+      <div class="dialog-header">
+        <h2>Información del Colaborador</h2>
+        <button mat-icon-button (click)="closeDetails()" class="close-btn">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+      
+      <div class="dialog-body" *ngIf="selectedColaborador">
+        <div class="details-grid">
+          <div class="detail-item">
+            <label>Nombre completo:</label>
+            <span>{{ selectedColaborador.nombre }}</span>
+          </div>
+          
+          <div class="detail-item">
+            <label>RUT:</label>
+            <span>{{ selectedColaborador.rut || 'No especificado' }}</span>
+          </div>
+          
+          <div class="detail-item">
+            <label>Email:</label>
+            <span>{{ selectedColaborador.email }}</span>
+          </div>
+          
+          <div class="detail-item">
+            <label>Dirección:</label>
+            <span>{{ selectedColaborador.direccion || 'No especificada' }}</span>
+          </div>
+          
+          <div class="detail-item">
+            <label>Teléfono:</label>
+            <span>{{ selectedColaborador.telefono || 'No especificado' }}</span>
+          </div>
+          
+          <div class="detail-item">
+            <label>Rol:</label>
+            <span>{{ selectedColaborador.role }}</span>
+          </div>
+          
+          <div class="detail-item">
+            <label>Cargo:</label>
+            <span>{{ selectedColaborador.especialidad || 'No especificado' }}</span>
+          </div>
+          
+          <div class="detail-item">
+            <label>Universidad de egreso:</label>
+            <span>{{ selectedColaborador.experiencia || 'No especificada' }}</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="dialog-actions">
+        <button mat-stroked-button (click)="closeDetails()">Cerrar</button>
+        <button mat-raised-button color="primary">
+          <mat-icon>edit</mat-icon>
+          Editar colaborador
+        </button>
+      </div>
+    </div>
+  </div>
 </div>
