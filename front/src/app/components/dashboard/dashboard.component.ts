@@ -84,6 +84,7 @@ export class DashboardComponent implements OnInit {
     if (id === 'coordinador') {
       // 👉 Sin "Usuarios" para coordinador/a
       return [
+        { title: 'Colegios', icon: 'location_city', route: '/colegios', desc: 'Administración de centros educacionales' },
         { title: 'Colaboradores', icon: 'groups', route: '/colaboradores', desc: 'Alta, filtros y perfiles' },
         ...comunes
       ];

@@ -50,6 +50,13 @@ export const routes: Routes = [
       import('./components/supervision/supervision.component').then(m => m.SupervisionComponent),
   },
 
+   // Gestión de centros educativos
+  {
+    path: 'colegios',
+    loadComponent: () =>
+      import('./components/colegios/colegios.component').then(m => m.ColegiosComponent),
+  },
+
   // Ruta por defecto → redirige a inicio
   { path: '**', redirectTo: '', pathMatch: 'full' },
 ];

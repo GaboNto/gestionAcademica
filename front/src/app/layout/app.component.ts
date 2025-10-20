@@ -128,7 +128,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         { label: 'Reportes/Historial', icon: 'timeline', route: '/reportes' },    // crea la ruta si aún no existe
       ];
       // Si ya tienes /centros, lo dejamos visible:
-      items.splice(3, 0, { label: 'Centros educativos', icon: 'domain', route: '/centros' }); // opcional
+      items.splice(3, 0, { label: 'Centros educativos', icon: 'domain', route: '/colegios' }); // opcional
       return items;
     }
 
