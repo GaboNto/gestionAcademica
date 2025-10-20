@@ -164,9 +164,10 @@
 }
 
 .submit-btn {
-  background: linear-gradient(135deg, #10b981, #059669);
-  box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.3);
-  border: none;
+  background: white;
+  color: #374151;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  border: 1px solid #d1d5db;
   border-radius: 8px;
   padding: 12px 24px;
   font-weight: 600;
@@ -178,19 +179,21 @@
 }
 
 .submit-btn:hover {
-  background: linear-gradient(135deg, #059669, #047857);
-  box-shadow: 0 6px 8px -1px rgba(16, 185, 129, 0.4);
+  background: #f9fafb;
+  box-shadow: 0 6px 8px -1px rgba(0, 0, 0, 0.15);
   transform: translateY(-1px);
+  border-color: #9ca3af;
 }
 
 .submit-btn:active {
   transform: translateY(0);
-  box-shadow: 0 2px 4px -1px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1);
 }
 
 .submit-btn mat-icon {
   margin-right: 8px;
   font-size: 18px;
+  color: #374151;
 }
 
 @media (max-width: 768px) { 
@@ -467,3 +470,203 @@
 /* Empty */
 .empty { margin-top: 12px; }
 .empty__content { display: grid; place-items: center; gap: 8px; }
+
+/* Alerta de éxito personalizada - Estilo oscuro */
+::ng-deep .success-snackbar {
+  .mdc-snackbar__surface {
+    background: #374151 !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+    border-radius: 8px !important;
+    padding: 0 !important;
+    min-width: 400px !important;
+    max-width: 600px !important;
+  }
+
+  .mat-mdc-snack-bar-label {
+    color: white !important;
+    font-weight: 400 !important;
+    font-size: 15px !important;
+    padding: 16px 20px !important;
+    letter-spacing: 0.2px !important;
+  }
+
+  .mdc-snackbar__label {
+    color: white !important;
+  }
+
+  .mat-mdc-button.mat-mdc-snack-bar-action {
+    color: white !important;
+    font-weight: 500 !important;
+    font-size: 14px !important;
+    opacity: 0.9 !important;
+    transition: all 0.2s ease !important;
+    margin-right: 8px !important;
+    text-transform: none !important;
+    
+    &:hover {
+      opacity: 1 !important;
+      background-color: rgba(255, 255, 255, 0.1) !important;
+    }
+  }
+
+  .mat-mdc-button .mat-mdc-button-touch-target {
+    background-color: transparent !important;
+  }
+}
+
+@media (max-width: 640px) {
+  ::ng-deep .success-snackbar {
+    .mdc-snackbar__surface {
+      min-width: auto !important;
+      max-width: calc(100vw - 32px) !important;
+    }
+  }
+}
+
+/* Modal de confirmación de eliminación */
+.delete-confirm-dialog {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.delete-dialog-content {
+  position: relative;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  max-width: 480px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.delete-dialog-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 24px 24px 0;
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 24px;
+}
+
+.delete-icon {
+  width: 40px;
+  height: 40px;
+  background: #fef3c7;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #d97706;
+  flex-shrink: 0;
+}
+
+.delete-dialog-header h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.delete-dialog-body {
+  padding: 0 24px;
+}
+
+.delete-dialog-body p {
+  margin: 0 0 12px;
+  font-size: 16px;
+  color: #374151;
+  line-height: 1.5;
+}
+
+.warning-text {
+  color: #6b7280 !important;
+  font-size: 14px !important;
+  font-style: italic;
+}
+
+.delete-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 24px;
+  border-top: 1px solid #e5e7eb;
+  margin-top: 24px;
+}
+
+.cancel-delete-btn {
+  color: #6b7280;
+  border-color: #d1d5db;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-weight: 500;
+  font-size: 14px;
+  text-transform: none;
+  transition: all 0.2s ease;
+  min-width: 100px;
+}
+
+.cancel-delete-btn:hover {
+  background-color: #f8fafc;
+  border-color: #9ca3af;
+  color: #374151;
+}
+
+.confirm-delete-btn {
+  background: #dc2626;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-weight: 600;
+  font-size: 14px;
+  text-transform: none;
+  transition: all 0.2s ease;
+  min-width: 120px;
+}
+
+.confirm-delete-btn:hover {
+  background: #b91c1c;
+  box-shadow: 0 4px 6px -1px rgba(220, 38, 38, 0.3);
+}
+
+.confirm-delete-btn mat-icon {
+  margin-right: 8px;
+  font-size: 18px;
+}
+
+/* Responsive para el modal de confirmación */
+@media (max-width: 640px) {
+  .delete-dialog-content {
+    width: 95%;
+    margin: 16px;
+  }
+  
+  .delete-dialog-header {
+    padding: 16px 16px 0;
+  }
+  
+  .delete-dialog-header h2 {
+    font-size: 18px;
+  }
+  
+  .delete-dialog-body {
+    padding: 0 16px;
+  }
+  
+  .delete-dialog-actions {
+    padding: 16px;
+    flex-direction: column;
+  }
+  
+  .delete-dialog-actions button {
+    width: 100%;
+  }
+}

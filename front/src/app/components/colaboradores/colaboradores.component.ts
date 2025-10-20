@@ -12,7 +12,7 @@ import { MatInputModule }  from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
-type RolColaborador = 'Tutor' | 'Colaborador' | 'Tallerista';
+type RolColaborador = 'Supervisor' | 'Colaborador' | 'Tallerista';
 
 interface Colaborador {
   nombre: string;
@@ -46,6 +46,10 @@ export class ColaboradoresComponent {
   // UI
   showForm = false;
   selectedColaborador: Colaborador | null = null;
+  isEditing = false;
+  editingColaborador: Colaborador | null = null;
+  showDeleteConfirm = false;
+  colaboradorToDelete: Colaborador | null = null;
 
   // filtros
   searchTerm = '';
@@ -53,7 +57,7 @@ export class ColaboradoresComponent {
 
   // formulario
   newColaborador: Partial<Colaborador> = {
-    role: 'Tutor'
+    role: 'Supervisor'
   };
 
   // datos
@@ -61,7 +65,7 @@ export class ColaboradoresComponent {
     {
       nombre: 'Juan Pérez',
       centro_educativo: 'Colegio A',
-      role: 'Tutor',
+      role: 'Supervisor',
       especialidad: 'Profesor de Matemáticas',
       experiencia: 'Universidad de Chile',
       email: 'juan@example.com',
@@ -98,7 +102,16 @@ export class ColaboradoresComponent {
     if (isPlatformBrowser(this.platformId)) {
       const saved = localStorage.getItem('app.colaboradores');
       if (saved) {
-        try { this.colaboradores = JSON.parse(saved) as Colaborador[]; } catch {}
+        try { 
+          const colaboradoresGuardados = JSON.parse(saved) as any[];
+          // Migrar datos: cambiar "Tutor" por "Supervisor"
+          this.colaboradores = colaboradoresGuardados.map(c => ({
+            ...c,
+            role: c.role === 'Tutor' ? 'Supervisor' : c.role
+          })) as Colaborador[];
+          // Guardar los datos migrados
+          this.persist();
+        } catch {}
       }
     }
   }
@@ -116,7 +129,14 @@ export class ColaboradoresComponent {
   }
 
   // UI
-  toggleForm() { this.showForm = !this.showForm; }
+  toggleForm() { 
+    this.showForm = !this.showForm;
+    if (!this.showForm) {
+      this.isEditing = false;
+      this.editingColaborador = null;
+      this.resetForm();
+    }
+  }
 
   // persistencia
   private persist() {
@@ -155,22 +175,54 @@ export class ColaboradoresComponent {
 
     this.colaboradores.unshift(nuevo);
     this.persist();
-    this.snack.open('Colaborador agregado.', 'OK', { duration: 2000 });
+    
+    // Alerta bonita y personalizada
+    this.snack.open(
+      `✓ ${nuevo.nombre} agregado como ${nuevo.role}`, 
+      'Cerrar', 
+      { 
+        duration: 4000,
+        horizontalPosition: 'center',
+        verticalPosition: 'bottom',
+        panelClass: ['success-snackbar']
+      }
+    );
 
     // reset form (mantengo rol por comodidad)
-    this.newColaborador = { role: c.role };
+    this.resetForm();
     this.showForm = false;
   }
 
   // eliminar
   remove(c: Colaborador) {
-    if (isPlatformBrowser(this.platformId)) {
-      const ok = window.confirm(`¿Eliminar a ${c.nombre}?`);
-      if (!ok) return;
+    this.colaboradorToDelete = c;
+    this.showDeleteConfirm = true;
+  }
+
+  confirmDelete() {
+    if (this.colaboradorToDelete) {
+      this.colaboradores = this.colaboradores.filter(x => x.email !== this.colaboradorToDelete!.email);
+      this.persist();
+      
+      // Alerta de éxito
+      this.snack.open(
+        `✓ ${this.colaboradorToDelete.nombre} eliminado exitosamente`, 
+        'Cerrar', 
+        { 
+          duration: 4000,
+          horizontalPosition: 'center',
+          verticalPosition: 'bottom',
+          panelClass: ['success-snackbar']
+        }
+      );
+      
+      this.closeDeleteConfirm();
     }
-    this.colaboradores = this.colaboradores.filter(x => x.email !== c.email);
-    this.persist();
-    this.snack.open('Colaborador eliminado.', 'OK', { duration: 2000 });
+  }
+
+  closeDeleteConfirm() {
+    this.showDeleteConfirm = false;
+    this.colaboradorToDelete = null;
   }
 
   // filtros
@@ -187,6 +239,90 @@ export class ColaboradoresComponent {
 
       return matchSearch && matchRole;
     });
+  }
+
+  // Funciones de edición
+  editColaborador(colaborador: Colaborador) {
+    this.isEditing = true;
+    this.editingColaborador = colaborador;
+    this.selectedColaborador = null; // Cerrar modal
+    
+    // Cargar datos del colaborador al formulario
+    this.newColaborador = {
+      nombre: colaborador.nombre,
+      email: colaborador.email,
+      role: colaborador.role,
+      especialidad: colaborador.especialidad,
+      experiencia: colaborador.experiencia,
+      telefono: colaborador.telefono,
+      rut: colaborador.rut,
+      direccion: colaborador.direccion
+    };
+    
+    this.showForm = true;
+  }
+
+  updateColaborador() {
+    const c = this.newColaborador;
+    const colaboradorOriginal = this.editingColaborador;
+
+    // validación mínima
+    if (!c?.nombre || !c?.email || !c?.role) {
+      this.snack.open('Completa nombre, email y rol.', 'Cerrar', { duration: 2500 });
+      return;
+    }
+
+    // evitar duplicados por email (excepto el mismo colaborador)
+    const exists = this.colaboradores.some(x => 
+      x.email.trim().toLowerCase() === c.email!.trim().toLowerCase() && 
+      x.email !== colaboradorOriginal?.email
+    );
+    if (exists) {
+      this.snack.open('Ya existe un colaborador con ese email.', 'Cerrar', { duration: 2500 });
+      return;
+    }
+
+    // Actualizar colaborador
+    if (colaboradorOriginal) {
+      const index = this.colaboradores.findIndex(x => x.email === colaboradorOriginal.email);
+      if (index !== -1) {
+        this.colaboradores[index] = {
+          ...colaboradorOriginal,
+          nombre: c.nombre!.trim(),
+          email: c.email!.trim(),
+          role: c.role as RolColaborador,
+          especialidad: c.especialidad?.trim(),
+          experiencia: c.experiencia?.trim(),
+          telefono: c.telefono?.trim(),
+          rut: c.rut?.trim(),
+          direccion: c.direccion?.trim()
+        };
+      }
+    }
+
+    this.persist();
+    
+    // Alerta de éxito
+    this.snack.open(
+      `✓ ${c.nombre} actualizado exitosamente`, 
+      'Cerrar', 
+      { 
+        duration: 4000,
+        horizontalPosition: 'center',
+        verticalPosition: 'bottom',
+        panelClass: ['success-snackbar']
+      }
+    );
+
+    // Reset y cerrar
+    this.resetForm();
+    this.isEditing = false;
+    this.editingColaborador = null;
+    this.showForm = false;
+  }
+
+  private resetForm() {
+    this.newColaborador = { role: 'Supervisor' };
   }
 
 }
