@@ -68,6 +68,7 @@ export class DashboardComponent implements OnInit {
   private buildCardsFor(id: RoleId): CardItem[] {
     const comunes: CardItem[] = [
       { title: 'Gestión de Estudiantes', icon: 'school', route: '/estudiantes', desc: 'Registro, búsqueda y exportación' },
+      { title: 'Prácticas',              icon: 'work', route: '/practicas', desc: 'Asignación estudiante-colegio' },
       { title: 'Encuestas',              icon: 'assignment', route: '/encuestas', desc: 'Formularios y evaluación' },
       { title: 'Supervisión',            icon: 'insights', route: '/supervision', desc: 'Indicadores y vencimientos' },
     ];

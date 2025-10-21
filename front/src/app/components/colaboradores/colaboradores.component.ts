@@ -16,7 +16,7 @@ type RolColaborador = 'Supervisor' | 'Colaborador' | 'Tallerista';
 
 interface Colaborador {
   nombre: string;
-  centro_educativo: string;
+  centroEducativo: string;
   role: RolColaborador;
   especialidad?: string;
   experiencia?: string;
@@ -43,28 +43,28 @@ export class ColaboradoresComponent {
   private router = inject(Router);
   private platformId = inject(PLATFORM_ID);
 
-  // UI
-  showForm = false;
-  selectedColaborador: Colaborador | null = null;
-  isEditing = false;
-  editingColaborador: Colaborador | null = null;
-  showDeleteConfirm = false;
-  colaboradorToDelete: Colaborador | null = null;
+  // Interfaz de usuario
+  mostrarFormulario = false;
+  colaboradorSeleccionado: Colaborador | null = null;
+  estaEditando = false;
+  colaboradorEditando: Colaborador | null = null;
+  mostrarConfirmarEliminar = false;
+  colaboradorAEliminar: Colaborador | null = null;
 
-  // filtros
-  searchTerm = '';
-  selectedRole: 'all' | RolColaborador = 'all';
+  // Filtros
+  terminoBusqueda = '';
+  rolSeleccionado: 'all' | RolColaborador = 'all';
 
-  // formulario
-  newColaborador: Partial<Colaborador> = {
+  // Formulario
+  nuevoColaborador: Partial<Colaborador> = {
     role: 'Supervisor'
   };
 
-  // datos
+  // Datos
   colaboradores: Colaborador[] = [
     {
       nombre: 'Juan Pérez',
-      centro_educativo: 'Colegio A',
+      centroEducativo: 'Colegio A',
       role: 'Supervisor',
       especialidad: 'Profesor de Matemáticas',
       experiencia: 'Universidad de Chile',
@@ -75,7 +75,7 @@ export class ColaboradoresComponent {
     },
     {
       nombre: 'María López',
-      centro_educativo: 'Colegio B',
+      centroEducativo: 'Colegio B',
       role: 'Colaborador',
       especialidad: 'Profesora de Lenguaje',
       experiencia: 'Pontificia Universidad Católica',
@@ -86,7 +86,7 @@ export class ColaboradoresComponent {
     },
     {
       nombre: 'Daniel Soto',
-      centro_educativo: 'Colegio C',
+      centroEducativo: 'Colegio C',
       role: 'Tallerista',
       especialidad: 'Coordinador de Taller de Patrimonio',
       experiencia: 'Universidad de Santiago',
@@ -100,63 +100,63 @@ export class ColaboradoresComponent {
   constructor() {
     // Cargar desde localStorage (SSR-safe)
     if (isPlatformBrowser(this.platformId)) {
-      const saved = localStorage.getItem('app.colaboradores');
-      if (saved) {
+      const guardado = localStorage.getItem('app.colaboradores');
+      if (guardado) {
         try { 
-          const colaboradoresGuardados = JSON.parse(saved) as any[];
+          const colaboradoresGuardados = JSON.parse(guardado) as any[];
           // Migrar datos: cambiar "Tutor" por "Supervisor"
           this.colaboradores = colaboradoresGuardados.map(c => ({
             ...c,
             role: c.role === 'Tutor' ? 'Supervisor' : c.role
           })) as Colaborador[];
           // Guardar los datos migrados
-          this.persist();
+          this.persistir();
         } catch {}
       }
     }
   }
 
-  // navegación
-  goBack() { this.router.navigate(['/dashboard']); }
+  // Navegación
+  volverAtras() { this.router.navigate(['/dashboard']); }
 
-  // detalles
-  viewDetails(colaborador: Colaborador) {
-    this.selectedColaborador = colaborador;
+  // Detalles
+  verDetalles(colaborador: Colaborador) {
+    this.colaboradorSeleccionado = colaborador;
   }
 
-  closeDetails() {
-    this.selectedColaborador = null;
+  cerrarDetalles() {
+    this.colaboradorSeleccionado = null;
   }
 
-  // UI
-  toggleForm() { 
-    this.showForm = !this.showForm;
-    if (!this.showForm) {
-      this.isEditing = false;
-      this.editingColaborador = null;
-      this.resetForm();
+  // Interfaz de usuario
+  alternarFormulario() { 
+    this.mostrarFormulario = !this.mostrarFormulario;
+    if (!this.mostrarFormulario) {
+      this.estaEditando = false;
+      this.colaboradorEditando = null;
+      this.resetearFormulario();
     }
   }
 
-  // persistencia
-  private persist() {
+  // Persistencia
+  private persistir() {
     if (isPlatformBrowser(this.platformId)) {
       localStorage.setItem('app.colaboradores', JSON.stringify(this.colaboradores));
     }
   }
 
-  // agregar
-  addColaborador() {
-    const c = this.newColaborador;
+  // Agregar
+  agregarColaborador() {
+    const c = this.nuevoColaborador;
 
-    // validación mínima
+    // Validación mínima
     if (!c?.nombre || !c?.email || !c?.role) {
       this.snack.open('Completa nombre, email y rol.', 'Cerrar', { duration: 2500 });
       return;
     }
-    // evitar duplicados por email
-    const exists = this.colaboradores.some(x => x.email.trim().toLowerCase() === c.email!.trim().toLowerCase());
-    if (exists) {
+    // Evitar duplicados por email
+    const existe = this.colaboradores.some(x => x.email.trim().toLowerCase() === c.email!.trim().toLowerCase());
+    if (existe) {
       this.snack.open('Ya existe un colaborador con ese email.', 'Cerrar', { duration: 2500 });
       return;
     }
@@ -164,7 +164,7 @@ export class ColaboradoresComponent {
     const nuevo: Colaborador = {
       nombre: c.nombre.trim(),
       email: c.email!.trim(),
-      centro_educativo: 'Sin especificar', // Valor por defecto
+      centroEducativo: 'Sin especificar', // Valor por defecto
       role: c.role as RolColaborador,
       especialidad: c.especialidad?.trim(),
       experiencia: c.experiencia?.trim(),
@@ -174,7 +174,7 @@ export class ColaboradoresComponent {
     };
 
     this.colaboradores.unshift(nuevo);
-    this.persist();
+    this.persistir();
     
     // Alerta bonita y personalizada
     this.snack.open(
@@ -188,25 +188,25 @@ export class ColaboradoresComponent {
       }
     );
 
-    // reset form (mantengo rol por comodidad)
-    this.resetForm();
-    this.showForm = false;
+    // Resetear formulario (mantengo rol por comodidad)
+    this.resetearFormulario();
+    this.mostrarFormulario = false;
   }
 
-  // eliminar
-  remove(c: Colaborador) {
-    this.colaboradorToDelete = c;
-    this.showDeleteConfirm = true;
+  // Eliminar
+  eliminar(c: Colaborador) {
+    this.colaboradorAEliminar = c;
+    this.mostrarConfirmarEliminar = true;
   }
 
-  confirmDelete() {
-    if (this.colaboradorToDelete) {
-      this.colaboradores = this.colaboradores.filter(x => x.email !== this.colaboradorToDelete!.email);
-      this.persist();
+  confirmarEliminar() {
+    if (this.colaboradorAEliminar) {
+      this.colaboradores = this.colaboradores.filter(x => x.email !== this.colaboradorAEliminar!.email);
+      this.persistir();
       
       // Alerta de éxito
       this.snack.open(
-        `✓ ${this.colaboradorToDelete.nombre} eliminado exitosamente`, 
+        `✓ ${this.colaboradorAEliminar.nombre} eliminado exitosamente`, 
         'Cerrar', 
         { 
           duration: 4000,
@@ -216,39 +216,39 @@ export class ColaboradoresComponent {
         }
       );
       
-      this.closeDeleteConfirm();
+      this.cerrarConfirmarEliminar();
     }
   }
 
-  closeDeleteConfirm() {
-    this.showDeleteConfirm = false;
-    this.colaboradorToDelete = null;
+  cerrarConfirmarEliminar() {
+    this.mostrarConfirmarEliminar = false;
+    this.colaboradorAEliminar = null;
   }
 
-  // filtros
-  filtered() {
-    const term = this.searchTerm.toLowerCase().trim();
+  // Filtros
+  filtrados() {
+    const termino = this.terminoBusqueda.toLowerCase().trim();
     return this.colaboradores.filter(c => {
-      const matchSearch =
-        !term ||
-        c.nombre.toLowerCase().includes(term) ||
-        c.email.toLowerCase().includes(term) ||
-        (c.especialidad && c.especialidad.toLowerCase().includes(term));
+      const coincideBusqueda =
+        !termino ||
+        c.nombre.toLowerCase().includes(termino) ||
+        c.email.toLowerCase().includes(termino) ||
+        (c.especialidad && c.especialidad.toLowerCase().includes(termino));
 
-      const matchRole = this.selectedRole === 'all' || c.role === this.selectedRole;
+      const coincideRol = this.rolSeleccionado === 'all' || c.role === this.rolSeleccionado;
 
-      return matchSearch && matchRole;
+      return coincideBusqueda && coincideRol;
     });
   }
 
   // Funciones de edición
-  editColaborador(colaborador: Colaborador) {
-    this.isEditing = true;
-    this.editingColaborador = colaborador;
-    this.selectedColaborador = null; // Cerrar modal
+  editarColaborador(colaborador: Colaborador) {
+    this.estaEditando = true;
+    this.colaboradorEditando = colaborador;
+    this.colaboradorSeleccionado = null; // Cerrar modal
     
     // Cargar datos del colaborador al formulario
-    this.newColaborador = {
+    this.nuevoColaborador = {
       nombre: colaborador.nombre,
       email: colaborador.email,
       role: colaborador.role,
@@ -259,34 +259,34 @@ export class ColaboradoresComponent {
       direccion: colaborador.direccion
     };
     
-    this.showForm = true;
+    this.mostrarFormulario = true;
   }
 
-  updateColaborador() {
-    const c = this.newColaborador;
-    const colaboradorOriginal = this.editingColaborador;
+  actualizarColaborador() {
+    const c = this.nuevoColaborador;
+    const colaboradorOriginal = this.colaboradorEditando;
 
-    // validación mínima
+    // Validación mínima
     if (!c?.nombre || !c?.email || !c?.role) {
       this.snack.open('Completa nombre, email y rol.', 'Cerrar', { duration: 2500 });
       return;
     }
 
-    // evitar duplicados por email (excepto el mismo colaborador)
-    const exists = this.colaboradores.some(x => 
+    // Evitar duplicados por email (excepto el mismo colaborador)
+    const existe = this.colaboradores.some(x => 
       x.email.trim().toLowerCase() === c.email!.trim().toLowerCase() && 
       x.email !== colaboradorOriginal?.email
     );
-    if (exists) {
+    if (existe) {
       this.snack.open('Ya existe un colaborador con ese email.', 'Cerrar', { duration: 2500 });
       return;
     }
 
     // Actualizar colaborador
     if (colaboradorOriginal) {
-      const index = this.colaboradores.findIndex(x => x.email === colaboradorOriginal.email);
-      if (index !== -1) {
-        this.colaboradores[index] = {
+      const indice = this.colaboradores.findIndex(x => x.email === colaboradorOriginal.email);
+      if (indice !== -1) {
+        this.colaboradores[indice] = {
           ...colaboradorOriginal,
           nombre: c.nombre!.trim(),
           email: c.email!.trim(),
@@ -300,7 +300,7 @@ export class ColaboradoresComponent {
       }
     }
 
-    this.persist();
+    this.persistir();
     
     // Alerta de éxito
     this.snack.open(
@@ -314,15 +314,15 @@ export class ColaboradoresComponent {
       }
     );
 
-    // Reset y cerrar
-    this.resetForm();
-    this.isEditing = false;
-    this.editingColaborador = null;
-    this.showForm = false;
+    // Resetear y cerrar
+    this.resetearFormulario();
+    this.estaEditando = false;
+    this.colaboradorEditando = null;
+    this.mostrarFormulario = false;
   }
 
-  private resetForm() {
-    this.newColaborador = { role: 'Supervisor' };
+  private resetearFormulario() {
+    this.nuevoColaborador = { role: 'Supervisor' };
   }
 
 }

@@ -50,6 +50,13 @@ export const routes: Routes = [
       import('./components/supervision/supervision.component').then(m => m.SupervisionComponent),
   },
 
+  // Gestión de prácticas
+  {
+    path: 'practicas',
+    loadComponent: () =>
+      import('./components/practicas/practicas.component').then(m => m.PracticasComponent),
+  },
+
   // Ruta por defecto → redirige a inicio
   { path: '**', redirectTo: '', pathMatch: 'full' },
 ];
