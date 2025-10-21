@@ -1,7 +1,6 @@
 import { Component, inject, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
 
 // Angular Material
 import { MatButtonModule } from '@angular/material/button';
@@ -17,22 +16,19 @@ type Convenio   = 'Marco SLEP' | 'Solicitud directa' | 'ADEP';
 
 interface ContactoCentro {
   nombre: string;
-  email?: string;
+  correo?: string;
   telefono?: string;
 }
 
 interface Colegio {
+  id: number;
   nombre: string;
   tipo: TipoCentro;
   region: string;
   comuna: string;
-  direccion: string;
   convenio: Convenio;
-
-  // Opcionales
-  rbd?: string;
-  sitioWeb?: string;
-
+  direccion?: string;
+  url_rrss?: string;
   director?: ContactoCentro;
   utp?: ContactoCentro;
 }
@@ -51,247 +47,235 @@ interface Colegio {
 })
 export class ColegiosComponent {
   private snack = inject(MatSnackBar);
-  private router = inject(Router);
   private platformId = inject(PLATFORM_ID);
 
-  // UI
+  // ===== UI =====
   showForm = false;
-  searchTerm = '';
+  isEditing = false;
   sortAZ = true;
 
-  // Estados de detalles / edición
-  selectedColegio: Colegio | null = null;
-  editingIndex: number | null = null;
-  editColegio: Partial<Colegio> = {};
-  editComunasDisponibles: string[] = [];
+  // ===== filtros (lista) =====
+  searchTerm = '';
+  selectedTipo: 'all' | TipoCentro = 'all';
 
-  // Formulario (alta)
+  // ===== regiones y comunas =====
+  // (puedes ampliar el catálogo sin tocar el resto del código)
+  readonly REGIONES: { nombre: string; comunas: string[] }[] = [
+    { nombre: 'Región de Arica y Parinacota', comunas: ['Arica', 'Camarones', 'Putre', 'General Lagos'] },
+    { nombre: 'Región de Tarapacá',           comunas: ['Iquique', 'Alto Hospicio', 'Pozo Almonte'] },
+    { nombre: 'Región Metropolitana de Santiago', comunas: ['Santiago', 'Providencia', 'Las Condes', 'La Florida', 'Puente Alto', 'Maipú'] },
+  ];
+  comunasFiltradas: string[] = [];
+
+  // ===== formulario =====
+  private idCounter = 1;
+  editId: number | null = null;
+
   newColegio: Partial<Colegio> = {
+    nombre: '',
     tipo: 'Público',
+    region: '',
+    comuna: '',
     convenio: 'Marco SLEP',
+    direccion: '',
+    url_rrss: '',
+    director: { nombre: '', correo: '', telefono: '' },
+    utp:      { nombre: '', correo: '', telefono: '' },
   };
 
-  // Regiones y comunas
-  regionesComunas: Record<string, string[]> = {
-    'Región de Arica y Parinacota': ['Arica','Camarones','Putre','General Lagos'],
-    'Región de Tarapacá': ['Iquique','Alto Hospicio','Pozo Almonte','Camiña','Colchane','Huara','Pica'],
-    'Región de Antofagasta': ['Antofagasta','Mejillones','Sierra Gorda','Taltal','Calama','Ollagüe','San Pedro de Atacama','Tocopilla','María Elena'],
-    'Región de Atacama': ['Copiapó','Caldera','Tierra Amarilla','Chañaral','Diego de Almagro','Vallenar','Alto del Carmen','Freirina','Huasco'],
-    'Región de Coquimbo': ['La Serena','Coquimbo','Andacollo','La Higuera','Paihuano','Vicuña','Illapel','Canela','Los Vilos','Salamanca','Ovalle','Combarbalá','Monte Patria','Punitaqui','Río Hurtado'],
-    'Región de Valparaíso': [
-      'Valparaíso','Viña del Mar','Concón','Quintero','Puchuncaví','Casablanca','Quilpué','Villa Alemana','Limache','Olmué',
-      'Quillota','La Calera','La Cruz','Nogales','Hijuelas','San Antonio','Cartagena','El Tabo','El Quisco','Algarrobo','Santo Domingo',
-      'San Felipe','Llaillay','Catemu','Panquehue','Putaendo','Santa María','Los Andes','Calle Larga','Rinconada','San Esteban','Isla de Pascua','Juan Fernández'
-    ],
-    'Región Metropolitana de Santiago': [
-      'Santiago','Cerrillos','Cerro Navia','Conchalí','El Bosque','Estación Central','Huechuraba','Independencia','La Cisterna','La Florida','La Granja','La Pintana','La Reina','Las Condes','Lo Barnechea','Lo Espejo','Lo Prado','Macul','Maipú','Ñuñoa','Pedro Aguirre Cerda','Peñalolén','Providencia','Pudahuel','Quilicura','Quinta Normal','Recoleta','Renca','San Joaquín','San Miguel','San Ramón','Vitacura',
-      'Puente Alto','Pirque','San José de Maipo','San Bernardo','Buin','Calera de Tango','Paine','Colina','Lampa','Tiltil','Melipilla','Curacaví','María Pinto','San Pedro','Talagante','El Monte','Isla de Maipo','Padre Hurtado','Peñaflor'
-    ],
-    'Región del Libertador B. O’Higgins': [],
-    'Región del Maule': [],
-    'Región de Ñuble': [],
-    'Región del Biobío': [],
-    'Región de La Araucanía': [],
-    'Región de Los Ríos': [],
-    'Región de Los Lagos': [],
-    'Región de Aysén del G. Carlos Ibáñez del Campo': [],
-    'Región de Magallanes y de la Antártica Chilena': [],
-  };
-
-  regiones: string[] = Object.keys(this.regionesComunas).sort();
-  comunasDisponibles: string[] = [];
-
-  // Datos demo
+  // ===== datos (mock + persistencia local) =====
   colegios: Colegio[] = [
     {
+      id: this.idCounter++,
       nombre: 'Liceo Bicentenario Santiago',
       tipo: 'Público',
       region: 'Región Metropolitana de Santiago',
       comuna: 'Santiago',
-      direccion: 'Av. Ejemplo 123',
       convenio: 'Marco SLEP',
-      rbd: '12345-6',
-      sitioWeb: 'https://www.liceobicentenario.cl',
-      director: { nombre: 'Carlos Pérez', email: 'c.perez@liceo.cl', telefono: '+56 2 2345 6789' },
-      utp:      { nombre: 'Ana Rojas',    email: 'a.rojas@liceo.cl', telefono: '+56 2 2987 6543' }
+      director: { nombre: 'Carlos Pérez' },
+      utp: { nombre: 'Ana Rojas' }
+    },
+    {
+      id: this.idCounter++,
+      nombre: 'Colegio Saucache',
+      tipo: 'Particular subvencionado',
+      region: 'Región de Arica y Parinacota',
+      comuna: 'Arica',
+      convenio: 'Solicitud directa',
+      director: { nombre: 'Guillermo Quintanilla' },
+      utp: { nombre: 'Nora Pizarro' }
     }
   ];
 
+  selectedColegio: Colegio | null = null;
+
   constructor() {
-    if (this.newColegio.region) this.onRegionChange(this.newColegio.region);
-  }
-
-  // --- Navegación
-  goBack() { this.router.navigate(['/dashboard']); }
-
-  // --- Helpers para [(ngModel)] seguro en objetos anidados (alta)
-  ensureDirector() {
-    if (!this.newColegio.director) this.newColegio.director = { nombre: '' };
-  }
-  ensureUtp() {
-    if (!this.newColegio.utp) this.newColegio.utp = { nombre: '' };
-  }
-
-  // --- Helpers para edición
-  ensureDirectorEdit() {
-    if (!this.editColegio.director) this.editColegio.director = { nombre: '' };
-  }
-  ensureUtpEdit() {
-    if (!this.editColegio.utp) this.editColegio.utp = { nombre: '' };
-  }
-
-  // --- Filtro y orden
-  filtered(): Colegio[] {
-    const t = this.searchTerm.trim().toLowerCase();
-    let list = this.colegios.filter(c =>
-      !t ||
-      c.nombre.toLowerCase().includes(t) ||
-      c.region.toLowerCase().includes(t) ||
-      c.comuna.toLowerCase().includes(t) ||
-      c.tipo.toLowerCase().includes(t)
-    );
-    if (this.sortAZ) list = [...list].sort((a,b) => a.nombre.localeCompare(b.nombre));
-    return list;
-  }
-
-  toggleSort() { this.sortAZ = !this.sortAZ; }
-
-  // --- Región -> Comunas (alta)
-  onRegionChange(region: string | undefined) {
-    if (!region) {
-      this.comunasDisponibles = [];
-      this.newColegio.comuna = '';
-      return;
+    if (isPlatformBrowser(this.platformId)) {
+      const saved = localStorage.getItem('app.colegios');
+      if (saved) {
+        try {
+          const list = JSON.parse(saved) as Colegio[];
+          if (Array.isArray(list) && list.length) {
+            this.colegios = list;
+            // recalcular idCounter
+            this.idCounter = Math.max(...this.colegios.map(c => c.id)) + 1;
+          }
+        } catch {}
+      }
     }
-    this.comunasDisponibles = this.regionesComunas[region] ?? [];
-    if (!this.comunasDisponibles.includes(this.newColegio.comuna || '')) {
+  }
+
+  // ===== helpers UI =====
+  toggleForm() {
+    this.showForm = !this.showForm;
+    if (!this.showForm) this.resetForm();
+  }
+
+  onRegionChange() {
+    const region = this.newColegio.region || '';
+    const reg = this.REGIONES.find(r => r.nombre === region);
+    this.comunasFiltradas = reg ? reg.comunas : [];
+    // reset comuna si no pertenece a la lista filtrada
+    if (!this.comunasFiltradas.includes(this.newColegio.comuna || '')) {
       this.newColegio.comuna = '';
     }
   }
 
-  // --- Región -> Comunas (edición)
-  onRegionChangeEdit(region: string | undefined) {
-    if (!region) {
-      this.editComunasDisponibles = [];
-      this.editColegio.comuna = '';
-      return;
-    }
-    this.editComunasDisponibles = this.regionesComunas[region] ?? [];
-    if (!this.editComunasDisponibles.includes(this.editColegio.comuna || '')) {
-      this.editColegio.comuna = '';
+  private persist() {
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.setItem('app.colegios', JSON.stringify(this.colegios));
     }
   }
 
-  // --- Alta
-  addColegio() {
+  private resetForm() {
+    this.isEditing = false;
+    this.editId = null;
+    this.newColegio = {
+      nombre: '',
+      tipo: 'Público',
+      region: '',
+      comuna: '',
+      convenio: 'Marco SLEP',
+      direccion: '',
+      url_rrss: '',
+      director: { nombre: '', correo: '', telefono: '' },
+      utp:      { nombre: '', correo: '', telefono: '' },
+    };
+    this.comunasFiltradas = [];
+  }
+
+  // ===== CRUD =====
+  addOrUpdateColegio() {
     const c = this.newColegio;
 
-    if (!c?.nombre || !c?.tipo || !c?.region || !c?.comuna || !c?.direccion || !c?.convenio) {
+    // validaciones mínimas
+    if (!c.nombre?.trim() || !c.tipo || !c.region || !c.comuna || !c.convenio) {
       this.snack.open('Debe completar todos los campos requeridos.', 'Cerrar', { duration: 2500 });
       return;
     }
 
-    const exists = this.colegios.some(x =>
+    // evitar duplicados (nombre + comuna)
+    const dup = this.colegios.some(x =>
       x.nombre.trim().toLowerCase() === c.nombre!.trim().toLowerCase() &&
-      x.comuna.trim().toLowerCase() === c.comuna!.trim().toLowerCase()
-    );
-    if (exists) {
-      this.snack.open('Ya existe un centro con ese nombre en la misma comuna.', 'Cerrar', { duration: 2500 });
-      return;
-    }
-
-    const nuevo: Colegio = {
-      nombre: c.nombre!.trim(),
-      tipo: c.tipo as TipoCentro,
-      region: c.region!,
-      comuna: c.comuna!,
-      direccion: c.direccion!.trim(),
-      convenio: c.convenio as Convenio,
-      rbd: c.rbd?.trim() || undefined,
-      sitioWeb: c.sitioWeb?.trim() || undefined,
-      director: c.director?.nombre
-        ? { nombre: c.director.nombre.trim(), email: c.director.email?.trim(), telefono: c.director.telefono?.trim() }
-        : undefined,
-      utp: c.utp?.nombre
-        ? { nombre: c.utp.nombre.trim(), email: c.utp.email?.trim(), telefono: c.utp.telefono?.trim() }
-        : undefined
-    };
-
-    this.colegios.unshift(nuevo);
-    this.snack.open('Centro educativo agregado.', 'OK', { duration: 1800 });
-
-    this.newColegio = { tipo: 'Público', convenio: 'Marco SLEP' };
-    this.comunasDisponibles = [];
-    this.showForm = false;
-  }
-
-  // --- Detalles
-  viewDetails(c: Colegio) { this.selectedColegio = c; }
-  closeDetails() { this.selectedColegio = null; }
-
-  // --- Edición
-  startEdit(c: Colegio, index: number) {
-    this.editingIndex = index;
-    // Clonar objeto para edición
-    this.editColegio = JSON.parse(JSON.stringify(c));
-    this.onRegionChangeEdit(this.editColegio.region);
-  }
-
-  cancelEdit() {
-    this.editingIndex = null;
-    this.editColegio = {};
-    this.editComunasDisponibles = [];
-  }
-
-  saveEdit() {
-    const e = this.editColegio;
-    if (!e?.nombre || !e?.tipo || !e?.region || !e?.comuna || !e?.direccion || !e?.convenio) {
-      this.snack.open('Debe completar todos los campos requeridos.', 'Cerrar', { duration: 2500 });
-      return;
-    }
-
-    // Duplicados (ignorando el registro actual)
-    const dup = this.colegios.some((x, i) =>
-      i !== this.editingIndex &&
-      x.nombre.trim().toLowerCase() === e.nombre!.trim().toLowerCase() &&
-      x.comuna.trim().toLowerCase() === e.comuna!.trim().toLowerCase()
+      x.comuna === c.comuna &&
+      (!this.isEditing || x.id !== this.editId)
     );
     if (dup) {
-      this.snack.open('Ya existe un centro con ese nombre en la misma comuna.', 'Cerrar', { duration: 2500 });
+      this.snack.open('Ya existe un centro educativo con ese nombre en la misma comuna.', 'Cerrar', { duration: 2500 });
       return;
     }
 
-    const final: Colegio = {
-      nombre: e.nombre!.trim(),
-      tipo: e.tipo as TipoCentro,
-      region: e.region!,
-      comuna: e.comuna!,
-      direccion: e.direccion!.trim(),
-      convenio: e.convenio as Convenio,
-      rbd: e.rbd?.trim() || undefined,
-      sitioWeb: e.sitioWeb?.trim() || undefined,
-      director: e.director?.nombre
-        ? { nombre: e.director.nombre.trim(), email: e.director.email?.trim(), telefono: e.director.telefono?.trim() }
-        : undefined,
-      utp: e.utp?.nombre
-        ? { nombre: e.utp.nombre.trim(), email: e.utp.email?.trim(), telefono: e.utp.telefono?.trim() }
-        : undefined
-    };
-
-    if (this.editingIndex !== null) {
-      this.colegios[this.editingIndex] = final;
+    if (this.isEditing && this.editId != null) {
+      const idx = this.colegios.findIndex(x => x.id === this.editId);
+      if (idx > -1) {
+        this.colegios[idx] = {
+          id: this.editId,
+          nombre: c.nombre!.trim(),
+          tipo: c.tipo as TipoCentro,
+          region: c.region!,
+          comuna: c.comuna!,
+          convenio: c.convenio as Convenio,
+          direccion: c.direccion?.trim(),
+          url_rrss: c.url_rrss?.trim(),
+          director: { ...(c.director || { nombre: '' }) },
+          utp:      { ...(c.utp || { nombre: '' }) },
+        };
+        this.snack.open('Centro actualizado.', 'OK', { duration: 2000 });
+      }
+    } else {
+      const nuevo: Colegio = {
+        id: this.idCounter++,
+        nombre: c.nombre!.trim(),
+        tipo: c.tipo as TipoCentro,
+        region: c.region!,
+        comuna: c.comuna!,
+        convenio: c.convenio as Convenio,
+        direccion: c.direccion?.trim(),
+        url_rrss: c.url_rrss?.trim(),
+        director: { ...(c.director || { nombre: '' }) },
+        utp:      { ...(c.utp || { nombre: '' }) },
+      };
+      this.colegios.unshift(nuevo);
+      this.snack.open('Centro agregado.', 'OK', { duration: 2000 });
     }
-    this.snack.open('Centro actualizado.', 'OK', { duration: 1800 });
-    this.cancelEdit();
+
+    this.persist();
+    this.toggleForm();
   }
 
-  // --- Eliminar
-  remove(colegio: Colegio) {
+  edit(c: Colegio) {
+    this.isEditing = true;
+    this.editId = c.id;
+    this.showForm = true;
+    this.newColegio = {
+      ...c,
+      director: { ...(c.director || { nombre: '', correo: '', telefono: '' }) },
+      utp:      { ...(c.utp || { nombre: '', correo: '', telefono: '' }) },
+    };
+    this.onRegionChange();
+  }
+
+  remove(c: Colegio) {
     if (isPlatformBrowser(this.platformId)) {
-      const ok = window.confirm(`¿Eliminar "${colegio.nombre}"?`);
+      const ok = window.confirm(`¿Eliminar “${c.nombre}” de ${c.comuna}?`);
       if (!ok) return;
     }
-    this.colegios = this.colegios.filter(x => !(x.nombre === colegio.nombre && x.comuna === colegio.comuna));
-    this.snack.open('Centro eliminado.', 'OK', { duration: 1800 });
+    this.colegios = this.colegios.filter(x => x.id !== c.id);
+    this.persist();
+    this.snack.open('Centro eliminado.', 'OK', { duration: 2000 });
+  }
+
+  view(c: Colegio) {
+    this.selectedColegio = c;
+  }
+  closeDetails() { this.selectedColegio = null; }
+
+  // ordenar por nombre
+  toggleSort() { this.sortAZ = !this.sortAZ; }
+
+  // ===== filtro listado =====
+  filtered(): Colegio[] {
+    const t = this.searchTerm.trim().toLowerCase();
+
+    let list = this.colegios.filter(c => {
+      const matchSearch =
+        !t ||
+        c.nombre.toLowerCase().includes(t) ||
+        c.region.toLowerCase().includes(t) ||
+        c.comuna.toLowerCase().includes(t) ||
+        c.tipo.toLowerCase().includes(t);
+
+      const matchTipo = this.selectedTipo === 'all' || c.tipo === this.selectedTipo;
+
+      return matchSearch && matchTipo;
+    });
+
+    list = [...list].sort((a, b) =>
+      this.sortAZ
+        ? a.nombre.localeCompare(b.nombre)
+        : b.nombre.localeCompare(a.nombre)
+    );
+
+    return list;
   }
 }

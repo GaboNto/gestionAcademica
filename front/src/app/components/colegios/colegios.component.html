@@ -5,21 +5,20 @@
       <h1>Gestión de Centros Educativos</h1>
       <p class="muted">Registrar, buscar y mantener colegios/liceos asociados</p>
     </div>
-
     <div class="spacer"></div>
 
-    <button mat-stroked-button (click)="toggleSort()" class="btn-sort" [disabled]="!filtered().length">
+    <button mat-stroked-button (click)="toggleSort()" class="btn-sort">
       <mat-icon>sort_by_alpha</mat-icon>
       {{ sortAZ ? 'A → Z' : 'Z → A' }}
     </button>
 
-    <button mat-flat-button color="primary" (click)="showForm = !showForm" class="btn-add">
-      <mat-icon>{{ showForm ? 'close' : 'domain_add' }}</mat-icon>
+    <button mat-flat-button color="primary" (click)="toggleForm()" class="btn-add">
+      <mat-icon>{{ showForm ? 'close' : 'add_business' }}</mat-icon>
       {{ showForm ? 'Cerrar' : 'Agregar centro' }}
     </button>
   </div>
 
-  <!-- ===== FILTROS LISTA ===== -->
+  <!-- ===== FILTROS LISTA (Búsqueda + TIPO) ===== -->
   <div class="filters-section">
     <div class="filters">
       <mat-form-field appearance="outline" class="flex1">
@@ -28,64 +27,42 @@
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="role-filter">
-        <mat-label>Región (filtro)</mat-label>
-        <mat-select [(ngModel)]="newColegio.region" (selectionChange)="onRegionChange(newColegio.region)">
-          <mat-option [value]="undefined">Todas</mat-option>
-          <mat-option *ngFor="let r of regiones" [value]="r">{{ r }}</mat-option>
-        </mat-select>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="role-filter">
-        <mat-label>Comuna (filtro)</mat-label>
-        <mat-select [(ngModel)]="newColegio.comuna">
-          <mat-option [value]="''">Todas</mat-option>
-          <mat-option *ngFor="let c of comunasDisponibles" [value]="c">{{ c }}</mat-option>
+        <mat-label>Tipo (filtro)</mat-label>
+        <mat-select [(ngModel)]="selectedTipo">
+          <mat-option value="all">Todos</mat-option>
+          <mat-option value="Particular">Particular</mat-option>
+          <mat-option value="Particular subvencionado">Particular subvencionado</mat-option>
+          <mat-option value="Público">Público</mat-option>
         </mat-select>
       </mat-form-field>
     </div>
   </div>
 
-  <!-- ===== FORMULARIO (ALTA) ===== -->
+  <!-- ===== FORMULARIO (colapsable) ===== -->
   <div class="form-container" [class.form-open]="showForm">
     <mat-card class="elev form-card" *ngIf="showForm">
       <mat-card-header class="form-header">
         <div class="form-title-section">
-          <div class="form-icon"><mat-icon>domain_add</mat-icon></div>
+          <div class="form-icon"><mat-icon>add_business</mat-icon></div>
           <div class="form-titles">
-            <h2>Agregar centro educativo</h2>
-            <p>Completa los campos requeridos (*)</p>
+            <h2>{{ isEditing ? 'Editar centro educativo' : 'Agregar centro educativo' }}</h2>
+            <p>Completa los datos obligatorios marcados con *</p>
           </div>
         </div>
-        <button mat-icon-button (click)="showForm = false" class="close-form-btn">
+        <button mat-icon-button (click)="toggleForm()" class="close-form-btn">
           <mat-icon>close</mat-icon>
         </button>
       </mat-card-header>
 
       <mat-card-content class="form-content">
         <form class="form-grid">
+          <!-- Básicos -->
           <div class="form-row">
             <mat-form-field appearance="outline" class="form-field">
-              <mat-label>Nombre del centro educativo *</mat-label>
+              <mat-label>Nombre del centro *</mat-label>
               <input matInput [(ngModel)]="newColegio.nombre" name="nombre" required />
             </mat-form-field>
-            <mat-form-field appearance="outline" class="form-field">
-              <mat-label>RBD (opcional)</mat-label>
-              <input matInput [(ngModel)]="newColegio.rbd" name="rbd" />
-            </mat-form-field>
-          </div>
 
-          <div class="form-row">
-            <mat-form-field appearance="outline" class="form-field">
-              <mat-label>Dirección *</mat-label>
-              <input matInput [(ngModel)]="newColegio.direccion" name="direccion" required />
-            </mat-form-field>
-            <mat-form-field appearance="outline" class="form-field">
-              <mat-label>Sitio web (opcional)</mat-label>
-              <input matInput [(ngModel)]="newColegio.sitioWeb" name="sitioWeb" placeholder="https://..." />
-            </mat-form-field>
-          </div>
-
-          <div class="form-row">
             <mat-form-field appearance="outline" class="form-field">
               <mat-label>Tipo *</mat-label>
               <mat-select [(ngModel)]="newColegio.tipo" name="tipo" required>
@@ -94,7 +71,25 @@
                 <mat-option value="Público">Público</mat-option>
               </mat-select>
             </mat-form-field>
+          </div>
 
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Región *</mat-label>
+              <mat-select [(ngModel)]="newColegio.region" name="region" (selectionChange)="onRegionChange()" required>
+                <mat-option *ngFor="let r of REGIONES" [value]="r.nombre">{{ r.nombre }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Comuna *</mat-label>
+              <mat-select [(ngModel)]="newColegio.comuna" name="comuna" required>
+                <mat-option *ngFor="let c of comunasFiltradas" [value]="c">{{ c }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
             <mat-form-field appearance="outline" class="form-field">
               <mat-label>Convenio *</mat-label>
               <mat-select [(ngModel)]="newColegio.convenio" name="convenio" required>
@@ -103,93 +98,48 @@
                 <mat-option value="ADEP">ADEP</mat-option>
               </mat-select>
             </mat-form-field>
+
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Dirección</mat-label>
+              <input matInput [(ngModel)]="newColegio.direccion" name="direccion" />
+            </mat-form-field>
           </div>
 
           <div class="form-row">
-            <mat-form-field appearance="outline" class="form-field">
-              <mat-label>Región *</mat-label>
-              <mat-select
-                [(ngModel)]="newColegio.region"
-                name="region"
-                (selectionChange)="onRegionChange(newColegio.region)"
-                required>
-                <mat-option *ngFor="let r of regiones" [value]="r">{{ r }}</mat-option>
-              </mat-select>
-            </mat-form-field>
-
-            <mat-form-field appearance="outline" class="form-field">
-              <mat-label>Comuna *</mat-label>
-              <mat-select [(ngModel)]="newColegio.comuna" name="comuna" required>
-                <mat-option *ngFor="let c of comunasDisponibles" [value]="c">{{ c }}</mat-option>
-              </mat-select>
+            <mat-form-field appearance="outline" class="form-field full-width">
+              <mat-label>URL / Redes sociales</mat-label>
+              <input matInput [(ngModel)]="newColegio.url_rrss" name="url_rrss" />
             </mat-form-field>
           </div>
 
-          <!-- Contactos -->
+          <!-- Contacto: Director y UTP -->
           <div class="form-row">
             <mat-form-field appearance="outline" class="form-field">
               <mat-label>Director - Nombre</mat-label>
-              <input
-                matInput
-                [ngModel]="newColegio.director?.nombre || ''"
-                (ngModelChange)="ensureDirector(); newColegio.director!.nombre = $event"
-                name="directorNombre" />
+              <input matInput [(ngModel)]="newColegio.director!.nombre" name="dir_nombre" />
             </mat-form-field>
             <mat-form-field appearance="outline" class="form-field">
-              <mat-label>Director - Email</mat-label>
-              <input
-                matInput type="email"
-                [ngModel]="newColegio.director?.email || ''"
-                (ngModelChange)="ensureDirector(); newColegio.director!.email = $event"
-                name="directorEmail" />
+              <mat-label>Director - Correo</mat-label>
+              <input matInput type="email" [(ngModel)]="newColegio.director!.correo" name="dir_correo" />
             </mat-form-field>
           </div>
 
           <div class="form-row">
-            <mat-form-field appearance="outline" class="form-field">
-              <mat-label>Director - Teléfono</mat-label>
-              <input
-                matInput
-                [ngModel]="newColegio.director?.telefono || ''"
-                (ngModelChange)="ensureDirector(); newColegio.director!.telefono = $event"
-                name="directorTelefono" placeholder="+56 ..." />
-            </mat-form-field>
-
             <mat-form-field appearance="outline" class="form-field">
               <mat-label>UTP - Nombre</mat-label>
-              <input
-                matInput
-                [ngModel]="newColegio.utp?.nombre || ''"
-                (ngModelChange)="ensureUtp(); newColegio.utp!.nombre = $event"
-                name="utpNombre" />
+              <input matInput [(ngModel)]="newColegio.utp!.nombre" name="utp_nombre" />
             </mat-form-field>
-          </div>
-
-          <div class="form-row">
             <mat-form-field appearance="outline" class="form-field">
-              <mat-label>UTP - Email</mat-label>
-              <input
-                matInput type="email"
-                [ngModel]="newColegio.utp?.email || ''"
-                (ngModelChange)="ensureUtp(); newColegio.utp!.email = $event"
-                name="utpEmail" />
-            </mat-form-field>
-
-            <mat-form-field appearance="outline" class="form-field">
-              <mat-label>UTP - Teléfono</mat-label>
-              <input
-                matInput
-                [ngModel]="newColegio.utp?.telefono || ''"
-                (ngModelChange)="ensureUtp(); newColegio.utp!.telefono = $event"
-                name="utpTelefono" placeholder="+56 ..." />
+              <mat-label>UTP - Correo</mat-label>
+              <input matInput type="email" [(ngModel)]="newColegio.utp!.correo" name="utp_correo" />
             </mat-form-field>
           </div>
         </form>
 
         <div class="form-actions">
-          <button mat-stroked-button (click)="showForm = false" class="cancel-btn">Cancelar</button>
-          <button mat-raised-button color="primary" (click)="addColegio()" class="submit-btn">
-            <mat-icon>check_circle</mat-icon> Guardar centro
+          <button mat-stroked-button (click)="toggleForm()" class="cancel-btn">Cancelar</button>
+          <button mat-raised-button color="primary" (click)="addOrUpdateColegio()" class="submit-btn">
+            <mat-icon>save</mat-icon>{{ isEditing ? 'Actualizar' : 'Guardar' }}
           </button>
         </div>
       </mat-card-content>
@@ -199,41 +149,40 @@
   <!-- ===== LISTADO ===== -->
   <mat-card class="elev">
     <mat-card-content class="list-container">
-      <div class="list-item" *ngFor="let c of filtered(); let i = index">
+      <div class="list-item" *ngFor="let c of filtered()">
         <div class="item-content">
-          <!-- Principal -->
+          <!-- Izquierda: icono + nombre + región/comuna -->
           <div class="item-main">
-            <div class="avatar-small purple"><mat-icon>domain</mat-icon></div>
+            <div class="avatar-small teal"><mat-icon>apartment</mat-icon></div>
             <div class="item-info">
               <h3>{{ c.nombre }}</h3>
               <p class="muted">{{ c.region }} · {{ c.comuna }}</p>
             </div>
           </div>
 
-          <!-- Secundario -->
-          <div class="item-role">
-            <strong>{{ c.tipo }}</strong>
-            <span> · {{ c.convenio }}</span>
+          <!-- Centro: tipo y convenio -->
+          <div class="item-middle">
+            <b>{{ c.tipo }}</b> · {{ c.convenio }}
           </div>
 
           <!-- Contactos -->
           <div class="item-contacts" *ngIf="c.director || c.utp">
-            <div *ngIf="c.director as dir" class="contact">
+            <div *ngIf="c.director" class="contact">
               <mat-icon>person</mat-icon>
-              <span><b>Director:</b> {{ dir.nombre }}</span>
+              <span><b>Director:</b> {{ c.director!.nombre }}</span>
             </div>
-            <div *ngIf="c.utp as u" class="contact">
+            <div *ngIf="c.utp" class="contact">
               <mat-icon>person_outline</mat-icon>
-              <span><b>UTP:</b> {{ u.nombre }}</span>
+              <span><b>UTP:</b> {{ c.utp!.nombre }}</span>
             </div>
           </div>
 
           <!-- Acciones -->
           <div class="item-actions">
-            <button mat-icon-button color="accent" (click)="viewDetails(c)" title="Ver más">
+            <button mat-icon-button (click)="view(c)" title="Ver detalles">
               <mat-icon>visibility</mat-icon>
             </button>
-            <button mat-icon-button color="primary" (click)="startEdit(c, i)" title="Editar">
+            <button mat-icon-button color="primary" (click)="edit(c)" title="Editar">
               <mat-icon>edit</mat-icon>
             </button>
             <button mat-icon-button color="warn" (click)="remove(c)" title="Eliminar">
@@ -248,12 +197,12 @@
   <!-- ===== EMPTY ===== -->
   <mat-card *ngIf="!filtered().length" class="elev empty">
     <mat-card-content class="muted empty__content">
-      <mat-icon>domain_disabled</mat-icon>
-      <p>No se encontraron centros con los filtros actuales.</p>
+      <mat-icon>school</mat-icon>
+      <p>No hay centros que coincidan con el criterio.</p>
     </mat-card-content>
   </mat-card>
 
-  <!-- ===== MODAL: DETALLES ===== -->
+  <!-- ===== DIALOG DETALLES ===== -->
   <div class="details-dialog" *ngIf="selectedColegio">
     <div class="dialog-overlay" (click)="closeDetails()"></div>
     <div class="dialog-content">
@@ -263,166 +212,41 @@
           <mat-icon>close</mat-icon>
         </button>
       </div>
-      <div class="dialog-body">
-        <div class="details-grid" *ngIf="selectedColegio as s">
-          <div class="detail-item"><label>Nombre:</label> <span>{{ s.nombre }}</span></div>
-          <div class="detail-item"><label>Tipo:</label> <span>{{ s.tipo }}</span></div>
-          <div class="detail-item"><label>Región:</label> <span>{{ s.region }}</span></div>
-          <div class="detail-item"><label>Comuna:</label> <span>{{ s.comuna }}</span></div>
-          <div class="detail-item"><label>Dirección:</label> <span>{{ s.direccion }}</span></div>
-          <div class="detail-item"><label>Convenio:</label> <span>{{ s.convenio }}</span></div>
-          <div class="detail-item" *ngIf="s.rbd"><label>RBD:</label> <span>{{ s.rbd }}</span></div>
-          <div class="detail-item" *ngIf="s.sitioWeb"><label>Sitio web:</label> <span>{{ s.sitioWeb }}</span></div>
-          <div class="detail-item" *ngIf="s.director"><label>Director:</label> <span>{{ s.director?.nombre }} · {{ s.director?.email }} · {{ s.director?.telefono }}</span></div>
-          <div class="detail-item" *ngIf="s.utp"><label>UTP:</label> <span>{{ s.utp?.nombre }} · {{ s.utp?.email }} · {{ s.utp?.telefono }}</span></div>
+      <div class="dialog-body" *ngIf="selectedColegio">
+        <div class="details-grid">
+          <div class="detail-item">
+            <label>Nombre:</label><span>{{ selectedColegio.nombre }}</span>
+          </div>
+          <div class="detail-item">
+            <label>Tipo:</label><span>{{ selectedColegio.tipo }}</span>
+          </div>
+          <div class="detail-item">
+            <label>Región:</label><span>{{ selectedColegio.region }}</span>
+          </div>
+          <div class="detail-item">
+            <label>Comuna:</label><span>{{ selectedColegio.comuna }}</span>
+          </div>
+          <div class="detail-item">
+            <label>Convenio:</label><span>{{ selectedColegio.convenio }}</span>
+          </div>
+          <div class="detail-item" *ngIf="selectedColegio.direccion">
+            <label>Dirección:</label><span>{{ selectedColegio.direccion }}</span>
+          </div>
+          <div class="detail-item" *ngIf="selectedColegio.url_rrss">
+            <label>URL / RRSS:</label><span>{{ selectedColegio.url_rrss }}</span>
+          </div>
+          <div class="detail-item" *ngIf="selectedColegio.director?.nombre">
+            <label>Director:</label><span>{{ selectedColegio.director!.nombre }}</span>
+          </div>
+          <div class="detail-item" *ngIf="selectedColegio.utp?.nombre">
+            <label>UTP:</label><span>{{ selectedColegio.utp!.nombre }}</span>
+          </div>
         </div>
       </div>
       <div class="dialog-actions">
         <button mat-stroked-button (click)="closeDetails()">Cerrar</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ===== MODAL: EDICIÓN ===== -->
-  <div class="details-dialog" *ngIf="editingIndex !== null">
-    <div class="dialog-overlay" (click)="cancelEdit()"></div>
-    <div class="dialog-content">
-      <div class="dialog-header">
-        <h2>Editar Centro</h2>
-        <button mat-icon-button (click)="cancelEdit()" class="close-btn">
-          <mat-icon>close</mat-icon>
-        </button>
-      </div>
-
-      <div class="dialog-body">
-        <div class="form-grid">
-          <div class="form-row">
-            <mat-form-field appearance="outline" class="form-field">
-              <mat-label>Nombre *</mat-label>
-              <input matInput [(ngModel)]="editColegio.nombre" name="editNombre" />
-            </mat-form-field>
-            <mat-form-field appearance="outline" class="form-field">
-              <mat-label>RBD</mat-label>
-              <input matInput [(ngModel)]="editColegio.rbd" name="editRbd" />
-            </mat-form-field>
-          </div>
-
-          <div class="form-row">
-            <mat-form-field appearance="outline" class="form-field">
-              <mat-label>Dirección *</mat-label>
-              <input matInput [(ngModel)]="editColegio.direccion" name="editDireccion" />
-            </mat-form-field>
-            <mat-form-field appearance="outline" class="form-field">
-              <mat-label>Sitio web</mat-label>
-              <input matInput [(ngModel)]="editColegio.sitioWeb" name="editWeb" />
-            </mat-form-field>
-          </div>
-
-          <div class="form-row">
-            <mat-form-field appearance="outline" class="form-field">
-              <mat-label>Tipo *</mat-label>
-              <mat-select [(ngModel)]="editColegio.tipo" name="editTipo">
-                <mat-option value="Particular">Particular</mat-option>
-                <mat-option value="Particular subvencionado">Particular subvencionado</mat-option>
-                <mat-option value="Público">Público</mat-option>
-              </mat-select>
-            </mat-form-field>
-
-            <mat-form-field appearance="outline" class="form-field">
-              <mat-label>Convenio *</mat-label>
-              <mat-select [(ngModel)]="editColegio.convenio" name="editConvenio">
-                <mat-option value="Marco SLEP">Marco SLEP</mat-option>
-                <mat-option value="Solicitud directa">Solicitud directa</mat-option>
-                <mat-option value="ADEP">ADEP</mat-option>
-              </mat-select>
-            </mat-form-field>
-          </div>
-
-          <div class="form-row">
-            <mat-form-field appearance="outline" class="form-field">
-              <mat-label>Región *</mat-label>
-              <mat-select
-                [(ngModel)]="editColegio.region"
-                name="editRegion"
-                (selectionChange)="onRegionChangeEdit(editColegio.region)">
-                <mat-option *ngFor="let r of regiones" [value]="r">{{ r }}</mat-option>
-              </mat-select>
-            </mat-form-field>
-
-            <mat-form-field appearance="outline" class="form-field">
-              <mat-label>Comuna *</mat-label>
-              <mat-select [(ngModel)]="editColegio.comuna" name="editComuna">
-                <mat-option *ngFor="let c of editComunasDisponibles" [value]="c">{{ c }}</mat-option>
-              </mat-select>
-            </mat-form-field>
-          </div>
-
-          <!-- Contactos (edición) -->
-          <div class="form-row">
-            <mat-form-field appearance="outline" class="form-field">
-              <mat-label>Director - Nombre</mat-label>
-              <input
-                matInput
-                [ngModel]="editColegio.director?.nombre || ''"
-                (ngModelChange)="ensureDirectorEdit(); editColegio.director!.nombre = $event"
-                name="editDirectorNombre" />
-            </mat-form-field>
-            <mat-form-field appearance="outline" class="form-field">
-              <mat-label>Director - Email</mat-label>
-              <input
-                matInput type="email"
-                [ngModel]="editColegio.director?.email || ''"
-                (ngModelChange)="ensureDirectorEdit(); editColegio.director!.email = $event"
-                name="editDirectorEmail" />
-            </mat-form-field>
-          </div>
-
-          <div class="form-row">
-            <mat-form-field appearance="outline" class="form-field">
-              <mat-label>Director - Teléfono</mat-label>
-              <input
-                matInput
-                [ngModel]="editColegio.director?.telefono || ''"
-                (ngModelChange)="ensureDirectorEdit(); editColegio.director!.telefono = $event"
-                name="editDirectorTel" />
-            </mat-form-field>
-
-            <mat-form-field appearance="outline" class="form-field">
-              <mat-label>UTP - Nombre</mat-label>
-              <input
-                matInput
-                [ngModel]="editColegio.utp?.nombre || ''"
-                (ngModelChange)="ensureUtpEdit(); editColegio.utp!.nombre = $event"
-                name="editUtpNombre" />
-            </mat-form-field>
-          </div>
-
-          <div class="form-row">
-            <mat-form-field appearance="outline" class="form-field">
-              <mat-label>UTP - Email</mat-label>
-              <input
-                matInput type="email"
-                [ngModel]="editColegio.utp?.email || ''"
-                (ngModelChange)="ensureUtpEdit(); editColegio.utp!.email = $event"
-                name="editUtpEmail" />
-            </mat-form-field>
-
-            <mat-form-field appearance="outline" class="form-field">
-              <mat-label>UTP - Teléfono</mat-label>
-              <input
-                matInput
-                [ngModel]="editColegio.utp?.telefono || ''"
-                (ngModelChange)="ensureUtpEdit(); editColegio.utp!.telefono = $event"
-                name="editUtpTel" />
-            </mat-form-field>
-          </div>
-        </div>
-      </div>
-
-      <div class="dialog-actions">
-        <button mat-stroked-button (click)="cancelEdit()">Cancelar</button>
-        <button mat-raised-button color="primary" (click)="saveEdit()">
-          <mat-icon>save</mat-icon> Guardar cambios
+        <button mat-raised-button color="primary" (click)="edit(selectedColegio!)">
+          <mat-icon>edit</mat-icon> Editar
         </button>
       </div>
     </div>
