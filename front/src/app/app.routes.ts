@@ -57,6 +57,12 @@ export const routes: Routes = [
       import('./components/colegios/colegios.component').then(m => m.ColegiosComponent),
   },
 
+   // Generación de carta de solicitud
+  {
+    path: 'carta',
+    loadComponent: () =>
+      import('./components/carta/carta.component').then(m => m.CartaComponent),
+  },
   // Ruta por defecto → redirige a inicio
   { path: '**', redirectTo: '', pathMatch: 'full' },
 ];
