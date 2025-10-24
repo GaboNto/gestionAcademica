@@ -1,0 +1,295 @@
+<div class="Container Section">
+  <!-- HEADER -->
+  <div class="Header">
+    <div class="Headline">
+      <h1>Asignación de Prácticas</h1>
+      <p class="Muted">Gestión de asignaciones de practicas para los estudiantes</p>
+    </div>
+
+    <div class="Spacer"></div>
+
+    <!-- BOTÓN NUEVA ASIGNACIÓN -->
+    <button mat-flat-button color="primary" (click)="abrirNuevaAsignacion()" class="BtnAdd">
+      <mat-icon>person_add</mat-icon>
+      Nueva Asignación
+    </button>
+  </div>
+
+  <!-- FILTROS DE BÚSQUEDA -->
+  <mat-card class="FiltersCard Elev">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>search</mat-icon>
+        Filtros de Búsqueda
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="FiltersGrid">
+        <mat-form-field appearance="outline" class="SearchField">
+          <mat-label>Buscar</mat-label>
+          <input matInput [(ngModel)]="terminoBusqueda" placeholder="Nombre, RUT o colegio..." />
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="FilterField">
+          <mat-label>Nivel</mat-label>
+          <mat-select [(ngModel)]="nivelSeleccionado">
+            <mat-option value="all">Todos los niveles</mat-option>
+            <mat-option value="Basica">Básica</mat-option>
+            <mat-option value="Media">Media</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="FilterField">
+          <mat-label>Centro Educativo</mat-label>
+          <mat-select [(ngModel)]="colegioSeleccionado">
+            <mat-option value="all">Todos los centros</mat-option>
+            <mat-option value="Colegio San José">Colegio San José</mat-option>
+            <mat-option value="Liceo Técnico">Liceo Técnico</mat-option>
+            <mat-option value="Escuela Municipal">Escuela Municipal</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- LISTADO DE ASIGNACIONES -->
+  <div class="AssignmentsList">
+    @for (assignment of asignacionesFiltradas(); track assignment.id) {
+      <mat-card class="AssignmentCard Elev">
+        <mat-card-content>
+          <div class="AssignmentContent">
+            <!-- Información del estudiante -->
+            <div class="StudentInfo">
+              <div class="StudentHeader">
+                <h3>{{ assignment.estudiante.nombre }}</h3>
+                <div class="StudentDetails">
+                  <span class="Rut">RUT: {{ assignment.estudiante.rut }}</span>
+                  <span class="LevelBadge" [ngClass]="assignment.estudiante.nivel.toLowerCase()">
+                    {{ assignment.estudiante.nivel }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Información del centro educativo -->
+            <div class="SchoolInfo">
+              <div class="SchoolHeader">
+                <mat-icon class="SchoolIcon">school</mat-icon>
+                <div class="SchoolDetails">
+                  <h4>{{ assignment.centro.nombre }}</h4>
+                  <div class="SupervisorInfo">
+                    <mat-icon class="LockIcon">supervisor_account</mat-icon>
+                    <span>Supervisor: {{ assignment.colaborador.nombre }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Información de la práctica -->
+            <div class="PracticeInfo">
+              <div class="PracticeDetails">
+                <div class="PracticeType">
+                  <mat-icon class="TypeIcon">work</mat-icon>
+                  <span>{{ assignment.tipo || 'Sin especificar' }}</span>
+                </div>
+                <div class="DateInfo">
+                  <mat-icon class="DateIcon">event</mat-icon>
+                  <span>{{ assignment.fechaInicio }} - {{ assignment.fechaTermino || 'En curso' }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Estado -->
+            <div class="StatusSection">
+              <span class="StatusBadge" [ngClass]="assignment.estado.toLowerCase()">
+                {{ assignment.estado }}
+              </span>
+            </div>
+
+            <!-- Acción -->
+            <div class="ActionSection">
+              <button mat-stroked-button (click)="verDetalles(assignment)" class="DetailsBtn">
+                Ver Detalles
+              </button>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    }
+  </div>
+
+  <!-- MENSAJE VACÍO -->
+  @if (!asignacionesFiltradas().length) {
+    <mat-card class="EmptyCard Elev">
+      <mat-card-content class="EmptyContent">
+        <mat-icon>assignment_turned_in</mat-icon>
+        <h3>No se encontraron asignaciones</h3>
+        <p>No hay asignaciones que coincidan con los filtros seleccionados.</p>
+      </mat-card-content>
+    </mat-card>
+  }
+
+  <!-- MODAL DE DETALLES -->
+  @if (mostrarModalDetalles && practicaSeleccionada) {
+    <div class="DetailsDialog">
+      <div class="DialogOverlay" (click)="cerrarDetalles()"></div>
+      <div class="DialogContent">
+        <div class="DialogHeader">
+          <h2>Detalles de la Práctica</h2>
+          <button mat-icon-button (click)="cerrarDetalles()" class="CloseBtn">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+        
+        <div class="DialogBody">
+          <div class="DetailsSections">
+            
+            <!-- Información General -->
+            <div class="DetailSection">
+              <h3 class="SectionTitle">
+                <mat-icon>info</mat-icon>
+                Información General
+              </h3>
+              <div class="DetailsGrid">
+                <div class="DetailItem">
+                  <label>Estado:</label>
+                  <span class="StatusBadge" [ngClass]="practicaSeleccionada.estado.toLowerCase()">
+                    {{ practicaSeleccionada.estado }}
+                  </span>
+                </div>
+                <div class="DetailItem">
+                  <label>Tipo:</label>
+                  <span>{{ practicaSeleccionada.tipo || 'Sin especificar' }}</span>
+                </div>
+                <div class="DetailItem">
+                  <label>Fecha de Inicio:</label>
+                  <span>{{ practicaSeleccionada.fechaInicio }}</span>
+                </div>
+                <div class="DetailItem">
+                  <label>Fecha de Término:</label>
+                  <span>{{ practicaSeleccionada.fechaTermino || 'En curso' }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Información del Estudiante -->
+            <div class="DetailSection">
+              <h3 class="SectionTitle">
+                <mat-icon>person</mat-icon>
+                Información del Estudiante
+              </h3>
+              <div class="DetailsGrid">
+                <div class="DetailItem">
+                  <label>Nombre:</label>
+                  <span>{{ practicaSeleccionada.estudiante.nombre }}</span>
+                </div>
+                <div class="DetailItem">
+                  <label>RUT:</label>
+                  <span>{{ practicaSeleccionada.estudiante.rut }}</span>
+                </div>
+                <div class="DetailItem">
+                  <label>Nivel:</label>
+                  <span class="LevelBadge" [ngClass]="practicaSeleccionada.estudiante.nivel.toLowerCase()">
+                    {{ practicaSeleccionada.estudiante.nivel }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Información del Centro Educativo -->
+            <div class="DetailSection">
+              <h3 class="SectionTitle">
+                <mat-icon>school</mat-icon>
+                Centro Educativo
+              </h3>
+              <div class="DetailsGrid">
+                <div class="DetailItem">
+                  <label>Nombre:</label>
+                  <span>{{ practicaSeleccionada.centro.nombre }}</span>
+                </div>
+                <div class="DetailItem">
+                  <label>Tipo:</label>
+                  <span>{{ practicaSeleccionada.centro.tipo || 'Sin especificar' }}</span>
+                </div>
+                <div class="DetailItem">
+                  <label>Dirección:</label>
+                  <span>{{ practicaSeleccionada.centro.direccion || 'Sin especificar' }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Información del Supervisor -->
+            <div class="DetailSection">
+              <h3 class="SectionTitle">
+                <mat-icon>supervisor_account</mat-icon>
+                Supervisor
+              </h3>
+              <div class="DetailsGrid">
+                <div class="DetailItem">
+                  <label>Nombre:</label>
+                  <span>{{ practicaSeleccionada.colaborador.nombre }}</span>
+                </div>
+                <div class="DetailItem">
+                  <label>Email:</label>
+                  <span>{{ practicaSeleccionada.colaborador.email }}</span>
+                </div>
+                <div class="DetailItem">
+                  <label>Rol:</label>
+                  <span>{{ practicaSeleccionada.colaborador.rol }}</span>
+                </div>
+                <div class="DetailItem">
+                  <label>Especialidad:</label>
+                  <span>{{ practicaSeleccionada.colaborador.especialidad || 'Sin especificar' }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Actividades -->
+            @if (practicaSeleccionada.actividades && practicaSeleccionada.actividades.length > 0) {
+              <div class="DetailSection">
+                <h3 class="SectionTitle">
+                  <mat-icon>assignment</mat-icon>
+                  Actividades ({{ practicaSeleccionada.actividades.length }})
+                </h3>
+                <div class="ActivitiesList">
+                  @for (actividad of practicaSeleccionada.actividades; track actividad.id) {
+                    <div class="ActivityItem">
+                      <div class="ActivityHeader">
+                        <h4>{{ actividad.titulo }}</h4>
+                        <span class="ActivityStatus" [ngClass]="actividad.completada ? 'completed' : 'pending'">
+                          <mat-icon>{{ actividad.completada ? 'check_circle' : 'schedule' }}</mat-icon>
+                          {{ actividad.completada ? 'Completada' : 'Pendiente' }}
+                        </span>
+                      </div>
+                      @if (actividad.descripcion) {
+                        <p class="ActivityDescription">{{ actividad.descripcion }}</p>
+                      }
+                      <div class="ActivityDate">
+                        <mat-icon>event</mat-icon>
+                        <span>{{ actividad.fecha }}</span>
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+            } @else {
+              <div class="DetailSection">
+                <h3 class="SectionTitle">
+                  <mat-icon>assignment</mat-icon>
+                  Actividades
+                </h3>
+                <p class="NoActivities">No hay actividades registradas para esta práctica.</p>
+              </div>
+            }
+
+          </div>
+        </div>
+        
+        <div class="DialogActions">
+          <button mat-stroked-button (click)="cerrarDetalles()">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

@@ -1,6 +1,7 @@
 import { Component, inject, OnInit, AfterViewInit, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { Router, RouterModule } from '@angular/router';
+import { Router, RouterModule, NavigationEnd } from '@angular/router';
+import { filter } from 'rxjs/operators';
 
 import { MatSidenavModule, MatSidenav } from '@angular/material/sidenav';
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -51,7 +52,15 @@ export class AppComponent implements OnInit, AfterViewInit {
   /** SSR: primer render con algo neutral */
   ngOnInit(): void {
     this.applyRole('practicas'); // fallback visual para SSR
-    if (isPlatformBrowser(this.platformId)) this.loadRoleFromStorage();
+    if (isPlatformBrowser(this.platformId)) {
+      this.loadRoleFromStorage();
+      // Suscribirse a cambios de navegación para detectar cuando se selecciona un nuevo rol
+      this.router.events
+        .pipe(filter(event => event instanceof NavigationEnd))
+        .subscribe(() => {
+          this.loadRoleFromStorage();
+        });
+    }
   }
 
   /** Cliente: asegura que tras la primera pintura se apliquen los items correctos */

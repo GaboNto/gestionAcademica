@@ -26,13 +26,6 @@
       </a>
     </mat-nav-list>
 
-    <!-- Footer -->
-    <div class="side__footer">
-      <button mat-stroked-button color="primary" (click)="logout()">
-        <mat-icon>logout</mat-icon>
-        Cerrar sesión
-      </button>
-    </div>
   </mat-sidenav>
 
   <!-- CONTENIDO -->
@@ -43,7 +36,10 @@
       </button>
       <span class="title">{{ appTitle }}</span>
       <span class="spacer"></span>
-      <a mat-button routerLink="/">Inicio</a>
+      <button mat-button (click)="logout()">
+        <mat-icon>logout</mat-icon>
+        Cerrar sesión
+      </button>
     </mat-toolbar>
 
     <main class="page">

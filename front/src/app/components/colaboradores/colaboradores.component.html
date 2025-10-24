@@ -1,38 +1,41 @@
-<div class="container section">
+<div class="Container Section">
   <!-- HEADER -->
-  <div class="header">
-    <button mat-stroked-button color="primary" (click)="goBack()" class="btn-back">
-      <mat-icon>arrow_back</mat-icon> Volver al Dashboard
-    </button>
-
-    <div class="headline">
+  <div class="Header">
+    
+    <div class="Headline">
       <h1>Gestión de Colaboradores</h1>
-      <p class="muted">Filtrar</p>
+      <p class="Muted">Gestión de Supervisores, Talleristas y Colaboradores</p>
     </div>
 
-    <div class="spacer"></div>
+    <div class="Spacer"></div>
 
     <!-- BOTÓN AGREGAR -->
-    <button mat-flat-button color="primary" (click)="toggleForm()" class="btn-add">
-      <mat-icon>{{ showForm ? 'close' : 'person_add' }}</mat-icon>
-      {{ showForm ? 'Cerrar' : 'Agregar colaborador' }}
+    <button mat-flat-button color="primary" (click)="alternarFormulario()" class="BtnAdd">
+      <mat-icon>{{ mostrarFormulario ? 'close' : 'person_add' }}</mat-icon>
+      {{ mostrarFormulario ? 'Cerrar' : 'Agregar colaborador' }}
     </button>
   </div>
 
-  <!-- FILTROS -->
-  <mat-card class="elev">
-    <mat-card-title>Filtros de Búsqueda</mat-card-title>
+  <!-- FILTROS DE BÚSQUEDA -->
+  <mat-card class="FiltersCard Elev">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>search</mat-icon>
+        Filtros de Búsqueda
+      </mat-card-title>
+    </mat-card-header>
     <mat-card-content>
-      <div class="filters">
-        <mat-form-field appearance="outline" class="flex1">
-          <mat-label>Nombre, email o colegio…</mat-label>
-          <input matInput [(ngModel)]="searchTerm" />
+      <div class="FiltersGrid">
+        <mat-form-field appearance="outline" class="SearchField">
+          <mat-label>Buscar</mat-label>
+          <input matInput [(ngModel)]="terminoBusqueda" placeholder="Nombre, email o cargo..." />
+          <mat-icon matSuffix>search</mat-icon>
         </mat-form-field>
 
-        <mat-form-field appearance="outline" class="role-filter">
+        <mat-form-field appearance="outline" class="FilterField">
           <mat-label>Rol</mat-label>
-          <mat-select [(ngModel)]="selectedRole">
-            <mat-option value="all">Todos</mat-option>
+          <mat-select [(ngModel)]="rolSeleccionado">
+            <mat-option value="all">Todos los roles</mat-option>
             <mat-option value="Supervisor">Supervisor</mat-option>
             <mat-option value="Colaborador">Colaborador</mat-option>
             <mat-option value="Tallerista">Tallerista</mat-option>
@@ -43,120 +46,239 @@
   </mat-card>
 
   <!-- FORMULARIO (colapsable por botón) -->
-  <mat-card class="elev form-card" *ngIf="showForm">
-    <mat-card-header>
-      <div mat-card-avatar class="avatar green">
-        <mat-icon>person_add</mat-icon>
-      </div>
-      <mat-card-title>Agregar colaborador</mat-card-title>
-      <mat-card-subtitle>Completa los datos mínimos para registrarlo</mat-card-subtitle>
-    </mat-card-header>
+  <div class="FormContainer" [class.FormOpen]="mostrarFormulario">
+    @if (mostrarFormulario) {
+      <mat-card class="Elev FormCard">
+        <mat-card-header class="FormHeader">
+          <div class="FormTitleSection">
+            <div class="FormIcon">
+              <mat-icon>{{ estaEditando ? 'edit' : 'person_add' }}</mat-icon>
+            </div>
+          <div class="FormTitles">
+            <h2>{{ estaEditando ? 'Editar colaborador' : 'Agregar colaborador' }}</h2>
+            <p>{{ estaEditando ? 'Modifica los datos del colaborador' : 'Completa los datos para registrar un nuevo colaborador' }}</p>
+          </div>
+          </div>
+          <button mat-icon-button (click)="alternarFormulario()" class="CloseFormBtn">
+            <mat-icon>close</mat-icon>
+          </button>
+        </mat-card-header>
 
-    <mat-card-content>
-      <form class="form-grid">
-        <mat-form-field appearance="outline">
-          <mat-label>Nombre completo</mat-label>
-          <input matInput [(ngModel)]="newColaborador.nombre" name="nombre" required />
-        </mat-form-field>
+        <mat-card-content class="FormContent">
+          <form class="FormGrid">
+            <div class="FormRow">
+              <mat-form-field appearance="outline" class="FormField">
+                <mat-label>Nombre completo</mat-label>
+                <input matInput [(ngModel)]="nuevoColaborador.nombre" name="nombre" required />
+              </mat-form-field>
 
-        <mat-form-field appearance="outline">
-          <mat-label>Email</mat-label>
-          <input matInput [(ngModel)]="newColaborador.email" name="email" type="email" required />
-        </mat-form-field>
+              <mat-form-field appearance="outline" class="FormField">
+                <mat-label>RUT</mat-label>
+                <input matInput [(ngModel)]="nuevoColaborador.rut" name="rut" placeholder="12.345.678-9" />
+              </mat-form-field>
+            </div>
 
-        <mat-form-field appearance="outline">
-          <mat-label>Teléfono</mat-label>
-          <input matInput [(ngModel)]="newColaborador.telefono" name="telefono" placeholder="+56 9 ..." />
-        </mat-form-field>
+            <div class="FormRow">
+              <mat-form-field appearance="outline" class="FormField">
+                <mat-label>Email</mat-label>
+                <input matInput [(ngModel)]="nuevoColaborador.email" name="email" type="email" required />
+              </mat-form-field>
 
-        <mat-form-field appearance="outline">
-          <mat-label>Centro educativo</mat-label>
-          <input matInput [(ngModel)]="newColaborador.centro_educativo" name="centro" required />
-        </mat-form-field>
+              <mat-form-field appearance="outline" class="FormField">
+                <mat-label>Teléfono</mat-label>
+                <input matInput [(ngModel)]="nuevoColaborador.telefono" name="telefono" placeholder="+56 9 ..." />
+              </mat-form-field>
+            </div>
 
-        <mat-form-field appearance="outline">
-          <mat-label>Rol</mat-label>
-          <mat-select [(ngModel)]="newColaborador.role" name="role" required>
-            <mat-option value="Supervisor">Supervisor</mat-option>
-            <mat-option value="Colaborador">Colaborador</mat-option>
-            <mat-option value="Tallerista">Tallerista</mat-option>
-          </mat-select>
-        </mat-form-field>
+            <div class="FormRow">
+              <mat-form-field appearance="outline" class="FormField FullWidth">
+                <mat-label>Dirección</mat-label>
+                <input matInput [(ngModel)]="nuevoColaborador.direccion" name="direccion" placeholder="Calle 123, Comuna, Región" />
+              </mat-form-field>
+            </div>
 
-        <mat-form-field appearance="outline">
-          <mat-label>Especialidad</mat-label>
-          <input matInput [(ngModel)]="newColaborador.especialidad" name="especialidad" placeholder="Historia, Lenguaje…" />
-        </mat-form-field>
+            <div class="FormRow">
+              <mat-form-field appearance="outline" class="FormField">
+                <mat-label>Rol</mat-label>
+                <mat-select [(ngModel)]="nuevoColaborador.role" name="role" required>
+                  <mat-option value="Supervisor">Supervisor</mat-option>
+                  <mat-option value="Colaborador">Colaborador</mat-option>
+                  <mat-option value="Tallerista">Tallerista</mat-option>
+                </mat-select>
+              </mat-form-field>
 
-        <mat-form-field appearance="outline">
-          <mat-label>Experiencia</mat-label>
-          <input matInput [(ngModel)]="newColaborador.experiencia" name="experiencia" placeholder="5 años, 2 semestres…" />
-        </mat-form-field>
+              <mat-form-field appearance="outline" class="FormField">
+                <mat-label>Cargo</mat-label>
+                <input matInput [(ngModel)]="nuevoColaborador.especialidad" name="especialidad" placeholder="Profesor de Historia, Coordinador…" />
+              </mat-form-field>
+            </div>
 
-        <mat-form-field appearance="outline">
-          <mat-label>Estado</mat-label>
-          <mat-select [(ngModel)]="newColaborador.estado" name="estado">
-            <mat-option value="Activo">Activo</mat-option>
-            <mat-option value="Inactivo">Inactivo</mat-option>
-          </mat-select>
-        </mat-form-field>
-      </form>
+            <div class="FormRow">
+              <mat-form-field appearance="outline" class="FormField FullWidth">
+                <mat-label>Universidad de egreso</mat-label>
+                <input matInput [(ngModel)]="nuevoColaborador.experiencia" name="experiencia" placeholder="Universidad de Chile, PUC…" />
+              </mat-form-field>
+            </div>
+          </form>
 
-      <div class="form-actions">
-        <button mat-raised-button color="primary" (click)="addColaborador()">
-          <mat-icon>save</mat-icon> Agregar colaborador
-        </button>
-      </div>
-    </mat-card-content>
-  </mat-card>
-
-  <!-- TARJETAS -->
-  <div class="cards">
-    <mat-card class="coll elev card-click" *ngFor="let c of filtered()">
-      <mat-card-header>
-        <div
-          mat-card-avatar
-          class="avatar"
-          [ngClass]="c.role === 'Supervisor' ? 'blue' : c.role === 'Tallerista' ? 'teal' : 'purple'">
-          <mat-icon>
-            {{ c.role === 'Supervisor' ? 'supervisor_account' : c.role === 'Tallerista' ? 'handyman' : 'person' }}
-          </mat-icon>
+        <div class="FormActions">
+          <button mat-stroked-button (click)="alternarFormulario()" class="CancelBtn">
+            Cancelar
+          </button>
+          <button mat-raised-button color="primary" (click)="estaEditando ? actualizarColaborador() : agregarColaborador()" class="SubmitBtn">
+            <mat-icon>{{ estaEditando ? 'save' : 'person_add' }}</mat-icon> 
+            {{ estaEditando ? 'Guardar cambios' : 'Añadir' }}
+          </button>
         </div>
-        <mat-card-title>{{ c.nombre }}</mat-card-title>
-        <mat-card-subtitle>{{ c.centro_educativo }}</mat-card-subtitle>
-      </mat-card-header>
-
-      <mat-card-content>
-        <div class="badge" [ngClass]="statusClass(c.estado)">
-          {{ c.estado }}
-        </div>
-
-        <div class="mt">
-          <b>{{ c.role }}</b> · {{ c.especialidad || '—' }}
-        </div>
-
-        <div class="muted">Experiencia: {{ c.experiencia || '—' }}</div>
-        <div class="muted"> {{ c.email }}</div>
-        <div class="muted"> {{ c.telefono || '—' }}</div>
-      </mat-card-content>
-
-      <mat-card-actions>
-        <button mat-stroked-button color="primary">
-          <mat-icon>edit</mat-icon> Editar
-        </button>
-
-        <button mat-stroked-button color="warn" (click)="remove(c)">
-          <mat-icon>delete</mat-icon> Eliminar
-        </button>
-      </mat-card-actions>
-    </mat-card>
+        </mat-card-content>
+      </mat-card>
+    }
   </div>
 
-  <!-- EMPTY -->
-  <mat-card *ngIf="!filtered().length" class="elev empty">
-    <mat-card-content class="muted empty__content">
-      <mat-icon>group_off</mat-icon>
-      <p>No se encontraron colaboradores con los filtros seleccionados.</p>
+  <!-- LISTADO DE COLABORADORES -->
+  <mat-card class="Elev">
+    <mat-card-content class="ListContainer">
+      @for (c of filtrados(); track c.email) {
+        <div class="ListItem">
+          <div class="ItemContent">
+            <!-- Avatar y nombre -->
+            <div class="ItemMain">
+              <div class="ItemInfo">
+                <h3>{{ c.nombre }}</h3>
+                <p class="Muted">{{ c.email }}</p>
+              </div>
+            </div>
+
+            <!-- Rol y cargo -->
+            <div class="ItemRole">
+              <strong>{{ c.role }}</strong>
+              @if (c.especialidad) {
+                <span> · {{ c.especialidad }}</span>
+              }
+            </div>
+
+            <!-- Acciones -->
+            <div class="ItemActions">
+              <button mat-icon-button color="accent" (click)="verDetalles(c)" title="Ver más información">
+                <mat-icon>visibility</mat-icon>
+              </button>
+            <button mat-icon-button color="primary" (click)="editarColaborador(c)" title="Editar">
+              <mat-icon>edit</mat-icon>
+            </button>
+              <button mat-icon-button color="warn" (click)="eliminar(c)" title="Eliminar">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+          </div>
+        </div>
+      }
     </mat-card-content>
   </mat-card>
+
+  <!-- EMPTY -->
+  @if (!filtrados().length) {
+    <mat-card class="Elev Empty">
+      <mat-card-content class="Muted EmptyContent">
+        <mat-icon>group_off</mat-icon>
+        <p>No se encontraron colaboradores con los filtros seleccionados.</p>
+      </mat-card-content>
+    </mat-card>
+  }
+
+  <!-- DIALOGO DETALLES -->
+  @if (colaboradorSeleccionado) {
+    <div class="DetailsDialog">
+      <div class="DialogOverlay" (click)="cerrarDetalles()"></div>
+      <div class="DialogContent">
+        <div class="DialogHeader">
+          <h2>Información del Colaborador</h2>
+          <button mat-icon-button (click)="cerrarDetalles()" class="CloseBtn">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+        
+        <div class="DialogBody">
+          <div class="DetailsGrid">
+            <div class="DetailItem">
+              <label>Nombre completo:</label>
+              <span>{{ colaboradorSeleccionado.nombre }}</span>
+            </div>
+            
+            <div class="DetailItem">
+              <label>RUT:</label>
+              <span>{{ colaboradorSeleccionado.rut || 'No especificado' }}</span>
+            </div>
+            
+            <div class="DetailItem">
+              <label>Email:</label>
+              <span>{{ colaboradorSeleccionado.email }}</span>
+            </div>
+            
+            <div class="DetailItem">
+              <label>Dirección:</label>
+              <span>{{ colaboradorSeleccionado.direccion || 'No especificada' }}</span>
+            </div>
+            
+            <div class="DetailItem">
+              <label>Teléfono:</label>
+              <span>{{ colaboradorSeleccionado.telefono || 'No especificado' }}</span>
+            </div>
+            
+            <div class="DetailItem">
+              <label>Rol:</label>
+              <span>{{ colaboradorSeleccionado.role }}</span>
+            </div>
+            
+            <div class="DetailItem">
+              <label>Cargo:</label>
+              <span>{{ colaboradorSeleccionado.especialidad || 'No especificado' }}</span>
+            </div>
+            
+            <div class="DetailItem">
+              <label>Universidad de egreso:</label>
+              <span>{{ colaboradorSeleccionado.experiencia || 'No especificada' }}</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="DialogActions">
+          <button mat-stroked-button (click)="cerrarDetalles()">Cerrar</button>
+        <button mat-raised-button color="primary" (click)="editarColaborador(colaboradorSeleccionado!)">
+          <mat-icon>edit</mat-icon>
+          Editar colaborador
+        </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- MODAL DE CONFIRMACIÓN DE ELIMINACIÓN -->
+  @if (mostrarConfirmarEliminar && colaboradorAEliminar) {
+    <div class="DeleteConfirmDialog">
+      <div class="DialogOverlay" (click)="cerrarConfirmarEliminar()"></div>
+      <div class="DeleteDialogContent">
+        <div class="DeleteDialogHeader">
+          <div class="DeleteIcon">
+            <mat-icon>warning</mat-icon>
+          </div>
+          <h2>Confirmar eliminación</h2>
+        </div>
+        
+        <div class="DeleteDialogBody">
+          <p>¿Estás seguro de que quieres eliminar a <strong>{{ colaboradorAEliminar.nombre }}</strong>?</p>
+          <p class="WarningText">Esta acción no se puede deshacer.</p>
+        </div>
+        
+        <div class="DeleteDialogActions">
+          <button mat-stroked-button (click)="cerrarConfirmarEliminar()" class="CancelDeleteBtn">
+            Cancelar
+          </button>
+          <button mat-raised-button color="warn" (click)="confirmarEliminar()" class="ConfirmDeleteBtn">
+            <mat-icon>delete</mat-icon>
+            Eliminar
+          </button>
+        </div>
+      </div>
+    </div>
+  }
 </div>

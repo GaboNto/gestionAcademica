@@ -1,63 +1,658 @@
 /* Contenedor base */
-.container { max-width: 1120px; margin: 16px auto; padding: 0 16px; }
-.section { margin-top: 8px; }
+.Container { max-width: 1120px; margin: 16px auto; padding: 0 16px; }
+.Section { margin-top: 8px; }
 
 /* Header */
-.header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
-.btn-back { border-radius: 10px; }
-.btn-add  { border-radius: 10px; white-space: nowrap; }
-.headline h1 { margin: 0; font-size: 22px; }
-.muted { color: #64748b; font-size: 13px; margin: 2px 0 0; }
-.spacer { flex: 1 1 auto; }
+.Header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.BtnAdd  { border-radius: 10px; white-space: nowrap; }
+.Headline h1 { margin: 0; font-size: 22px; }
+.Muted { color: #64748b; font-size: 13px; margin: 2px 0 0; }
+.Spacer { flex: 1 1 auto; }
 
 /* Card base */
-.elev { border: 1px solid #e5e7eb; border-radius: 14px; }
-.card-click { cursor: pointer; transition: box-shadow .2s ease, transform .05s ease; }
-.card-click:hover { box-shadow: 0 8px 22px rgba(0,0,0,.08); transform: translateY(-1px); }
+.Elev { border: 1px solid #e5e7eb; border-radius: 14px; }
 
-/* Filtros */
-.filters { display: grid; grid-template-columns: 1fr 240px; gap: 12px; }
-.role-filter { min-width: 200px; }
-.flex1 { flex: 1 1 auto; }
-@media (max-width: 720px) { .filters { grid-template-columns: 1fr; } }
-
-/* Formulario alta */
-.form-card { margin-top: 12px; }
-.form-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px; margin-top: 6px;
+/* Filtros de búsqueda */
+.FiltersCard {
+  margin-bottom: 24px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
 }
-.form-actions { display: flex; justify-content: flex-end; margin-top: 8px; }
-@media (max-width: 1024px) { .form-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 640px)  { .form-grid { grid-template-columns: 1fr; } }
 
-/* Tarjetas */
-.cards {
+.FiltersCard mat-card-header {
+  padding: 20px 20px 0;
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 20px;
+}
+
+.FiltersCard mat-card-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+}
+
+.FiltersCard mat-card-content {
+  padding: 0 20px 20px;
+}
+
+.FiltersGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: 2fr 1fr;
   gap: 16px;
-  margin-top: 12px;
+  align-items: end;
 }
 
-/* Avatar por rol */
-.avatar { display: grid; place-items: center; border-radius: 50%; width: 44px; height: 44px; }
-.avatar.blue   { background: #e3f2fd; color: #1e88e5; }
-.avatar.purple { background: #f3e5f5; color: #8e24aa; }
-.avatar.green  { background: #e8f5e9; color: #2e7d32; }
-.avatar.teal   { background: #e0f2f1; color: #00695c; } /* Tallerista */
-
-/* Badge de estado */
-.coll .badge {
-  display: inline-block; padding: 4px 8px; border-radius: 8px;
-  font-size: 12px; margin: 4px 0;
+.SearchField {
+  min-width: 300px;
 }
-.badge.green { background: #e8f5e9; color: #2e7d32; }
-.badge.red   { background: #ffebee; color: #c62828; }
 
-/* Textos */
-.mt { margin-top: 4px; }
+.FilterField {
+  min-width: 180px;
+}
+
+@media (max-width: 768px) {
+  .FiltersGrid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .SearchField,
+  .FilterField {
+    min-width: auto;
+  }
+}
+
+/* Formulario mejorado */
+.FormContainer {
+  margin-bottom: 20px;
+  transition: all 0.3s ease;
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+}
+
+.FormContainer.FormOpen {
+  max-height: 1000px;
+  opacity: 1;
+}
+
+.FormCard { 
+  margin: 0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e2e8f0;
+}
+
+.FormHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 24px 0;
+  border-bottom: 1px solid #f1f5f9;
+  margin-bottom: 24px;
+}
+
+.FormTitleSection {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.FormIcon {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
+}
+
+.FormTitles h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.FormTitles p {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: #64748b;
+}
+
+.CloseFormBtn {
+  color: #64748b;
+  transition: color 0.2s ease;
+}
+
+.CloseFormBtn:hover {
+  color: #ef4444;
+}
+
+.FormContent {
+  padding: 0 24px 24px;
+}
+
+.FormGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.FormRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.FormField.FullWidth {
+  grid-column: 1 / -1;
+}
+
+.FormActions { 
+  display: flex; 
+  justify-content: flex-end; 
+  gap: 12px;
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.CancelBtn {
+  color: #64748b;
+  border-color: #d1d5db;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-weight: 500;
+  font-size: 14px;
+  text-transform: none;
+  transition: all 0.2s ease;
+  min-width: 100px;
+}
+
+.CancelBtn:hover {
+  background-color: #f8fafc;
+  border-color: #9ca3af;
+  color: #374151;
+}
+
+.SubmitBtn {
+  background: white;
+  color: #374151;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-weight: 600;
+  font-size: 14px;
+  text-transform: none;
+  letter-spacing: 0.025em;
+  transition: all 0.2s ease;
+  min-width: 120px;
+}
+
+.SubmitBtn:hover {
+  background: #f9fafb;
+  box-shadow: 0 6px 8px -1px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
+  border-color: #9ca3af;
+}
+
+.SubmitBtn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+}
+
+.SubmitBtn mat-icon {
+  margin-right: 8px;
+  font-size: 18px;
+  color: #374151;
+}
+
+@media (max-width: 768px) { 
+  .FormRow { 
+    grid-template-columns: 1fr; 
+    gap: 12px;
+  }
+  .FormHeader {
+    padding: 20px 20px 0;
+  }
+  .FormContent {
+    padding: 0 20px 20px;
+  }
+  .FormActions {
+    flex-direction: column;
+  }
+  .FormActions button {
+    width: 100%;
+  }
+}
+
+/* Listado de colaboradores */
+.ListContainer {
+  padding: 0 !important;
+}
+
+/* Card del listado */
+.Elev:has(.ListContainer) {
+  margin-top: 0;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  border-top: none;
+  border-radius: 0 0 14px 14px;
+}
+
+.ListItem {
+  border-bottom: 1px solid #e5e7eb;
+  transition: background-color 0.2s ease;
+  border-radius: 0;
+}
+
+.ListItem:first-child {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+.ListItem:last-child {
+  border-bottom: none;
+  border-bottom-left-radius: 14px;
+  border-bottom-right-radius: 14px;
+}
+
+.ListItem:hover {
+  background-color: #f8fafc;
+}
+
+.ItemContent {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 24px;
+}
+
+.ItemMain {
+  display: flex;
+  align-items: center;
+}
+
+.ItemInfo h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+  color: #1f2937;
+}
+
+.ItemInfo p {
+  margin: 0;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.ItemRole {
+  font-size: 14px;
+  color: #374151;
+  min-width: 120px;
+}
+
+.ItemActions {
+  display: flex;
+  gap: 4px;
+  min-width: 120px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .ItemContent {
+    grid-template-columns: 1fr auto;
+    gap: 12px;
+  }
+  
+  .ItemRole {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .ItemContent {
+    padding: 12px 16px;
+  }
+  
+  .ItemInfo h3 {
+    font-size: 14px;
+  }
+  
+  .ItemInfo p {
+    font-size: 12px;
+  }
+}
+
+/* Modal de detalles */
+.DetailsDialog {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.DialogOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+}
+
+.DialogContent {
+  position: relative;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  max-width: 600px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.DialogHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 24px 0;
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 24px;
+}
+
+.DialogHeader h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.CloseBtn {
+  color: #6b7280;
+}
+
+.DialogBody {
+  padding: 0 24px;
+}
+
+.DetailsGrid {
+  display: grid;
+  gap: 16px;
+}
+
+.DetailItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.DetailItem label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.DetailItem span {
+  font-size: 16px;
+  color: #1f2937;
+}
+
+.DialogActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 24px;
+  border-top: 1px solid #e5e7eb;
+  margin-top: 24px;
+}
+
+/* Responsive para el modal */
+@media (max-width: 640px) {
+  .DialogContent {
+    width: 95%;
+    margin: 16px;
+  }
+  
+  .DialogHeader {
+    padding: 16px 16px 0;
+  }
+  
+  .DialogHeader h2 {
+    font-size: 18px;
+  }
+  
+  .DialogBody {
+    padding: 0 16px;
+  }
+  
+  .DialogActions {
+    padding: 16px;
+    flex-direction: column;
+  }
+  
+  .DialogActions button {
+    width: 100%;
+  }
+}
 
 /* Empty */
-.empty { margin-top: 12px; }
-.empty__content { display: grid; place-items: center; gap: 8px; }
+.Empty { margin-top: 12px; }
+.EmptyContent { display: grid; place-items: center; gap: 8px; }
+
+/* Alerta de éxito personalizada - Estilo oscuro */
+::ng-deep .success-snackbar {
+  .mdc-snackbar__surface {
+    background: #374151 !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+    border-radius: 8px !important;
+    padding: 0 !important;
+    min-width: 400px !important;
+    max-width: 600px !important;
+  }
+
+  .mat-mdc-snack-bar-label {
+    color: white !important;
+    font-weight: 400 !important;
+    font-size: 15px !important;
+    padding: 16px 20px !important;
+    letter-spacing: 0.2px !important;
+  }
+
+  .mdc-snackbar__label {
+    color: white !important;
+  }
+
+  .mat-mdc-button.mat-mdc-snack-bar-action {
+    color: white !important;
+    font-weight: 500 !important;
+    font-size: 14px !important;
+    opacity: 0.9 !important;
+    transition: all 0.2s ease !important;
+    margin-right: 8px !important;
+    text-transform: none !important;
+    
+    &:hover {
+      opacity: 1 !important;
+      background-color: rgba(255, 255, 255, 0.1) !important;
+    }
+  }
+
+  .mat-mdc-button .mat-mdc-button-touch-target {
+    background-color: transparent !important;
+  }
+}
+
+@media (max-width: 640px) {
+  ::ng-deep .success-snackbar {
+    .mdc-snackbar__surface {
+      min-width: auto !important;
+      max-width: calc(100vw - 32px) !important;
+    }
+  }
+}
+
+/* Modal de confirmación de eliminación */
+.DeleteConfirmDialog {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.DeleteDialogContent {
+  position: relative;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  max-width: 480px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.DeleteDialogHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 24px 24px 0;
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 24px;
+}
+
+.DeleteIcon {
+  width: 40px;
+  height: 40px;
+  background: #fef3c7;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #d97706;
+  flex-shrink: 0;
+}
+
+.DeleteDialogHeader h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.DeleteDialogBody {
+  padding: 0 24px;
+}
+
+.DeleteDialogBody p {
+  margin: 0 0 12px;
+  font-size: 16px;
+  color: #374151;
+  line-height: 1.5;
+}
+
+.WarningText {
+  color: #6b7280 !important;
+  font-size: 14px !important;
+  font-style: italic;
+}
+
+.DeleteDialogActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 24px;
+  border-top: 1px solid #e5e7eb;
+  margin-top: 24px;
+}
+
+.CancelDeleteBtn {
+  color: #6b7280;
+  border-color: #d1d5db;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-weight: 500;
+  font-size: 14px;
+  text-transform: none;
+  transition: all 0.2s ease;
+  min-width: 100px;
+}
+
+.CancelDeleteBtn:hover {
+  background-color: #f8fafc;
+  border-color: #9ca3af;
+  color: #374151;
+}
+
+.ConfirmDeleteBtn {
+  background: #dc2626;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-weight: 600;
+  font-size: 14px;
+  text-transform: none;
+  transition: all 0.2s ease;
+  min-width: 120px;
+}
+
+.ConfirmDeleteBtn:hover {
+  background: #b91c1c;
+  box-shadow: 0 4px 6px -1px rgba(220, 38, 38, 0.3);
+}
+
+.ConfirmDeleteBtn mat-icon {
+  margin-right: 8px;
+  font-size: 18px;
+}
+
+/* Responsive para el modal de confirmación */
+@media (max-width: 640px) {
+  .DeleteDialogContent {
+    width: 95%;
+    margin: 16px;
+  }
+  
+  .DeleteDialogHeader {
+    padding: 16px 16px 0;
+  }
+  
+  .DeleteDialogHeader h2 {
+    font-size: 18px;
+  }
+  
+  .DeleteDialogBody {
+    padding: 0 16px;
+  }
+  
+  .DeleteDialogActions {
+    padding: 16px;
+    flex-direction: column;
+  }
+  
+  .DeleteDialogActions button {
+    width: 100%;
+  }
+}
