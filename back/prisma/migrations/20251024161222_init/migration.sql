@@ -182,6 +182,34 @@ CREATE TABLE `enc_colab_preg` (
     PRIMARY KEY (`encuestaId`, `preguntaId`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
+-- CreateTable
+CREATE TABLE `AuthorizationRequest` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `code` VARCHAR(191) NULL,
+    `refTitle` VARCHAR(191) NOT NULL,
+    `city` VARCHAR(191) NOT NULL,
+    `letterDate` DATETIME(3) NOT NULL,
+    `addresseeName` VARCHAR(191) NOT NULL,
+    `addresseeRole` VARCHAR(191) NOT NULL,
+    `institution` VARCHAR(191) NOT NULL,
+    `institutionAddr` VARCHAR(191) NOT NULL,
+    `practiceType` VARCHAR(191) NOT NULL,
+    `periodStart` DATETIME(3) NOT NULL,
+    `periodEnd` DATETIME(3) NOT NULL,
+    `degree` VARCHAR(191) NOT NULL,
+    `comments` VARCHAR(191) NULL,
+    `tutorName` VARCHAR(191) NULL,
+    `tutorPhone` VARCHAR(191) NULL,
+    `studentsJson` JSON NOT NULL,
+    `status` ENUM('PENDING', 'SENT', 'CANCELED') NOT NULL DEFAULT 'PENDING',
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
+
+    INDEX `AuthorizationRequest_letterDate_idx`(`letterDate`),
+    INDEX `AuthorizationRequest_institution_idx`(`institution`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
 -- AddForeignKey
 ALTER TABLE `practica` ADD CONSTRAINT `practica_estudianteRut_fkey` FOREIGN KEY (`estudianteRut`) REFERENCES `estudiante`(`rut`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
