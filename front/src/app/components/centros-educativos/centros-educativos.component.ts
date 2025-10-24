@@ -20,7 +20,7 @@ interface ContactoCentro {
   telefono?: string;
 }
 
-interface Colegio {
+interface CentroEducativo {
   id: number;
   nombre: string;
   tipo: TipoCentro;
@@ -35,9 +35,9 @@ interface Colegio {
 
 @Component({
   standalone: true,
-  selector: 'app-colegios',
-  templateUrl: './colegios.component.html',
-  styleUrls: ['./colegios.component.scss'],
+  selector: 'app-centros-educativos',
+  templateUrl: './centros-educativos.component.html',
+  styleUrls: ['./centros-educativos.component.scss'],
   imports: [
     CommonModule, FormsModule,
     MatButtonModule, MatIconModule, MatCardModule,
@@ -45,7 +45,7 @@ interface Colegio {
     MatSnackBarModule
   ]
 })
-export class ColegiosComponent {
+export class CentrosEducativosComponent {
   private snack = inject(MatSnackBar);
   private platformId = inject(PLATFORM_ID);
 
@@ -59,7 +59,6 @@ export class ColegiosComponent {
   selectedTipo: 'all' | TipoCentro = 'all';
 
   // ===== regiones y comunas =====
-  // (puedes ampliar el catálogo sin tocar el resto del código)
   readonly REGIONES: { nombre: string; comunas: string[] }[] = [
     { nombre: 'Región de Arica y Parinacota', comunas: ['Arica', 'Camarones', 'Putre', 'General Lagos'] },
     { nombre: 'Región de Tarapacá',           comunas: ['Iquique', 'Alto Hospicio', 'Pozo Almonte'] },
@@ -71,7 +70,7 @@ export class ColegiosComponent {
   private idCounter = 1;
   editId: number | null = null;
 
-  newColegio: Partial<Colegio> = {
+  newCentroEducativo: Partial<CentroEducativo> = {
     nombre: '',
     tipo: 'Público',
     region: '',
@@ -84,7 +83,7 @@ export class ColegiosComponent {
   };
 
   // ===== datos (mock + persistencia local) =====
-  colegios: Colegio[] = [
+  centrosEducativos: CentroEducativo[] = [
     {
       id: this.idCounter++,
       nombre: 'Liceo Bicentenario Santiago',
@@ -107,18 +106,17 @@ export class ColegiosComponent {
     }
   ];
 
-  selectedColegio: Colegio | null = null;
+  selectedCentroEducativo: CentroEducativo | null = null;
 
   constructor() {
     if (isPlatformBrowser(this.platformId)) {
-      const saved = localStorage.getItem('app.colegios');
+      const saved = localStorage.getItem('app.centrosEducativos'); // ← clave nueva
       if (saved) {
         try {
-          const list = JSON.parse(saved) as Colegio[];
+          const list = JSON.parse(saved) as CentroEducativo[];
           if (Array.isArray(list) && list.length) {
-            this.colegios = list;
-            // recalcular idCounter
-            this.idCounter = Math.max(...this.colegios.map(c => c.id)) + 1;
+            this.centrosEducativos = list;
+            this.idCounter = Math.max(...this.centrosEducativos.map(c => c.id)) + 1;
           }
         } catch {}
       }
@@ -132,25 +130,24 @@ export class ColegiosComponent {
   }
 
   onRegionChange() {
-    const region = this.newColegio.region || '';
+    const region = this.newCentroEducativo.region || '';
     const reg = this.REGIONES.find(r => r.nombre === region);
     this.comunasFiltradas = reg ? reg.comunas : [];
-    // reset comuna si no pertenece a la lista filtrada
-    if (!this.comunasFiltradas.includes(this.newColegio.comuna || '')) {
-      this.newColegio.comuna = '';
+    if (!this.comunasFiltradas.includes(this.newCentroEducativo.comuna || '')) {
+      this.newCentroEducativo.comuna = '';
     }
   }
 
   private persist() {
     if (isPlatformBrowser(this.platformId)) {
-      localStorage.setItem('app.colegios', JSON.stringify(this.colegios));
+      localStorage.setItem('app.centrosEducativos', JSON.stringify(this.centrosEducativos));
     }
   }
 
   private resetForm() {
     this.isEditing = false;
     this.editId = null;
-    this.newColegio = {
+    this.newCentroEducativo = {
       nombre: '',
       tipo: 'Público',
       region: '',
@@ -165,17 +162,15 @@ export class ColegiosComponent {
   }
 
   // ===== CRUD =====
-  addOrUpdateColegio() {
-    const c = this.newColegio;
+  addOrUpdateCentro() {
+    const c = this.newCentroEducativo;
 
-    // validaciones mínimas
     if (!c.nombre?.trim() || !c.tipo || !c.region || !c.comuna || !c.convenio) {
       this.snack.open('Debe completar todos los campos requeridos.', 'Cerrar', { duration: 2500 });
       return;
     }
 
-    // evitar duplicados (nombre + comuna)
-    const dup = this.colegios.some(x =>
+    const dup = this.centrosEducativos.some(x =>
       x.nombre.trim().toLowerCase() === c.nombre!.trim().toLowerCase() &&
       x.comuna === c.comuna &&
       (!this.isEditing || x.id !== this.editId)
@@ -186,9 +181,9 @@ export class ColegiosComponent {
     }
 
     if (this.isEditing && this.editId != null) {
-      const idx = this.colegios.findIndex(x => x.id === this.editId);
+      const idx = this.centrosEducativos.findIndex(x => x.id === this.editId);
       if (idx > -1) {
-        this.colegios[idx] = {
+        this.centrosEducativos[idx] = {
           id: this.editId,
           nombre: c.nombre!.trim(),
           tipo: c.tipo as TipoCentro,
@@ -203,7 +198,7 @@ export class ColegiosComponent {
         this.snack.open('Centro actualizado.', 'OK', { duration: 2000 });
       }
     } else {
-      const nuevo: Colegio = {
+      const nuevo: CentroEducativo = {
         id: this.idCounter++,
         nombre: c.nombre!.trim(),
         tipo: c.tipo as TipoCentro,
@@ -215,7 +210,7 @@ export class ColegiosComponent {
         director: { ...(c.director || { nombre: '' }) },
         utp:      { ...(c.utp || { nombre: '' }) },
       };
-      this.colegios.unshift(nuevo);
+      this.centrosEducativos.unshift(nuevo);
       this.snack.open('Centro agregado.', 'OK', { duration: 2000 });
     }
 
@@ -223,11 +218,11 @@ export class ColegiosComponent {
     this.toggleForm();
   }
 
-  edit(c: Colegio) {
+  editCentro(c: CentroEducativo) {
     this.isEditing = true;
     this.editId = c.id;
     this.showForm = true;
-    this.newColegio = {
+    this.newCentroEducativo = {
       ...c,
       director: { ...(c.director || { nombre: '', correo: '', telefono: '' }) },
       utp:      { ...(c.utp || { nombre: '', correo: '', telefono: '' }) },
@@ -235,29 +230,25 @@ export class ColegiosComponent {
     this.onRegionChange();
   }
 
-  remove(c: Colegio) {
+  removeCentro(c: CentroEducativo) {
     if (isPlatformBrowser(this.platformId)) {
       const ok = window.confirm(`¿Eliminar “${c.nombre}” de ${c.comuna}?`);
       if (!ok) return;
     }
-    this.colegios = this.colegios.filter(x => x.id !== c.id);
+    this.centrosEducativos = this.centrosEducativos.filter(x => x.id !== c.id);
     this.persist();
     this.snack.open('Centro eliminado.', 'OK', { duration: 2000 });
   }
 
-  view(c: Colegio) {
-    this.selectedColegio = c;
-  }
-  closeDetails() { this.selectedColegio = null; }
+  viewCentro(c: CentroEducativo) { this.selectedCentroEducativo = c; }
+  closeDetails() { this.selectedCentroEducativo = null; }
 
-  // ordenar por nombre
   toggleSort() { this.sortAZ = !this.sortAZ; }
 
-  // ===== filtro listado =====
-  filtered(): Colegio[] {
+  filteredCentros(): CentroEducativo[] {
     const t = this.searchTerm.trim().toLowerCase();
 
-    let list = this.colegios.filter(c => {
+    let list = this.centrosEducativos.filter(c => {
       const matchSearch =
         !t ||
         c.nombre.toLowerCase().includes(t) ||
