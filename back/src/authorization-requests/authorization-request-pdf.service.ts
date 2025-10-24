@@ -5,7 +5,8 @@ import * as Handlebars from 'handlebars';
 import dayjs from 'dayjs';
 import 'dayjs/locale/es';
 import puppeteer from 'puppeteer';
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaService } from 'prisma/prisma.service';
+
 
 dayjs.locale('es');
 

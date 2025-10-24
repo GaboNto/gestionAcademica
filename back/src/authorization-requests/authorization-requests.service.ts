@@ -1,6 +1,6 @@
 import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { Prisma, AuthorizationRequest } from '@prisma/client';
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaService } from 'prisma/prisma.service';
 import { CreateAuthorizationRequestDto } from './dto/create-authorization-request.dto';
 
 @Injectable()
