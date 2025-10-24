@@ -310,3 +310,34 @@ model EncuestaColaboradorPregunta {
   @@id([encuestaId, preguntaId])
   @@map("enc_colab_preg")
 }
+model AuthorizationRequest {
+  id               Int          @id @default(autoincrement())
+  code             String?      // PHG N°
+  refTitle         String       // "REF.: SOLICITUD DE AUTORIZACIÓN…"
+  city             String       // "ARICA"
+  letterDate       DateTime
+  addresseeName    String
+  addresseeRole    String
+  institution      String
+  institutionAddr  String
+  practiceType     String       // Apoyo a la Docencia I/II/III
+  periodStart      DateTime
+  periodEnd        DateTime
+  degree           String       // carrera
+  comments         String?
+  tutorName        String?
+  tutorPhone       String?
+  studentsJson     Json         // [{name,rut}, ...]
+  status           RequestStatus @default(PENDING)
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  @@index([letterDate])
+  @@index([institution])
+}
+
+enum RequestStatus {
+  PENDING
+  SENT
+  CANCELED
+}
