@@ -106,7 +106,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         { label: 'Dashboard',          icon: 'dashboard',    route: '/dashboard' },
         { label: 'Supervisión general',icon: 'insights',     route: '/supervision' },
         { label: 'Reportes completos', icon: 'analytics',    route: '/reportes' },
-        { label: 'Generar solicitud',  icon: 'description',  route: '/generarSolicitud' }, // crea la ruta si aún no existe
+        { label: 'Generar solicitud',  icon: 'description',  route: '/generarSolicitud' },
       ];
     }
 
@@ -124,11 +124,10 @@ export class AppComponent implements OnInit, AfterViewInit {
         { label: 'Dashboard',       icon: 'dashboard', route: '/dashboard' },
         { label: 'Estudiantes',     icon: 'school',    route: '/estudiantes' },
         { label: 'Colaboradores',   icon: 'groups',    route: '/colaboradores' },
-        { label: 'Prácticas',       icon: 'event_note',route: '/practicas' },     // crea la ruta si aún no existe
-        { label: 'Reportes/Historial', icon: 'timeline', route: '/reportes' },    // crea la ruta si aún no existe
+        { label: 'Prácticas',       icon: 'event_note',route: '/practicas' },
+        { label: 'Reportes/Historial', icon: 'timeline', route: '/reportes' },
+        { label: 'Centros educativos', icon: 'school', route: '/centros-educativos' },
       ];
-      // Si ya tienes /centros, lo dejamos visible:
-      items.splice(3, 0, { label: 'Centros educativos', icon: 'domain', route: '/colegios' }); // opcional
       return items;
     }
 
