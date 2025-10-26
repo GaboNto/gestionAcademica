@@ -1,23 +1,22 @@
-import { Transform } from 'class-transformer';
-import { IsEnum, IsInt, IsOptional, IsString, Min } from 'class-validator';
-import { TipoCentro } from '@prisma/client';
+import { IsIn, IsInt, IsOptional, IsString, Min } from 'class-validator';
+import { TIPO_CENTRO_VALUES } from './create-centro.dto';
 
 export class QueryCentroDto {
-  @IsOptional() @IsEnum(TipoCentro)
-  tipo?: TipoCentro;
-
   @IsOptional() @IsString()
-  search?: string; // nombre|comuna|region|correo contiene
+  search?: string;
 
-  @IsOptional() @Transform(({value}) => parseInt(value,10)) @IsInt() @Min(1)
+  @IsOptional()
+  @IsIn(TIPO_CENTRO_VALUES)
+  tipo?: (typeof TIPO_CENTRO_VALUES)[number];
+
+  @IsOptional() @IsInt() @Min(1)
   page?: number = 1;
 
-  @IsOptional() @Transform(({value}) => parseInt(value,10)) @IsInt() @Min(1)
+  @IsOptional() @IsInt() @Min(1)
   limit?: number = 10;
 
-  // Usa sólo campos que existen en tu modelo actual
   @IsOptional() @IsString()
-  orderBy?: 'nombre' | 'comuna' | 'region' | 'id' = 'nombre';
+  orderBy?: 'nombre' | 'region' | 'comuna' = 'nombre';
 
   @IsOptional() @IsString()
   orderDir?: 'asc' | 'desc' = 'asc';

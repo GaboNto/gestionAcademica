@@ -1,38 +1,49 @@
-import { IsEmail, IsEnum, IsInt, IsOptional, IsString, Length } from 'class-validator';
-import { TipoCentro } from '@prisma/client';
+import { IsEmail, IsIn, IsInt, IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
+
+export const TIPO_CENTRO_VALUES = ['PARTICULAR', 'PARTICULAR_SUBVENCIONADO', 'SLEP'] as const;
+export type TipoCentroDTO = typeof TIPO_CENTRO_VALUES[number];
 
 export class CreateCentroDto {
   @IsString()
-  @Length(3, 160)
-  nombre: string;
+  @MaxLength(200)
+  @IsNotEmpty()
+  nombre!: string;
+
+  // Validamos contra los 3 valores válidos del enum de Prisma
+  @IsString()
+  @IsIn(TIPO_CENTRO_VALUES)
+  tipo!: TipoCentroDTO;
+
+  @IsString()
+  @IsNotEmpty()
+  region!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  comuna!: string;
 
   @IsOptional() @IsString()
-  region?: string;
+  convenio?: string | null;
 
   @IsOptional() @IsString()
-  comuna?: string;
+  direccion?: string | null;
 
+  // nombre_calle / numero_calle en BD
   @IsOptional() @IsString()
-  direccion?: string;
-
-  @IsOptional() @IsString()
-  nombre_calle?: string;
-
-  @IsOptional() @IsInt()
-  numero_calle?: number;
+  nombre_calle?: string | null;
 
   @IsOptional()
-  telefono?: number; // tu esquema actual lo tiene como Int?
+  @IsInt()
+  numero_calle?: number | null;
 
-  @IsOptional() @IsEmail()
-  correo?: string;
+  @IsOptional()
+  @IsInt()
+  telefono?: number | null;
 
-  @IsOptional() @IsEnum(TipoCentro)
-  tipo?: TipoCentro; // PARTICULAR | PARTICULAR_SUBVENCIONADO | SLEP
+  @IsOptional()
+  @IsEmail()
+  correo?: string | null;
 
   @IsOptional() @IsString()
-  convenio?: string;
-
-  @IsOptional() @IsString()
-  url_rrss?: string;
+  url_rrss?: string | null;
 }

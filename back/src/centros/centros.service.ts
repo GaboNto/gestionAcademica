@@ -13,28 +13,52 @@ export class CentrosService {
   }
 
   async findAll(q: QueryCentroDto) {
-    const { tipo, search, page = 1, limit = 10, orderBy = 'nombre', orderDir = 'asc' } = q;
+    // -------- Normalización segura de query params --------
+    const pageRaw  = q.page ?? 1;
+    const limitRaw = q.limit ?? 10;
 
+    const pageNum  = Number(pageRaw);
+    const limitNum = Number(limitRaw);
+
+    const page  = Number.isFinite(pageNum)  && pageNum  > 0 ? pageNum  : 1;
+    const limit = Number.isFinite(limitNum) && limitNum > 0 ? limitNum : 10;
+
+    // Puedes poner un máximo razonable
+    const MAX_LIMIT = 1000;
+    const safeLimit = Math.min(limit, MAX_LIMIT);
+
+    // orderBy y orderDir con whitelists
+    const allowedOrderBy = new Set<keyof any>([
+      'id', 'nombre', 'region', 'comuna', 'tipo', 'convenio', 'correo'
+    ]);
+    const orderBy = (q.orderBy && allowedOrderBy.has(q.orderBy as any))
+      ? (q.orderBy as string)
+      : 'nombre';
+
+    const orderDir = q.orderDir === 'desc' ? 'desc' : 'asc';
+
+    // -------- Filtro WHERE --------
     const where = {
-      ...(tipo ? { tipo } : {}),
-      ...(search
+      ...(q.tipo ? { tipo: q.tipo } : {}),
+      ...(q.search
         ? {
             OR: [
-              { nombre: { contains: search, mode: 'insensitive' } },
-              { comuna: { contains: search, mode: 'insensitive' } },
-              { region: { contains: search, mode: 'insensitive' } },
-              { correo: { contains: search, mode: 'insensitive' } },
+              { nombre: { contains: q.search, mode: 'insensitive' } },
+              { comuna: { contains: q.search, mode: 'insensitive' } },
+              { region: { contains: q.search, mode: 'insensitive' } },
+              { correo: { contains: q.search, mode: 'insensitive' } },
             ],
           }
         : {}),
     };
 
+    // -------- Consulta + conteo en transacción --------
     const [items, total] = await this.prisma.$transaction([
       this.prisma.centroEducativo.findMany({
         where,
         orderBy: { [orderBy]: orderDir },
-        skip: (page - 1) * limit,
-        take: limit,
+        skip: (page - 1) * safeLimit,
+        take: safeLimit,
         select: {
           id: true,
           nombre: true,
@@ -48,7 +72,6 @@ export class CentrosService {
           tipo: true,
           convenio: true,
           url_rrss: true,
-          // resumen: cuántas prácticas y trabajadores asociados
           _count: {
             select: {
               practicas: true,
@@ -63,9 +86,9 @@ export class CentrosService {
     return {
       items,
       page,
-      limit,
+      limit: safeLimit,
       total,
-      pages: Math.ceil(total / limit),
+      pages: Math.max(0, Math.ceil(total / safeLimit)),
     };
   }
 
@@ -90,6 +113,7 @@ export class CentrosService {
         },
       },
     });
+
     if (!centro) throw new NotFoundException('Centro educativo no encontrado');
     return centro;
   }
