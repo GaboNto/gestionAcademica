@@ -28,17 +28,17 @@
       <div class="FiltersGrid">
         <mat-form-field appearance="outline" class="SearchField">
           <mat-label>Buscar</mat-label>
-          <input matInput [(ngModel)]="terminoBusqueda" placeholder="Nombre, email o cargo..." />
+          <input matInput [(ngModel)]="terminoBusqueda" (ngModelChange)="aplicarFiltros()" placeholder="Nombre, email o cargo..." />
           <mat-icon matSuffix>search</mat-icon>
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="FilterField">
           <mat-label>Rol</mat-label>
-          <mat-select [(ngModel)]="rolSeleccionado">
+        <mat-select [(ngModel)]="rolSeleccionado" (selectionChange)="aplicarFiltros()">
             <mat-option value="all">Todos los roles</mat-option>
-            <mat-option value="Supervisor">Supervisor</mat-option>
-            <mat-option value="Colaborador">Colaborador</mat-option>
-            <mat-option value="Tallerista">Tallerista</mat-option>
+          <mat-option value="TUTOR">Tutor</mat-option>
+          <mat-option value="COLABORADOR">Colaborador</mat-option>
+          <mat-option value="TALLERISTA">Tallerista</mat-option>
           </mat-select>
         </mat-form-field>
       </div>
@@ -81,12 +81,12 @@
             <div class="FormRow">
               <mat-form-field appearance="outline" class="FormField">
                 <mat-label>Email</mat-label>
-                <input matInput [(ngModel)]="nuevoColaborador.email" name="email" type="email" required />
+                <input matInput [(ngModel)]="nuevoColaborador.correo" name="correo" type="email" />
               </mat-form-field>
 
               <mat-form-field appearance="outline" class="FormField">
                 <mat-label>Teléfono</mat-label>
-                <input matInput [(ngModel)]="nuevoColaborador.telefono" name="telefono" placeholder="+56 9 ..." />
+                <input matInput [(ngModel)]="nuevoColaborador.telefono" name="telefono" placeholder="987654321" type="number" />
               </mat-form-field>
             </div>
 
@@ -99,24 +99,24 @@
 
             <div class="FormRow">
               <mat-form-field appearance="outline" class="FormField">
-                <mat-label>Rol</mat-label>
-                <mat-select [(ngModel)]="nuevoColaborador.role" name="role" required>
-                  <mat-option value="Supervisor">Supervisor</mat-option>
-                  <mat-option value="Colaborador">Colaborador</mat-option>
-                  <mat-option value="Tallerista">Tallerista</mat-option>
+                <mat-label>Tipo</mat-label>
+                <mat-select [(ngModel)]="nuevoColaborador.tipo" name="tipo">
+                  <mat-option value="COLABORADOR">Colaborador</mat-option>
+                  <mat-option value="TUTOR">Supervisor</mat-option>
+                  <mat-option value="TALLERISTA">Tallerista</mat-option>
                 </mat-select>
               </mat-form-field>
 
               <mat-form-field appearance="outline" class="FormField">
                 <mat-label>Cargo</mat-label>
-                <input matInput [(ngModel)]="nuevoColaborador.especialidad" name="especialidad" placeholder="Profesor de Historia, Coordinador…" />
+                <input matInput [(ngModel)]="nuevoColaborador.cargo" name="cargo" placeholder="Profesor de Historia, Coordinador…" />
               </mat-form-field>
             </div>
 
             <div class="FormRow">
               <mat-form-field appearance="outline" class="FormField FullWidth">
                 <mat-label>Universidad de egreso</mat-label>
-                <input matInput [(ngModel)]="nuevoColaborador.experiencia" name="experiencia" placeholder="Universidad de Chile, PUC…" />
+                <input matInput [(ngModel)]="nuevoColaborador.universidad_egreso" name="universidad_egreso" placeholder="Universidad de Chile, PUC…" />
               </mat-form-field>
             </div>
           </form>
@@ -138,22 +138,27 @@
   <!-- LISTADO DE COLABORADORES -->
   <mat-card class="Elev">
     <mat-card-content class="ListContainer">
-      @for (c of filtrados(); track c.email) {
+      @if (cargando) {
+        <div style="text-align: center; padding: 2rem;">
+          <p class="Muted">Cargando colaboradores...</p>
+        </div>
+      } @else {
+        @for (c of filtrados(); track c.id) {
         <div class="ListItem">
           <div class="ItemContent">
             <!-- Avatar y nombre -->
             <div class="ItemMain">
               <div class="ItemInfo">
                 <h3>{{ c.nombre }}</h3>
-                <p class="Muted">{{ c.email }}</p>
-              </div>
+                  <p class="Muted">{{ c.correo || 'Sin email' }}</p>
+                </div>
             </div>
 
             <!-- Rol y cargo -->
             <div class="ItemRole">
-              <strong>{{ c.role }}</strong>
-              @if (c.especialidad) {
-                <span> · {{ c.especialidad }}</span>
+                <strong>{{ c.tipo || 'Sin tipo' }}</strong>
+                @if (c.cargo) {
+                  <span> · {{ c.cargo }}</span>
               }
             </div>
 
@@ -171,6 +176,7 @@
             </div>
           </div>
         </div>
+        }
       }
     </mat-card-content>
   </mat-card>
@@ -211,7 +217,7 @@
             
             <div class="DetailItem">
               <label>Email:</label>
-              <span>{{ colaboradorSeleccionado.email }}</span>
+              <span>{{ colaboradorSeleccionado.correo || 'No especificado' }}</span>
             </div>
             
             <div class="DetailItem">
@@ -225,18 +231,18 @@
             </div>
             
             <div class="DetailItem">
-              <label>Rol:</label>
-              <span>{{ colaboradorSeleccionado.role }}</span>
+              <label>Tipo:</label>
+              <span>{{ colaboradorSeleccionado.tipo || 'No especificado' }}</span>
             </div>
             
             <div class="DetailItem">
               <label>Cargo:</label>
-              <span>{{ colaboradorSeleccionado.especialidad || 'No especificado' }}</span>
+              <span>{{ colaboradorSeleccionado.cargo || 'No especificado' }}</span>
             </div>
             
             <div class="DetailItem">
               <label>Universidad de egreso:</label>
-              <span>{{ colaboradorSeleccionado.experiencia || 'No especificada' }}</span>
+              <span>{{ colaboradorSeleccionado.universidad_egreso || 'No especificada' }}</span>
             </div>
           </div>
         </div>

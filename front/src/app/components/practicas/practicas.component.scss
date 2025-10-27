@@ -45,7 +45,7 @@
 
 .FiltersGrid {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr;
+  grid-template-columns: 2fr 1fr;
   gap: 16px;
   align-items: end;
 }
@@ -575,3 +575,174 @@
     padding: 16px;
   }
 }
+
+/* Formulario mejorado (igual que colaboradores) */
+.FormContainer {
+  margin-bottom: 20px;
+  transition: all 0.3s ease;
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+}
+
+.FormContainer.FormOpen {
+  max-height: 1000px;
+  opacity: 1;
+}
+
+.FormCard { 
+  margin: 0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e2e8f0;
+}
+
+.FormHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 24px 0;
+  border-bottom: 1px solid #f1f5f9;
+  margin-bottom: 24px;
+}
+
+.FormTitleSection {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.FormIcon {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
+}
+
+.FormTitles h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.FormTitles p {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: #64748b;
+}
+
+.CloseFormBtn {
+  color: #64748b;
+  transition: color 0.2s ease;
+}
+
+.CloseFormBtn:hover {
+  color: #ef4444;
+}
+
+.FormContent {
+  padding: 0 24px 24px;
+}
+
+.FormGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.FormRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.FormField.FullWidth {
+  grid-column: 1 / -1;
+}
+
+.FormActions { 
+  display: flex; 
+  justify-content: flex-end; 
+  gap: 12px;
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.CancelBtn {
+  color: #64748b;
+  border-color: #d1d5db;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-weight: 500;
+  font-size: 14px;
+  text-transform: none;
+  transition: all 0.2s ease;
+  min-width: 100px;
+}
+
+.CancelBtn:hover {
+  background-color: #f8fafc;
+  border-color: #9ca3af;
+  color: #374151;
+}
+
+.SubmitBtn {
+  background: white;
+  color: #374151;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-weight: 600;
+  font-size: 14px;
+  text-transform: none;
+  letter-spacing: 0.025em;
+  transition: all 0.2s ease;
+  min-width: 120px;
+}
+
+.SubmitBtn:hover {
+  background: #f9fafb;
+  box-shadow: 0 6px 8px -1px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
+  border-color: #9ca3af;
+}
+
+.SubmitBtn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+}
+
+.SubmitBtn mat-icon {
+  margin-right: 8px;
+  font-size: 18px;
+  color: #374151;
+}
+
+@media (max-width: 768px) { 
+  .FormRow { 
+    grid-template-columns: 1fr; 
+    gap: 12px;
+  }
+  .FormHeader {
+    padding: 20px 20px 0;
+  }
+  .FormContent {
+    padding: 0 20px 20px;
+  }
+  .FormActions {
+    flex-direction: column;
+  }
+  .FormActions button {
+    width: 100%;
+  }
+}
+

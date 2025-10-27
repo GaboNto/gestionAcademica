@@ -12,17 +12,20 @@ import { MatInputModule }  from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
-type RolColaborador = 'Supervisor' | 'Colaborador' | 'Tallerista';
+// Servicios y tipos
+import { ColaboradoresService, Colaborador } from '../../services/colaboradores.service';
 
-interface Colaborador {
+type TipoColaborador = 'COLABORADOR' | 'TUTOR' | 'TALLERISTA';
+
+// Interfaz local para el formulario (compatible con la API)
+interface ColaboradorForm {
+  rut: string;
   nombre: string;
-  centroEducativo: string;
-  role: RolColaborador;
-  especialidad?: string;
-  experiencia?: string;
-  email: string;
-  telefono?: string;
-  rut?: string;
+  correo?: string;
+  telefono?: string | number;
+  tipo?: TipoColaborador;
+  cargo?: string;
+  universidad_egreso?: string;
   direccion?: string;
 }
 
@@ -42,6 +45,7 @@ export class ColaboradoresComponent {
   private snack = inject(MatSnackBar);
   private router = inject(Router);
   private platformId = inject(PLATFORM_ID);
+  private colaboradoresService = inject(ColaboradoresService);
 
   // Interfaz de usuario
   mostrarFormulario = false;
@@ -50,70 +54,48 @@ export class ColaboradoresComponent {
   colaboradorEditando: Colaborador | null = null;
   mostrarConfirmarEliminar = false;
   colaboradorAEliminar: Colaborador | null = null;
+  cargando = false;
 
   // Filtros
   terminoBusqueda = '';
-  rolSeleccionado: 'all' | RolColaborador = 'all';
+  rolSeleccionado: 'all' | TipoColaborador = 'all';
 
   // Formulario
-  nuevoColaborador: Partial<Colaborador> = {
-    role: 'Supervisor'
+  nuevoColaborador: Partial<ColaboradorForm> = {
+    tipo: 'COLABORADOR'
   };
 
   // Datos
-  colaboradores: Colaborador[] = [
-    {
-      nombre: 'Juan Pérez',
-      centroEducativo: 'Colegio A',
-      role: 'Supervisor',
-      especialidad: 'Profesor de Matemáticas',
-      experiencia: 'Universidad de Chile',
-      email: 'juan@example.com',
-      telefono: '+56 9 1111 2222',
-      rut: '12.345.678-9',
-      direccion: 'Av. Libertador Bernardo O\'Higgins 123, Santiago, Región Metropolitana'
-    },
-    {
-      nombre: 'María López',
-      centroEducativo: 'Colegio B',
-      role: 'Colaborador',
-      especialidad: 'Profesora de Lenguaje',
-      experiencia: 'Pontificia Universidad Católica',
-      email: 'maria@example.com',
-      telefono: '+56 9 3333 4444',
-      rut: '98.765.432-1',
-      direccion: 'Calle Los Robles 456, Providencia, Región Metropolitana'
-    },
-    {
-      nombre: 'Daniel Soto',
-      centroEducativo: 'Colegio C',
-      role: 'Tallerista',
-      especialidad: 'Coordinador de Taller de Patrimonio',
-      experiencia: 'Universidad de Santiago',
-      email: 'daniel@example.com',
-      telefono: '+56 9 5555 6666',
-      rut: '11.222.333-4',
-      direccion: 'Pasaje Las Flores 789, Las Condes, Región Metropolitana'
-    }
-  ];
+  colaboradores: Colaborador[] = [];
 
   constructor() {
-    // Cargar desde localStorage (SSR-safe)
-    if (isPlatformBrowser(this.platformId)) {
-      const guardado = localStorage.getItem('app.colaboradores');
-      if (guardado) {
-        try { 
-          const colaboradoresGuardados = JSON.parse(guardado) as any[];
-          // Migrar datos: cambiar "Tutor" por "Supervisor"
-          this.colaboradores = colaboradoresGuardados.map(c => ({
-            ...c,
-            role: c.role === 'Tutor' ? 'Supervisor' : c.role
-          })) as Colaborador[];
-          // Guardar los datos migrados
-          this.persistir();
-        } catch {}
-      }
+    this.cargarColaboradores();
+  }
+
+  // Cargar colaboradores desde la API
+  cargarColaboradores() {
+    this.cargando = true;
+    const params: any = { page: 1, limit: 100 };
+    
+    if (this.rolSeleccionado !== 'all') {
+      params.tipo = this.rolSeleccionado;
     }
+    
+    if (this.terminoBusqueda.trim()) {
+      params.search = this.terminoBusqueda.trim();
+    }
+
+    this.colaboradoresService.listar(params).subscribe({
+      next: (response) => {
+        this.colaboradores = response.items;
+        this.cargando = false;
+      },
+      error: (err) => {
+        console.error('Error al cargar colaboradores:', err);
+        this.snack.open('Error al cargar colaboradores', 'Cerrar', { duration: 3000 });
+        this.cargando = false;
+      }
+    });
   }
 
   // Navegación
@@ -138,59 +120,43 @@ export class ColaboradoresComponent {
     }
   }
 
-  // Persistencia
-  private persistir() {
-    if (isPlatformBrowser(this.platformId)) {
-      localStorage.setItem('app.colaboradores', JSON.stringify(this.colaboradores));
-    }
-  }
-
   // Agregar
   agregarColaborador() {
     const c = this.nuevoColaborador;
 
     // Validación mínima
-    if (!c?.nombre || !c?.email || !c?.role) {
-      this.snack.open('Completa nombre, email y rol.', 'Cerrar', { duration: 2500 });
-      return;
-    }
-    // Evitar duplicados por email
-    const existe = this.colaboradores.some(x => x.email.trim().toLowerCase() === c.email!.trim().toLowerCase());
-    if (existe) {
-      this.snack.open('Ya existe un colaborador con ese email.', 'Cerrar', { duration: 2500 });
+    if (!c?.rut || !c?.nombre) {
+      this.snack.open('Completa RUT y nombre.', 'Cerrar', { duration: 2500 });
       return;
     }
 
-    const nuevo: Colaborador = {
-      nombre: c.nombre.trim(),
-      email: c.email!.trim(),
-      centroEducativo: 'Sin especificar', // Valor por defecto
-      role: c.role as RolColaborador,
-      especialidad: c.especialidad?.trim(),
-      experiencia: c.experiencia?.trim(),
-      telefono: c.telefono?.trim(),
-      rut: c.rut?.trim(),
-      direccion: c.direccion?.trim()
+    // Preparar datos para enviar a la API (convertir telefono a número si existe)
+    const datosParaEnviar = {
+      ...c,
+      telefono: c.telefono ? Number(c.telefono) : undefined
     };
 
-    this.colaboradores.unshift(nuevo);
-    this.persistir();
-    
-    // Alerta bonita y personalizada
-    this.snack.open(
-      `✓ ${nuevo.nombre} agregado como ${nuevo.role}`, 
-      'Cerrar', 
-      { 
-        duration: 4000,
-        horizontalPosition: 'center',
-        verticalPosition: 'bottom',
-        panelClass: ['success-snackbar']
+    this.colaboradoresService.crear(datosParaEnviar as any).subscribe({
+      next: () => {
+        this.snack.open(
+          `✓ ${c.nombre} agregado correctamente`, 
+          'Cerrar', 
+          { 
+            duration: 4000,
+            horizontalPosition: 'center',
+            verticalPosition: 'bottom',
+            panelClass: ['success-snackbar']
+          }
+        );
+        this.resetearFormulario();
+        this.mostrarFormulario = false;
+        this.cargarColaboradores();
+      },
+      error: (err) => {
+        console.error('Error al crear colaborador:', err);
+        this.snack.open('Error al crear colaborador', 'Cerrar', { duration: 3000 });
       }
-    );
-
-    // Resetear formulario (mantengo rol por comodidad)
-    this.resetearFormulario();
-    this.mostrarFormulario = false;
+    });
   }
 
   // Eliminar
@@ -200,23 +166,27 @@ export class ColaboradoresComponent {
   }
 
   confirmarEliminar() {
-    if (this.colaboradorAEliminar) {
-      this.colaboradores = this.colaboradores.filter(x => x.email !== this.colaboradorAEliminar!.email);
-      this.persistir();
-      
-      // Alerta de éxito
-      this.snack.open(
-        `✓ ${this.colaboradorAEliminar.nombre} eliminado exitosamente`, 
-        'Cerrar', 
-        { 
-          duration: 4000,
-          horizontalPosition: 'center',
-          verticalPosition: 'bottom',
-          panelClass: ['success-snackbar']
+    if (this.colaboradorAEliminar?.id) {
+      this.colaboradoresService.eliminar(this.colaboradorAEliminar.id).subscribe({
+        next: () => {
+          this.snack.open(
+            `✓ ${this.colaboradorAEliminar!.nombre} eliminado exitosamente`, 
+            'Cerrar', 
+            { 
+              duration: 4000,
+              horizontalPosition: 'center',
+              verticalPosition: 'bottom',
+              panelClass: ['success-snackbar']
+            }
+          );
+          this.cerrarConfirmarEliminar();
+          this.cargarColaboradores();
+        },
+        error: (err) => {
+          console.error('Error al eliminar colaborador:', err);
+          this.snack.open('Error al eliminar colaborador', 'Cerrar', { duration: 3000 });
         }
-      );
-      
-      this.cerrarConfirmarEliminar();
+      });
     }
   }
 
@@ -225,20 +195,14 @@ export class ColaboradoresComponent {
     this.colaboradorAEliminar = null;
   }
 
-  // Filtros
+  // Filtros - aplicados directamente en la API
   filtrados() {
-    const termino = this.terminoBusqueda.toLowerCase().trim();
-    return this.colaboradores.filter(c => {
-      const coincideBusqueda =
-        !termino ||
-        c.nombre.toLowerCase().includes(termino) ||
-        c.email.toLowerCase().includes(termino) ||
-        (c.especialidad && c.especialidad.toLowerCase().includes(termino));
+    return this.colaboradores;
+  }
 
-      const coincideRol = this.rolSeleccionado === 'all' || c.role === this.rolSeleccionado;
-
-      return coincideBusqueda && coincideRol;
-    });
+  // Aplicar filtros (recargar desde la API)
+  aplicarFiltros() {
+    this.cargarColaboradores();
   }
 
   // Funciones de edición
@@ -249,13 +213,13 @@ export class ColaboradoresComponent {
     
     // Cargar datos del colaborador al formulario
     this.nuevoColaborador = {
-      nombre: colaborador.nombre,
-      email: colaborador.email,
-      role: colaborador.role,
-      especialidad: colaborador.especialidad,
-      experiencia: colaborador.experiencia,
-      telefono: colaborador.telefono,
       rut: colaborador.rut,
+      nombre: colaborador.nombre,
+      correo: colaborador.correo,
+      tipo: colaborador.tipo,
+      cargo: colaborador.cargo,
+      universidad_egreso: colaborador.universidad_egreso,
+      telefono: colaborador.telefono,
       direccion: colaborador.direccion
     };
     
@@ -267,62 +231,47 @@ export class ColaboradoresComponent {
     const colaboradorOriginal = this.colaboradorEditando;
 
     // Validación mínima
-    if (!c?.nombre || !c?.email || !c?.role) {
-      this.snack.open('Completa nombre, email y rol.', 'Cerrar', { duration: 2500 });
+    if (!c?.rut || !c?.nombre) {
+      this.snack.open('Completa RUT y nombre.', 'Cerrar', { duration: 2500 });
       return;
     }
 
-    // Evitar duplicados por email (excepto el mismo colaborador)
-    const existe = this.colaboradores.some(x => 
-      x.email.trim().toLowerCase() === c.email!.trim().toLowerCase() && 
-      x.email !== colaboradorOriginal?.email
-    );
-    if (existe) {
-      this.snack.open('Ya existe un colaborador con ese email.', 'Cerrar', { duration: 2500 });
-      return;
-    }
+    // Preparar datos para enviar a la API (convertir telefono a número si existe)
+    const datosParaEnviar = {
+      ...c,
+      telefono: c.telefono ? Number(c.telefono) : undefined
+    };
 
     // Actualizar colaborador
-    if (colaboradorOriginal) {
-      const indice = this.colaboradores.findIndex(x => x.email === colaboradorOriginal.email);
-      if (indice !== -1) {
-        this.colaboradores[indice] = {
-          ...colaboradorOriginal,
-          nombre: c.nombre!.trim(),
-          email: c.email!.trim(),
-          role: c.role as RolColaborador,
-          especialidad: c.especialidad?.trim(),
-          experiencia: c.experiencia?.trim(),
-          telefono: c.telefono?.trim(),
-          rut: c.rut?.trim(),
-          direccion: c.direccion?.trim()
-        };
-      }
+    if (colaboradorOriginal?.id) {
+      this.colaboradoresService.actualizar(colaboradorOriginal.id, datosParaEnviar as any).subscribe({
+        next: () => {
+          this.snack.open(
+            `✓ ${c.nombre} actualizado exitosamente`, 
+            'Cerrar', 
+            { 
+              duration: 4000,
+              horizontalPosition: 'center',
+              verticalPosition: 'bottom',
+              panelClass: ['success-snackbar']
+            }
+          );
+          this.resetearFormulario();
+          this.estaEditando = false;
+          this.colaboradorEditando = null;
+          this.mostrarFormulario = false;
+          this.cargarColaboradores();
+        },
+        error: (err) => {
+          console.error('Error al actualizar colaborador:', err);
+          this.snack.open('Error al actualizar colaborador', 'Cerrar', { duration: 3000 });
+        }
+      });
     }
-
-    this.persistir();
-    
-    // Alerta de éxito
-    this.snack.open(
-      `✓ ${c.nombre} actualizado exitosamente`, 
-      'Cerrar', 
-      { 
-        duration: 4000,
-        horizontalPosition: 'center',
-        verticalPosition: 'bottom',
-        panelClass: ['success-snackbar']
-      }
-    );
-
-    // Resetear y cerrar
-    this.resetearFormulario();
-    this.estaEditando = false;
-    this.colaboradorEditando = null;
-    this.mostrarFormulario = false;
   }
 
   private resetearFormulario() {
-    this.nuevoColaborador = { role: 'Supervisor' };
+    this.nuevoColaborador = { tipo: 'COLABORADOR' };
   }
 
 }

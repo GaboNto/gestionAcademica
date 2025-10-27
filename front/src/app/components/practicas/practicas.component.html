@@ -30,15 +30,7 @@
           <input matInput [(ngModel)]="terminoBusqueda" placeholder="Nombre, RUT o colegio..." />
           <mat-icon matSuffix>search</mat-icon>
         </mat-form-field>
-
-        <mat-form-field appearance="outline" class="FilterField">
-          <mat-label>Nivel</mat-label>
-          <mat-select [(ngModel)]="nivelSeleccionado">
-            <mat-option value="all">Todos los niveles</mat-option>
-            <mat-option value="Basica">Básica</mat-option>
-            <mat-option value="Media">Media</mat-option>
-          </mat-select>
-        </mat-form-field>
+    
 
         <mat-form-field appearance="outline" class="FilterField">
           <mat-label>Centro Educativo</mat-label>
@@ -53,6 +45,163 @@
     </mat-card-content>
   </mat-card>
 
+  <!-- FORMULARIO (colapsable por botón) -->
+  <div class="FormContainer" [class.FormOpen]="mostrarFormulario">
+    @if (mostrarFormulario) {
+      <mat-card class="Elev FormCard">
+        <mat-card-header class="FormHeader">
+          <div class="FormTitleSection">
+            <div class="FormIcon">
+              <mat-icon>person_add</mat-icon>
+            </div>
+            <div class="FormTitles">
+              <h2>Asignar Nueva Práctica</h2>
+              <p>Completa los datos para asignar una práctica a un estudiante</p>
+            </div>
+          </div>
+          <button mat-icon-button (click)="cerrarFormulario()" class="CloseFormBtn">
+            <mat-icon>close</mat-icon>
+          </button>
+        </mat-card-header>
+
+        <mat-card-content class="FormContent">
+          <form [formGroup]="formularioPractica" class="FormGrid">
+            
+            <!-- Información del Estudiante -->
+            <div class="FormRow">
+              <mat-form-field appearance="outline" class="FormField">
+                <mat-label>Estudiante *</mat-label>
+                <input matInput 
+                       placeholder="Escriba nombre o RUT del estudiante..."
+                       (input)="filtrarEstudiantes($event)"
+                       (focus)="mostrarTodosEstudiantes()"
+                       [matAutocomplete]="autoEstudiante"
+                       formControlName="estudianteRut">
+                <mat-autocomplete #autoEstudiante="matAutocomplete" 
+                                  [displayWith]="mostrarEstudiante.bind(this)"
+                                  (optionSelected)="onEstudianteSeleccionado($event)">
+                  @for (estudiante of estudianteFiltrado; track estudiante.rut) {
+                    <mat-option [value]="estudiante">
+                      {{ estudiante.nombre }} - {{ estudiante.rut }}
+                    </mat-option>
+                  }
+                </mat-autocomplete>
+                @if (formularioPractica.get('estudianteRut')?.hasError('required')) {
+                  <mat-error>
+                    Debe seleccionar un estudiante
+                  </mat-error>
+                }
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="FormField">
+                <mat-label>Centro Educativo *</mat-label>
+                <input matInput 
+                       placeholder="Escriba nombre, comuna o región del centro..."
+                       (input)="filtrarCentros($event)"
+                       (focus)="mostrarTodosCentros()"
+                       [matAutocomplete]="autoCentro"
+                       formControlName="centroId">
+                <mat-autocomplete #autoCentro="matAutocomplete" 
+                                  [displayWith]="mostrarCentro.bind(this)"
+                                  (optionSelected)="onCentroSeleccionado($event)">
+                  @for (centro of centroFiltrado; track centro.id) {
+                    <mat-option [value]="centro">
+                      {{ centro.nombre }} - {{ centro.comuna }}, {{ centro.region }}
+                    </mat-option>
+                  }
+                </mat-autocomplete>
+                @if (formularioPractica.get('centroId')?.hasError('required')) {
+                  <mat-error>
+                    Debe seleccionar un centro educativo
+                  </mat-error>
+                }
+              </mat-form-field>
+            </div>
+
+            <!-- Información del Colaborador y Tipo -->
+            <div class="FormRow">
+              <mat-form-field appearance="outline" class="FormField">
+                <mat-label>Colaborador/Supervisor *</mat-label>
+                <input matInput 
+                       placeholder="Escriba nombre, rol o especialidad del colaborador..."
+                       (input)="filtrarColaboradores($event)"
+                       (focus)="mostrarTodosColaboradores()"
+                       [matAutocomplete]="autoColaborador"
+                       formControlName="colaboradorId">
+                <mat-autocomplete #autoColaborador="matAutocomplete" 
+                                  [displayWith]="mostrarColaborador.bind(this)"
+                                  (optionSelected)="onColaboradorSeleccionado($event)">
+                  @for (colaborador of colaboradorFiltrado; track colaborador.id) {
+                    <mat-option [value]="colaborador">
+                      {{ colaborador.nombre }} - {{ colaborador.tipo || '' }} ({{ colaborador.cargo || '' }})
+                    </mat-option>
+                  }
+                </mat-autocomplete>
+                @if (formularioPractica.get('colaboradorId')?.hasError('required')) {
+                  <mat-error>
+                    Debe seleccionar un colaborador
+                  </mat-error>
+                }
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="FormField">
+                <mat-label>Tipo de Práctica</mat-label>
+                <input matInput formControlName="tipo" placeholder="Ej: Apoyo a la Docencia I">
+              </mat-form-field>
+            </div>
+
+            <!-- Fechas y Estado -->
+            <div class="FormRow">
+              <mat-form-field appearance="outline" class="FormField">
+                <mat-label>Fecha de Inicio *</mat-label>
+                <input matInput [matDatepicker]="pickerInicio" formControlName="fecha_inicio">
+                <mat-datepicker-toggle matIconSuffix [for]="pickerInicio"></mat-datepicker-toggle>
+                <mat-datepicker #pickerInicio></mat-datepicker>
+                @if (formularioPractica.get('fecha_inicio')?.hasError('required')) {
+                  <mat-error>
+                    Debe seleccionar una fecha de inicio
+                  </mat-error>
+                }
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="FormField">
+                <mat-label>Fecha de Término</mat-label>
+                <input matInput [matDatepicker]="pickerTermino" formControlName="fecha_termino">
+                <mat-datepicker-toggle matIconSuffix [for]="pickerTermino"></mat-datepicker-toggle>
+                <mat-datepicker #pickerTermino></mat-datepicker>
+              </mat-form-field>
+            </div>
+
+            <!-- Estado -->
+            <div class="FormRow">
+              <mat-form-field appearance="outline" class="FormField">
+                <mat-label>Estado</mat-label>
+                <mat-select formControlName="estado">
+                  @for (estado of estadosPractica; track estado) {
+                    <mat-option [value]="estado">
+                      {{ estado }}
+                    </mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+            </div>
+
+          </form>
+
+          <div class="FormActions">
+            <button mat-stroked-button (click)="cerrarFormulario()" class="CancelBtn">
+              Cancelar
+            </button>
+            <button mat-raised-button color="primary" (click)="guardarPractica()" class="SubmitBtn">
+              <mat-icon>person_add</mat-icon>
+              Asignar Práctica
+            </button>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    }
+  </div>
+
   <!-- LISTADO DE ASIGNACIONES -->
   <div class="AssignmentsList">
     @for (assignment of asignacionesFiltradas(); track assignment.id) {
@@ -65,9 +214,6 @@
                 <h3>{{ assignment.estudiante.nombre }}</h3>
                 <div class="StudentDetails">
                   <span class="Rut">RUT: {{ assignment.estudiante.rut }}</span>
-                  <span class="LevelBadge" [ngClass]="assignment.estudiante.nivel.toLowerCase()">
-                    {{ assignment.estudiante.nivel }}
-                  </span>
                 </div>
               </div>
             </div>
@@ -95,7 +241,13 @@
                 </div>
                 <div class="DateInfo">
                   <mat-icon class="DateIcon">event</mat-icon>
-                  <span>{{ assignment.fechaInicio }} - {{ assignment.fechaTermino || 'En curso' }}</span>
+                  <span>{{ assignment.fechaInicio }} 
+                    @if (assignment.fechaTermino) {
+                      - {{ assignment.fechaTermino }}
+                    } @else {
+                      - Sin fecha de término
+                    }
+                  </span>
                 </div>
               </div>
             </div>
@@ -168,7 +320,7 @@
                 </div>
                 <div class="DetailItem">
                   <label>Fecha de Término:</label>
-                  <span>{{ practicaSeleccionada.fechaTermino || 'En curso' }}</span>
+                  <span>{{ practicaSeleccionada.fechaTermino || 'Sin fecha de término' }}</span>
                 </div>
               </div>
             </div>
@@ -187,12 +339,6 @@
                 <div class="DetailItem">
                   <label>RUT:</label>
                   <span>{{ practicaSeleccionada.estudiante.rut }}</span>
-                </div>
-                <div class="DetailItem">
-                  <label>Nivel:</label>
-                  <span class="LevelBadge" [ngClass]="practicaSeleccionada.estudiante.nivel.toLowerCase()">
-                    {{ practicaSeleccionada.estudiante.nivel }}
-                  </span>
                 </div>
               </div>
             </div>
@@ -232,15 +378,15 @@
                 </div>
                 <div class="DetailItem">
                   <label>Email:</label>
-                  <span>{{ practicaSeleccionada.colaborador.email }}</span>
+                  <span>{{ practicaSeleccionada.colaborador.correo || 'Sin especificar' }}</span>
                 </div>
                 <div class="DetailItem">
-                  <label>Rol:</label>
-                  <span>{{ practicaSeleccionada.colaborador.rol }}</span>
+                  <label>Tipo:</label>
+                  <span>{{ practicaSeleccionada.colaborador.tipo || 'Sin especificar' }}</span>
                 </div>
                 <div class="DetailItem">
-                  <label>Especialidad:</label>
-                  <span>{{ practicaSeleccionada.colaborador.especialidad || 'Sin especificar' }}</span>
+                  <label>Cargo:</label>
+                  <span>{{ practicaSeleccionada.colaborador.cargo || 'Sin especificar' }}</span>
                 </div>
               </div>
             </div>

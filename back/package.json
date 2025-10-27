@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "prisma": {
+    "seed": "ts-node prisma/seed.ts",
     "schema": "prisma/schema.prisma"
   },
   "scripts": {
@@ -20,7 +21,9 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "prisma:validate": "prisma validate",
     "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev"
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:seed": "ts-node prisma/seed.ts",
+    "seed": "npm run prisma:seed"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
