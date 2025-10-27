@@ -1,3 +1,6 @@
 back/prisma/migrations/20251015182804_init/migration.sql
 back/prisma/migrations/migration_lock.toml
 back/prisma/migrations/20251015185102_init/migration.sql
+
+# Ignorar archivo seed
+back/prisma/seed.ts

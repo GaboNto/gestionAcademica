@@ -2,3 +2,43 @@
 
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+/* Estilos para alertas personalizadas */
+.success-snackbar {
+  background: linear-gradient(135deg, #10b981, #059669) !important;
+  color: white !important;
+  font-weight: 600 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3) !important;
+}
+
+.success-snackbar .mat-mdc-snack-bar-action {
+  color: white !important;
+  font-weight: 500 !important;
+}
+
+.error-snackbar {
+  background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+  color: white !important;
+  font-weight: 600 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3) !important;
+}
+
+.error-snackbar .mat-mdc-snack-bar-action {
+  color: white !important;
+  font-weight: 500 !important;
+}
+
+.warning-snackbar {
+  background: linear-gradient(135deg, #f59e0b, #d97706) !important;
+  color: white !important;
+  font-weight: 600 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3) !important;
+}
+
+.warning-snackbar .mat-mdc-snack-bar-action {
+  color: white !important;
+  font-weight: 500 !important;
+}

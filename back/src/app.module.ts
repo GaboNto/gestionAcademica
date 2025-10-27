@@ -6,9 +6,11 @@ import { AuthorizationRequestsModule } from './authorization-requests/authorizat
 import { ColaboradoresModule } from './colaboradores/colaboradores.module';
 import { CentrosModule } from './centros/centros.module';
 import { TrabajadorModule } from './trabajador/trabajador.module';
+import { PracticasModule } from './practicas/practicas.module';
+import { EstudianteModule } from './estudiante/estudiante.module';
 
 @Module({
-  imports: [PrismaModule, AuthorizationRequestsModule, ColaboradoresModule, CentrosModule, TrabajadorModule],
+  imports: [PrismaModule, AuthorizationRequestsModule, ColaboradoresModule, CentrosModule, TrabajadorModule, PracticasModule, EstudianteModule],
   controllers: [AppController],
   providers: [AppService],
 })

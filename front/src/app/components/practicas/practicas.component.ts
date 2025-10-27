@@ -1,7 +1,7 @@
-import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, inject, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { FormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 
 // Angular Material
 import { MatButtonModule } from '@angular/material/button';
@@ -10,27 +10,19 @@ import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 
-interface Estudiante {
-  rut: string;
-  nombre: string;
-  nivel: string;
-}
+// Servicios
+import { PracticasService, Estudiante, CentroEducativo, Colaborador, EstadoPractica, Practica as PracticaAPI } from '../../services/practicas.service';
+import { ColaboradoresService } from '../../services/colaboradores.service';
+import { HttpClient } from '@angular/common/http';
 
-interface CentroEducativo {
-  id: number;
-  nombre: string;
-  direccion?: string;
-  tipo?: string;
-}
-
-interface Colaborador {
-  id: number;
-  nombre: string;
-  email: string;
-  rol: string;
-  especialidad?: string;
-}
+// Tipos de práctica (como string libre)
+type TipoPractica = string;
 
 interface Actividad {
   id: number;
@@ -40,15 +32,16 @@ interface Actividad {
   completada: boolean;
 }
 
+// Interface local para compatibilidad con la vista (mapeo de API)
 interface Practica {
   id: number;
-  estado: 'PENDIENTE' | 'EN_CURSO' | 'FINALIZADA' | 'RECHAZADA';
+  estado: EstadoPractica;
   fechaInicio: string;
   fechaTermino?: string;
-  tipo?: string;
+  tipo?: TipoPractica;
   estudiante: Estudiante;
   centro: CentroEducativo;
-  colaborador: Colaborador;
+  colaborador: Colaborador; // Usando el tipo del servicio
   actividades?: Actividad[];
 }
 
@@ -60,195 +53,240 @@ interface Practica {
   imports: [
     CommonModule,
     RouterModule,
+    ReactiveFormsModule,
     FormsModule,
     MatButtonModule,
     MatIconModule,
     MatCardModule,
     MatFormFieldModule,
     MatInputModule,
-    MatSelectModule
+    MatSelectModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
+    MatSnackBarModule,
+    MatDividerModule,
+    MatAutocompleteModule
   ]
 })
 export class PracticasComponent {
+  private fb = inject(FormBuilder);
+  private snack = inject(MatSnackBar);
+  private platformId = inject(PLATFORM_ID);
+  private practicasService = inject(PracticasService);
+  private colaboradoresService = inject(ColaboradoresService);
+  private http = inject(HttpClient);
+
   // Filtros
   terminoBusqueda = '';
-  nivelSeleccionado: 'all' | 'Basica' | 'Media' = 'all';
   colegioSeleccionado: 'all' | 'Colegio San José' | 'Liceo Técnico' | 'Escuela Municipal' = 'all';
 
   // Estado para modal de detalles
   practicaSeleccionada: Practica | null = null;
   mostrarModalDetalles = false;
 
+  // Estado para modal de formulario
+  mostrarFormulario = false;
+  formularioPractica: FormGroup;
+  cargando = false;
+
+  // Propiedades para autocompletado
+  estudianteFiltrado: Estudiante[] = [];
+  centroFiltrado: CentroEducativo[] = [];
+  colaboradorFiltrado: Colaborador[] = [];
+
+  // Datos para los selects (se cargan desde la API)
+  estudiantes: Estudiante[] = [];
+  centros: CentroEducativo[] = [];
+  colaboradores: Colaborador[] = [];
+
+  // Tipos de práctica ahora es un campo de texto libre
+
+  estadosPractica: EstadoPractica[] = [
+    'PENDIENTE',
+    'EN_CURSO',
+    'FINALIZADA',
+    'RECHAZADA'
+  ];
+
   constructor() {
-    // Asegurar que los datos estén inicializados
-    if (!this.practicas || this.practicas.length === 0) {
-      this.practicas = [];
-    }
+    // Inicializar formulario
+    this.formularioPractica = this.fb.group({
+      estudianteRut: ['', [Validators.required]],
+      centroId: ['', [Validators.required]],
+      colaboradorId: ['', [Validators.required]],
+      fecha_inicio: ['', Validators.required],
+      fecha_termino: [''],
+      tipo: [''],
+      estado: ['PENDIENTE']
+    });
+
+    // Cargar datos desde las APIs
+    this.cargarDatosIniciales();
   }
 
-  // Datos de prácticas
-  practicas: Practica[] = [
-    {
-      id: 1,
-      estado: 'EN_CURSO',
-      fechaInicio: '2024-03-15',
-      fechaTermino: '2024-07-15',
-      tipo: 'Práctica Profesional',
-      estudiante: {
-        rut: '12.345.678-9',
-        nombre: 'María González',
-        nivel: 'Basica'
+  // Cargar datos iniciales desde las APIs
+  cargarDatosIniciales() {
+    this.cargando = true;
+
+    // Cargar prácticas primero para filtrar estudiantes
+    this.practicasService.listar().subscribe({
+      next: (practicas) => {
+        this.practicas = practicas.map((p: any) => this.transformarPractica(p));
+        
+        // Extraer RUTs de estudiantes con prácticas activas
+        const rutConPracticas = new Set<string>();
+        this.practicas.forEach((p: any) => {
+          if (p.estudiante?.rut) {
+            rutConPracticas.add(p.estudiante.rut);
+          }
+        });
+
+        // Cargar estudiantes y filtrar los que ya tienen prácticas
+        this.http.get<any[]>('http://localhost:3000/estudiante').subscribe({
+          next: (estudiantes) => {
+            // Filtrar estudiantes que NO tienen prácticas asignadas
+            this.estudiantes = estudiantes.filter(est => !rutConPracticas.has(est.rut));
+            this.estudianteFiltrado = this.estudiantes.slice(0, 5);
+          },
+          error: (err) => {
+            console.error('Error al cargar estudiantes:', err);
+          }
+        });
+
+        // Cargar otros datos
+        this.cargarCentrosYColaboradores();
       },
-      centro: {
-        id: 1,
-        nombre: 'Colegio San José',
-        direccion: 'Av. Principal 123, Santiago',
-        tipo: 'Colegio Particular'
-      },
-      colaborador: {
-        id: 1,
-        nombre: 'Ana Martínez',
-        email: 'ana.martinez@colegio.com',
-        rol: 'Supervisor',
-        especialidad: 'Educación Básica'
-      },
-      actividades: [
-        { id: 1, titulo: 'Observación de clases', descripcion: 'Observar metodologías de enseñanza', fecha: '2024-03-20', completada: true },
-        { id: 2, titulo: 'Planificación de actividades', descripcion: 'Diseñar actividades pedagógicas', fecha: '2024-04-01', completada: false }
-      ]
-    },
-    {
-      id: 2,
-      estado: 'PENDIENTE',
-      fechaInicio: '2024-03-20',
-      fechaTermino: '2024-07-20',
-      tipo: 'Práctica Inicial',
-      estudiante: {
-        rut: '98.765.432-1',
-        nombre: 'Carlos Rodríguez',
-        nivel: 'Media'
-      },
-      centro: {
-        id: 2,
-        nombre: 'Liceo Técnico',
-        direccion: 'Calle Industrial 456, Valparaíso',
-        tipo: 'Liceo Técnico Profesional'
-      },
-      colaborador: {
-        id: 2,
-        nombre: 'Pedro Silva',
-        email: 'pedro.silva@liceo.com',
-        rol: 'Supervisor',
-        especialidad: 'Educación Técnica'
+      error: (err) => {
+        console.error('Error al cargar prácticas:', err);
+        // Si falla, cargar todos los estudiantes
+        this.cargarTodosEstudiantes();
       }
-    },
-    {
-      id: 3,
-      estado: 'FINALIZADA',
-      fechaInicio: '2024-04-01',
-      fechaTermino: '2024-08-01',
-      tipo: 'Práctica Final',
-      estudiante: {
-        rut: '11.222.333-4',
-        nombre: 'Ana López',
-        nivel: 'Basica'
+    });
+  }
+
+  cargarTodosEstudiantes() {
+    this.http.get<any[]>('http://localhost:3000/estudiante').subscribe({
+      next: (estudiantes) => {
+        this.estudiantes = estudiantes;
+        this.estudianteFiltrado = this.estudiantes.slice(0, 5);
       },
-      centro: {
-        id: 2,
-        nombre: 'Liceo Técnico',
-        direccion: 'Calle Industrial 456, Valparaíso',
-        tipo: 'Liceo Técnico Profesional'
-      },
-      colaborador: {
-        id: 3,
-        nombre: 'Carmen Torres',
-        email: 'carmen.torres@liceo.com',
-        rol: 'Supervisor',
-        especialidad: 'Educación Básica'
-      },
-      actividades: [
-        { id: 3, titulo: 'Evaluación final', descripcion: 'Presentación de portafolio', fecha: '2024-07-25', completada: true }
-      ]
-    },
-    {
-      id: 4,
-      estado: 'EN_CURSO',
-      fechaInicio: '2024-04-10',
-      fechaTermino: '2024-08-10',
-      tipo: 'Práctica Profesional',
-      estudiante: {
-        rut: '15.678.901-2',
-        nombre: 'Fernanda Vásquez',
-        nivel: 'Media'
-      },
-      centro: {
-        id: 3,
-        nombre: 'Escuela Municipal',
-        direccion: 'Plaza Central 789, Concepción',
-        tipo: 'Escuela Municipal'
-      },
-      colaborador: {
-        id: 4,
-        nombre: 'Luis Herrera',
-        email: 'luis.herrera@municipal.com',
-        rol: 'Supervisor',
-        especialidad: 'Educación Media'
-      },
-      actividades: [
-        { id: 4, titulo: 'Aplicación de estrategias', descripcion: 'Implementar técnicas aprendidas', fecha: '2024-05-15', completada: false }
-      ]
-    },
-    {
-      id: 5,
-      estado: 'PENDIENTE',
-      fechaInicio: '2024-04-15',
-      fechaTermino: '2024-08-15',
-      tipo: 'Práctica Inicial',
-      estudiante: {
-        rut: '19.345.678-5',
-        nombre: 'Diego Morales',
-        nivel: 'Basica'
-      },
-      centro: {
-        id: 1,
-        nombre: 'Colegio San José',
-        direccion: 'Av. Principal 123, Santiago',
-        tipo: 'Colegio Particular'
-      },
-      colaborador: {
-        id: 5,
-        nombre: 'Patricia Ruiz',
-        email: 'patricia.ruiz@colegio.com',
-        rol: 'Supervisor',
-        especialidad: 'Educación Básica'
+      error: (err) => {
+        console.error('Error al cargar estudiantes:', err);
       }
-    },
-    {
-      id: 6,
-      estado: 'RECHAZADA',
-      fechaInicio: '2024-03-01',
-      fechaTermino: '2024-06-01',
-      tipo: 'Práctica Profesional',
+    });
+  }
+
+  cargarCentrosYColaboradores() {
+
+    // Cargar centros educativos
+    this.http.get<any>('http://localhost:3000/centros?page=1&limit=100').subscribe({
+      next: (response) => {
+        this.centros = response.items || [];
+        this.centroFiltrado = this.centros.slice(0, 5);
+      },
+      error: (err) => {
+        console.error('Error al cargar centros:', err);
+      }
+    });
+
+    // Cargar colaboradores
+    this.colaboradoresService.listar({ page: 1, limit: 100 }).subscribe({
+      next: (response) => {
+        this.colaboradores = response.items || [];
+        this.colaboradorFiltrado = this.colaboradores.slice(0, 5);
+      },
+      error: (err) => {
+        console.error('Error al cargar colaboradores:', err);
+      }
+    });
+
+    this.cargando = false;
+  }
+
+  // Cargar prácticas desde la API
+  cargarPracticas() {
+    this.practicasService.listar().subscribe({
+      next: (practicas) => {
+        // Transformar datos de la API al formato local
+        this.practicas = practicas.map((p: any) => this.transformarPractica(p));
+        
+        // Actualizar lista de estudiantes disponibles
+        this.actualizarEstudiantesDisponibles();
+      },
+      error: (err) => {
+        console.error('Error al cargar prácticas:', err);
+        this.snack.open('Error al cargar prácticas', 'Cerrar', { duration: 3000 });
+      }
+    });
+  }
+
+  // Actualizar lista de estudiantes disponibles (sin prácticas)
+  actualizarEstudiantesDisponibles() {
+    // Extraer RUTs de estudiantes con prácticas asignadas
+    const rutConPracticas = new Set<string>();
+    this.practicas.forEach((p: any) => {
+      if (p.estudiante?.rut) {
+        rutConPracticas.add(p.estudiante.rut);
+      }
+    });
+
+    // Cargar todos los estudiantes desde la API
+    this.http.get<any[]>('http://localhost:3000/estudiante').subscribe({
+      next: (estudiantes) => {
+        // Filtrar estudiantes que NO tienen prácticas asignadas
+        this.estudiantes = estudiantes.filter(est => !rutConPracticas.has(est.rut));
+        this.estudianteFiltrado = this.estudiantes.slice(0, 5);
+      },
+      error: (err) => {
+        console.error('Error al actualizar estudiantes:', err);
+      }
+    });
+  }
+
+  // Transformar datos de la API al formato local
+  transformarPractica(p: any): Practica {
+    // Formatear fechas correctamente
+    const formatearFecha = (fecha: any): string => {
+      if (!fecha) return '';
+      const date = new Date(fecha);
+      return date.toLocaleDateString('es-ES', { year: 'numeric', month: '2-digit', day: '2-digit' });
+    };
+
+    return {
+      id: p.id,
+      estado: p.estado,
+      fechaInicio: formatearFecha(p.fecha_inicio) || p.fecha_inicio,
+      fechaTermino: p.fecha_termino ? formatearFecha(p.fecha_termino) : undefined,
+      tipo: p.tipo,
       estudiante: {
-        rut: '17.234.567-8',
-        nombre: 'Luis Pérez',
-        nivel: 'Media'
+        rut: p.estudiante?.rut || '',
+        nombre: p.estudiante?.nombre || '',
+        nivel: 'Media', // Puedes agregar este campo si lo necesitas
+        email: p.estudiante?.email
       },
       centro: {
-        id: 3,
-        nombre: 'Escuela Municipal',
-        direccion: 'Plaza Central 789, Concepción',
-        tipo: 'Escuela Municipal'
+        id: p.centro?.id || 0,
+        nombre: p.centro?.nombre || '',
+        direccion: p.centro?.direccion,
+        tipo: p.centro?.tipo,
+        region: p.centro?.region,
+        comuna: p.centro?.comuna,
+        convenio: p.centro?.convenio
       },
       colaborador: {
-        id: 6,
-        nombre: 'María González',
-        email: 'maria.gonzalez@municipal.com',
-        rol: 'Supervisor',
-        especialidad: 'Educación Media'
-      }
-    }
-  ];
+        id: p.colaborador?.id || 0,
+        nombre: p.colaborador?.nombre || '',
+        correo: p.colaborador?.correo,
+        tipo: p.colaborador?.tipo,
+        cargo: p.colaborador?.cargo,
+        telefono: p.colaborador?.telefono
+      },
+      actividades: []
+    };
+  }
+
+  // Datos de prácticas (se cargan desde la API)
+  practicas: Practica[] = [];
 
   // Funciones
   asignacionesFiltradas(): Practica[] {
@@ -267,19 +305,247 @@ export class PracticasComponent {
         practica.centro.nombre?.toLowerCase().includes(termino) ||
         practica.colaborador.nombre?.toLowerCase().includes(termino);
 
-      // Filtro de nivel
-      const coincideNivel = this.nivelSeleccionado === 'all' || practica.estudiante.nivel === this.nivelSeleccionado;
-
       // Filtro de colegio
       const coincideColegio = this.colegioSeleccionado === 'all' || practica.centro.nombre === this.colegioSeleccionado;
 
-      return coincideBusqueda && coincideNivel && coincideColegio;
+      return coincideBusqueda && coincideColegio;
     });
   }
 
   abrirNuevaAsignacion() {
-    // TODO: Implementar modal para nueva asignación
-    console.log('Abrir modal de nueva asignación');
+    this.mostrarFormulario = true;
+    this.formularioPractica.reset({
+      estado: 'PENDIENTE'
+    });
+    // Reinicializar filtros
+    this.estudianteFiltrado = [...this.estudiantes];
+    this.centroFiltrado = [...this.centros];
+    this.colaboradorFiltrado = [...this.colaboradores];
+  }
+
+  cerrarFormulario() {
+    this.mostrarFormulario = false;
+    this.formularioPractica.reset({
+      estado: 'PENDIENTE'
+    });
+  }
+
+  // Métodos de filtrado para autocompletado (máximo 5 resultados)
+  filtrarEstudiantes(event: any) {
+    const filtro = event.target.value.toLowerCase();
+    let filtrados: Estudiante[];
+    
+    if (!filtro) {
+      // Si no hay filtro, mostrar los primeros 5 estudiantes
+      filtrados = this.estudiantes.slice(0, 5);
+    } else {
+      // Filtrar por nombre o RUT y limitar a 5
+      filtrados = this.estudiantes.filter(estudiante =>
+      estudiante.nombre.toLowerCase().includes(filtro) ||
+      estudiante.rut.toLowerCase().includes(filtro)
+      ).slice(0, 5);
+    }
+    
+    this.estudianteFiltrado = filtrados;
+  }
+
+  filtrarCentros(event: any) {
+    const filtro = event.target.value.toLowerCase();
+    let filtrados: CentroEducativo[];
+    
+    if (!filtro) {
+      // Si no hay filtro, mostrar los primeros 5 centros
+      filtrados = this.centros.slice(0, 5);
+    } else {
+      // Filtrar por nombre, comuna o región y limitar a 5
+      filtrados = this.centros.filter(centro =>
+      centro.nombre.toLowerCase().includes(filtro) ||
+      centro.comuna?.toLowerCase().includes(filtro) ||
+      centro.region?.toLowerCase().includes(filtro)
+      ).slice(0, 5);
+    }
+    
+    this.centroFiltrado = filtrados;
+  }
+
+  filtrarColaboradores(event: any) {
+    const filtro = event.target.value.toLowerCase();
+    let filtrados: Colaborador[];
+    
+    if (!filtro) {
+      // Si no hay filtro, mostrar los primeros 5 colaboradores
+      filtrados = this.colaboradores.slice(0, 5);
+    } else {
+      // Filtrar por nombre, tipo o cargo y limitar a 5
+      filtrados = this.colaboradores.filter(colaborador =>
+      colaborador.nombre.toLowerCase().includes(filtro) ||
+        (colaborador.tipo && colaborador.tipo.toLowerCase().includes(filtro)) ||
+        (colaborador.cargo && colaborador.cargo.toLowerCase().includes(filtro))
+      ).slice(0, 5);
+    }
+    
+    this.colaboradorFiltrado = filtrados;
+  }
+
+  // Mostrar los primeros 5 elementos cuando se hace click en el campo
+  mostrarTodosEstudiantes() {
+    this.estudianteFiltrado = this.estudiantes.slice(0, 5);
+  }
+
+  mostrarTodosCentros() {
+    this.centroFiltrado = this.centros.slice(0, 5);
+  }
+
+  mostrarTodosColaboradores() {
+    this.colaboradorFiltrado = this.colaboradores.slice(0, 5);
+  }
+
+  // Métodos para mostrar el valor seleccionado en el autocomplete
+  mostrarEstudiante(value: any): string {
+    if (!value) return '';
+    
+    // Si es un string (RUT), buscar el estudiante
+    if (typeof value === 'string') {
+      const estudiante = this.estudiantes.find(e => e.rut === value);
+    return estudiante ? `${estudiante.nombre} - ${estudiante.rut}` : '';
+  }
+
+    // Si es un objeto con RUT
+    if (typeof value === 'object' && value.rut) {
+      return `${value.nombre} - ${value.rut}`;
+    }
+    
+    return '';
+  }
+
+  mostrarCentro(value: any): string {
+    if (!value) return '';
+    
+    // Si es un string (ID convertido), buscar el centro
+    if (typeof value === 'string') {
+      const centroId = parseInt(value);
+      const centro = this.centros.find(c => c.id === centroId);
+      return centro ? `${centro.nombre} - ${centro.comuna}, ${centro.region}` : '';
+    }
+    
+    // Si es un número, buscar el centro
+    if (typeof value === 'number') {
+      const centro = this.centros.find(c => c.id === value);
+    return centro ? `${centro.nombre} - ${centro.comuna}, ${centro.region}` : '';
+  }
+
+    // Si es un objeto con ID
+    if (typeof value === 'object' && value.id) {
+      return `${value.nombre} - ${value.comuna}, ${value.region}`;
+    }
+    
+    return '';
+  }
+
+  mostrarColaborador(value: any): string {
+    if (!value) return '';
+    
+    // Si es un string (ID convertido), buscar el colaborador
+    if (typeof value === 'string') {
+      const colaboradorId = parseInt(value);
+      const colaborador = this.colaboradores.find(c => c.id === colaboradorId);
+      return colaborador ? `${colaborador.nombre} - ${colaborador.tipo || ''} (${colaborador.cargo || ''})` : '';
+    }
+    
+    // Si es un número, buscar el colaborador
+    if (typeof value === 'number') {
+      const colaborador = this.colaboradores.find(c => c.id === value);
+      return colaborador ? `${colaborador.nombre} - ${colaborador.tipo || ''} (${colaborador.cargo || ''})` : '';
+    }
+    
+    // Si es un objeto con ID
+    if (typeof value === 'object' && value.id) {
+      return `${value.nombre} - ${value.tipo || ''} (${value.cargo || ''})`;
+    }
+    
+    return '';
+  }
+
+  // Métodos para manejar la selección
+  onEstudianteSeleccionado(event: any) {
+    const estudiante = event.option.value;
+    // Guardar el RUT como string pero también guardar el objeto para displayWith
+    this.formularioPractica.patchValue({ 
+      estudianteRut: estudiante.rut 
+    });
+  }
+
+  onCentroSeleccionado(event: any) {
+    const centro = event.option.value;
+    // Guardar el ID como string pero también guardar el objeto para displayWith
+    this.formularioPractica.patchValue({ 
+      centroId: centro.id.toString() 
+    });
+  }
+
+  onColaboradorSeleccionado(event: any) {
+    const colaborador = event.option.value;
+    // Guardar el ID como string pero también guardar el objeto para displayWith
+    this.formularioPractica.patchValue({ 
+      colaboradorId: colaborador.id.toString() 
+    });
+  }
+
+  guardarPractica() {
+    if (this.formularioPractica.valid) {
+      const formData = this.formularioPractica.value;
+      
+      // Preparar datos para enviar a la API
+      const dto = {
+        estudianteRut: formData.estudianteRut,
+        centroId: parseInt(formData.centroId),
+        colaboradorId: parseInt(formData.colaboradorId),
+        fecha_inicio: this.formatearFecha(formData.fecha_inicio),
+        fecha_termino: formData.fecha_termino ? this.formatearFecha(formData.fecha_termino) : undefined,
+          tipo: formData.tipo || undefined,
+        estado: formData.estado || 'PENDIENTE'
+      };
+
+      this.practicasService.crear(dto).subscribe({
+        next: (response) => {
+        this.snack.open(
+            `✓ Práctica asignada exitosamente`, 
+          'Cerrar', 
+          { 
+            duration: 4000,
+            horizontalPosition: 'center',
+            verticalPosition: 'bottom',
+            panelClass: ['success-snackbar']
+          }
+        );
+          // Recargar prácticas
+          this.cargarPracticas();
+        // Cerrar formulario
+        this.cerrarFormulario();
+        },
+        error: (err) => {
+          console.error('Error al crear práctica:', err);
+          let mensaje = 'Error al crear práctica';
+          if (err.error && err.error.message) {
+            mensaje = err.error.message;
+          }
+          this.snack.open(mensaje, 'Cerrar', {
+            duration: 4000,
+          horizontalPosition: 'center',
+          verticalPosition: 'bottom',
+          panelClass: ['error-snackbar']
+        });
+      }
+      });
+    } else {
+      this.formularioPractica.markAllAsTouched();
+      this.snack.open('⚠️ Por favor completa todos los campos requeridos', 'Cerrar', {
+        duration: 3000,
+        horizontalPosition: 'center',
+        verticalPosition: 'bottom',
+        panelClass: ['warning-snackbar']
+      });
+    }
   }
 
   verDetalles(practica: Practica) {
@@ -290,5 +556,22 @@ export class PracticasComponent {
   cerrarDetalles() {
     this.practicaSeleccionada = null;
     this.mostrarModalDetalles = false;
+  }
+
+  // Formatear fecha a ISO string
+  private formatearFecha(fecha: any): string {
+    if (!fecha) return '';
+    
+    // Si es una Date, convertirla a ISO
+    if (fecha instanceof Date) {
+      return fecha.toISOString().split('T')[0]; // Retorna YYYY-MM-DD
+    }
+    
+    // Si ya es string, retornarlo
+    if (typeof fecha === 'string') {
+      return fecha;
+    }
+    
+    return '';
   }
 }
