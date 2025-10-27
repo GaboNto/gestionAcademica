@@ -68,6 +68,20 @@ export class CentrosApiService {
     correo?: string;
     url_rrss?: string;
   }) {
+    // Función helper para validar y convertir a número
+    const toNumberOrNull = (value: any): number | null => {
+      if (value == null || value === '') return null;
+      const num = Number(value);
+      return isNaN(num) || !isFinite(num) ? null : num;
+    };
+
+    // Función helper para validar email
+    const isValidEmail = (email: string): boolean => {
+      if (!email || email.trim() === '') return false;
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return emailRegex.test(email.trim());
+    };
+
     const payload = {
       nombre: body.nombre,
       tipo: body.tipo, // enum del back
@@ -76,9 +90,9 @@ export class CentrosApiService {
       convenio: body.convenio ?? null,
       direccion: body.direccion ?? null,
       nombre_calle: body.calle ?? null,
-      numero_calle: body.numero != null && body.numero !== '' ? Number(body.numero) : null,
-      telefono: body.telefono != null && body.telefono !== '' ? Number(body.telefono) : null,
-      correo: body.correo ?? null,
+      numero_calle: toNumberOrNull(body.numero),
+      telefono: toNumberOrNull(body.telefono),
+      correo: (body.correo && isValidEmail(body.correo)) ? body.correo.trim() : null,
       url_rrss: body.url_rrss ?? null,
     };
     return this.http.post<CentroEducativoDTO>(`${API}/centros`, payload);
@@ -97,6 +111,20 @@ export class CentrosApiService {
     correo?: string;
     url_rrss?: string;
   }>) {
+    // Función helper para validar y convertir a número
+    const toNumberOrNull = (value: any): number | null => {
+      if (value == null || value === '') return null;
+      const num = Number(value);
+      return isNaN(num) || !isFinite(num) ? null : num;
+    };
+
+    // Función helper para validar email
+    const isValidEmail = (email: string): boolean => {
+      if (!email || email.trim() === '') return false;
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return emailRegex.test(email.trim());
+    };
+
     const payload: any = {};
     if (body.nombre !== undefined) payload.nombre = body.nombre;
     if (body.tipo !== undefined) payload.tipo = body.tipo;
@@ -105,9 +133,9 @@ export class CentrosApiService {
     if (body.convenio !== undefined) payload.convenio = body.convenio ?? null;
     if (body.direccion !== undefined) payload.direccion = body.direccion ?? null;
     if (body.calle !== undefined) payload.nombre_calle = body.calle ?? null;
-    if (body.numero !== undefined) payload.numero_calle = (body.numero != null && body.numero !== '') ? Number(body.numero) : null;
-    if (body.telefono !== undefined) payload.telefono = (body.telefono != null && body.telefono !== '') ? Number(body.telefono) : null;
-    if (body.correo !== undefined) payload.correo = body.correo ?? null;
+    if (body.numero !== undefined) payload.numero_calle = toNumberOrNull(body.numero);
+    if (body.telefono !== undefined) payload.telefono = toNumberOrNull(body.telefono);
+    if (body.correo !== undefined) payload.correo = (body.correo && isValidEmail(body.correo)) ? body.correo.trim() : null;
     if (body.url_rrss !== undefined) payload.url_rrss = body.url_rrss ?? null;
 
     return this.http.patch<CentroEducativoDTO>(`${API}/centros/${id}`, payload);

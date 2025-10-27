@@ -26,13 +26,13 @@ export class UpdateCentroDto extends PartialType(CreateCentroDto) {
   @IsOptional() @IsString()
   override nombre_calle?: string | null;
 
-  @IsOptional() @IsInt()
+  @IsOptional()
   override numero_calle?: number | null;
 
-  @IsOptional() @IsInt()
+  @IsOptional()
   override telefono?: number | null;
 
-  @IsOptional() @IsEmail()
+  @IsOptional()
   override correo?: string | null;
 
   @IsOptional() @IsString()

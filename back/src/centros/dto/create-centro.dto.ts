@@ -33,15 +33,12 @@ export class CreateCentroDto {
   nombre_calle?: string | null;
 
   @IsOptional()
-  @IsInt()
   numero_calle?: number | null;
 
   @IsOptional()
-  @IsInt()
   telefono?: number | null;
 
   @IsOptional()
-  @IsEmail()
   correo?: string | null;
 
   @IsOptional() @IsString()

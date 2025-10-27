@@ -9,7 +9,12 @@ async function bootstrap() {
   // Habilitar CORS para permitir peticiones desde el frontend
   app.enableCors();
 
-  app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: false }));
+  app.useGlobalPipes(new ValidationPipe({ 
+    whitelist: true, 
+    forbidNonWhitelisted: false,
+    transform: true,
+    transformOptions: { enableImplicitConversion: true }
+  }));
   await app.listen(3000);
 }
 bootstrap();
