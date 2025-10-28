@@ -30,9 +30,9 @@
         <mat-label>Tipo (filtro)</mat-label>
         <mat-select [(ngModel)]="selectedTipo">
           <mat-option value="all">Todos</mat-option>
-          <mat-option value="Particular">Particular</mat-option>
-          <mat-option value="Particular subvencionado">Particular subvencionado</mat-option>
-          <mat-option value="Público">Público</mat-option>
+          <mat-option value="PARTICULAR">Particular</mat-option>
+          <mat-option value="PARTICULAR_SUBVENCIONADO">Particular subvencionado</mat-option>
+          <mat-option value="SLEP">SLEP</mat-option>
         </mat-select>
       </mat-form-field>
     </div>
@@ -143,11 +143,18 @@
             <h3 style="margin: 8px 0 0;">Trabajadores del centro</h3>
           </div>
 
+          <!-- Director -->
           <div class="form-row" *ngIf="isEditing">
             <mat-form-field appearance="outline" class="form-field">
               <mat-label>Director - Nombre</mat-label>
               <input matInput [(ngModel)]="contactosForm.directorNombre" name="directorNombre" />
             </mat-form-field>
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Director - RUT</mat-label>
+              <input matInput [(ngModel)]="contactosForm.directorRut" name="directorRut" />
+            </mat-form-field>
+          </div>
+          <div class="form-row" *ngIf="isEditing">
             <mat-form-field appearance="outline" class="form-field">
               <mat-label>Director - Correo</mat-label>
               <input matInput type="email" [(ngModel)]="contactosForm.directorCorreo" name="directorCorreo" />
@@ -158,11 +165,18 @@
             </mat-form-field>
           </div>
 
+          <!-- UTP -->
           <div class="form-row" *ngIf="isEditing">
             <mat-form-field appearance="outline" class="form-field">
               <mat-label>UTP - Nombre</mat-label>
               <input matInput [(ngModel)]="contactosForm.utpNombre" name="utpNombre" />
             </mat-form-field>
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>UTP - RUT</mat-label>
+              <input matInput [(ngModel)]="contactosForm.utpRut" name="utpRut" />
+            </mat-form-field>
+          </div>
+          <div class="form-row" *ngIf="isEditing">
             <mat-form-field appearance="outline" class="form-field">
               <mat-label>UTP - Correo</mat-label>
               <input matInput type="email" [(ngModel)]="contactosForm.utpCorreo" name="utpCorreo" />
@@ -208,11 +222,14 @@
           </div>
 
           <div class="item-contacts" *ngIf="c.telefono || c.correo || c.url_rrss">
+            <div class="contact" *ngIf="c.telefono">
+              <mat-icon>call</mat-icon>
+              <span>{{ c.telefono }}</span>
+            </div>
             <div class="contact" *ngIf="c.correo">
               <mat-icon>email</mat-icon>
               <span>{{ c.correo }}</span>
             </div>
-            
           </div>
 
           <div class="item-actions">
@@ -240,57 +257,59 @@
   </mat-card>
 
   <!-- DIALOG DETALLES -->
-<div class="details-dialog" *ngIf="selectedCentroEducativo">
-  <div class="dialog-overlay" (click)="closeDetails()"></div>
-  <div class="dialog-content">
-    <div class="dialog-header">
-      <h2>Información del Centro</h2>
-      <button mat-icon-button (click)="closeDetails()" class="close-btn">
-        <mat-icon>close</mat-icon>
-      </button>
-    </div>
+  <div class="details-dialog" *ngIf="selectedCentroEducativo">
+    <div class="dialog-overlay" (click)="closeDetails()"></div>
+    <div class="dialog-content">
+      <div class="dialog-header">
+        <h2>Información del Centro</h2>
+        <button mat-icon-button (click)="closeDetails()" class="close-btn">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
 
-    <div class="dialog-body" *ngIf="selectedCentroEducativo">
-      <div class="details-grid">
-        <div class="detail-item"><label>Nombre:</label><span>{{ selectedCentroEducativo.nombre }}</span></div>
-        <div class="detail-item"><label>Tipo:</label><span>{{ selectedCentroEducativo.tipo }}</span></div>
-        <div class="detail-item"><label>Región:</label><span>{{ selectedCentroEducativo.region }}</span></div>
-        <div class="detail-item"><label>Comuna:</label><span>{{ selectedCentroEducativo.comuna }}</span></div>
-        <div class="detail-item" *ngIf="selectedCentroEducativo.direccion">
-          <label>Dirección (ref):</label><span>{{ selectedCentroEducativo.direccion }}</span>
-        </div>
-        <div class="detail-item" *ngIf="selectedCentroEducativo.calle || selectedCentroEducativo.numero">
-          <label>Calle / Nº:</label><span>{{ selectedCentroEducativo.calle }} {{ selectedCentroEducativo.numero }}</span>
-        </div>
-        <div class="detail-item" *ngIf="selectedCentroEducativo.telefono">
-          <label>Teléfono:</label><span>{{ selectedCentroEducativo.telefono }}</span>
-        </div>
-        <div class="detail-item" *ngIf="selectedCentroEducativo.correo">
-          <label>Correo:</label><span>{{ selectedCentroEducativo.correo }}</span>
-        </div>
-        <div class="detail-item" *ngIf="selectedCentroEducativo.url_rrss">
-          <label>URL / RRSS:</label><span>{{ selectedCentroEducativo.url_rrss }}</span>
-        </div>
-        <div class="detail-item" *ngIf="selectedCentroEducativo.convenio">
-          <label>Convenio:</label><span>{{ selectedCentroEducativo.convenio }}</span>
-        </div>
+      <div class="dialog-body" *ngIf="selectedCentroEducativo">
+        <div class="details-grid">
+          <div class="detail-item"><label>Nombre:</label><span>{{ selectedCentroEducativo.nombre }}</span></div>
+          <div class="detail-item"><label>Tipo:</label><span>{{ selectedCentroEducativo.tipo }}</span></div>
+          <div class="detail-item"><label>Región:</label><span>{{ selectedCentroEducativo.region }}</span></div>
+          <div class="detail-item"><label>Comuna:</label><span>{{ selectedCentroEducativo.comuna }}</span></div>
+          <div class="detail-item" *ngIf="selectedCentroEducativo.direccion">
+            <label>Dirección (ref):</label><span>{{ selectedCentroEducativo.direccion }}</span>
+          </div>
+          <div class="detail-item" *ngIf="selectedCentroEducativo.calle || selectedCentroEducativo.numero">
+            <label>Calle / Nº:</label><span>{{ selectedCentroEducativo.calle }} {{ selectedCentroEducativo.numero }}</span>
+          </div>
+          <div class="detail-item" *ngIf="selectedCentroEducativo.telefono">
+            <label>Teléfono:</label><span>{{ selectedCentroEducativo.telefono }}</span>
+          </div>
+          <div class="detail-item" *ngIf="selectedCentroEducativo.correo">
+            <label>Correo:</label><span>{{ selectedCentroEducativo.correo }}</span>
+          </div>
+          <div class="detail-item" *ngIf="selectedCentroEducativo.url_rrss">
+            <label>URL / RRSS:</label><span>{{ selectedCentroEducativo.url_rrss }}</span>
+          </div>
+          <div class="detail-item" *ngIf="selectedCentroEducativo.convenio">
+            <label>Convenio:</label><span>{{ selectedCentroEducativo.convenio }}</span>
+          </div>
 
-        <div class="detail-item" *ngIf="selectedCentroEducativo?.trabajadores?.length">
-          <label>Trabajadores:</label>
-          <div *ngFor="let t of selectedCentroEducativo.trabajadores">
-            • {{ t.rol || '—' }} — {{ t.nombre }}
-            <span *ngIf="t.correo">({{ t.correo }})</span>
-            <span *ngIf="t.telefono">- {{ t.telefono }}</span>
+          <div class="detail-item" *ngIf="selectedCentroEducativo?.trabajadores?.length">
+            <label>Trabajadores:</label>
+            <div *ngFor="let t of selectedCentroEducativo.trabajadores">
+              • {{ t.rol || '—' }} — {{ t.nombre }}
+              <span *ngIf="t.rut">({{ t.rut }})</span>
+              <span *ngIf="t.correo">— {{ t.correo }}</span>
+              <span *ngIf="t.telefono">— {{ t.telefono }}</span>
+            </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <div class="dialog-actions">
-      <button mat-stroked-button (click)="closeDetails()">Cerrar</button>
-      <button mat-raised-button color="primary" (click)="editCentro(selectedCentroEducativo!)">
-        <mat-icon>edit</mat-icon> Editar
-      </button>
+      <div class="dialog-actions">
+        <button mat-stroked-button (click)="closeDetails()">Cerrar</button>
+        <button mat-raised-button color="primary" (click)="editCentro(selectedCentroEducativo!)">
+          <mat-icon>edit</mat-icon> Editar
+        </button>
+      </div>
     </div>
   </div>
 </div>

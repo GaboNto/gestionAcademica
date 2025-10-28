@@ -17,7 +17,6 @@ export interface TrabajadorDTO {
 export interface CentroEducativoDTO {
   id: number;
   nombre: string;
-  // enum del back (Prisma)
   tipo: 'PARTICULAR' | 'PARTICULAR_SUBVENCIONADO' | 'SLEP' | string;
   region: string;
   comuna: string;
@@ -28,7 +27,6 @@ export interface CentroEducativoDTO {
   telefono?: number | null;
   correo?: string | null;
   url_rrss?: string | null;
-  // cuando pedimos detalle:
   trabajadores?: TrabajadorDTO[];
 }
 
@@ -50,13 +48,11 @@ export class CentrosApiService {
   }
 
   getById(id: number): Observable<CentroEducativoDTO> {
-    // El back devuelve { ...centro, trabajadores: [...] }
     return this.http.get<CentroEducativoDTO>(`${API}/centros/${id}`);
   }
 
   create(body: {
     nombre: string;
-    // debe llegar como enum del back
     tipo: 'PARTICULAR' | 'PARTICULAR_SUBVENCIONADO' | 'SLEP' | string;
     region: string;
     comuna: string;
@@ -68,23 +64,12 @@ export class CentrosApiService {
     correo?: string;
     url_rrss?: string;
   }) {
-    // Función helper para validar y convertir a número
-    const toNumberOrNull = (value: any): number | null => {
-      if (value == null || value === '') return null;
-      const num = Number(value);
-      return isNaN(num) || !isFinite(num) ? null : num;
-    };
-
-    // Función helper para validar email
-    const isValidEmail = (email: string): boolean => {
-      if (!email || email.trim() === '') return false;
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      return emailRegex.test(email.trim());
-    };
+    const toNumberOrNull = (v: any): number | null => (v == null || v === '' || isNaN(Number(v))) ? null : Number(v);
+    const isValidEmail = (e?: string) => !!e && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.trim());
 
     const payload = {
       nombre: body.nombre,
-      tipo: body.tipo, // enum del back
+      tipo: body.tipo,
       region: body.region,
       comuna: body.comuna,
       convenio: body.convenio ?? null,
@@ -92,7 +77,7 @@ export class CentrosApiService {
       nombre_calle: body.calle ?? null,
       numero_calle: toNumberOrNull(body.numero),
       telefono: toNumberOrNull(body.telefono),
-      correo: (body.correo && isValidEmail(body.correo)) ? body.correo.trim() : null,
+      correo: isValidEmail(body.correo) ? body.correo!.trim() : null,
       url_rrss: body.url_rrss ?? null,
     };
     return this.http.post<CentroEducativoDTO>(`${API}/centros`, payload);
@@ -111,19 +96,8 @@ export class CentrosApiService {
     correo?: string;
     url_rrss?: string;
   }>) {
-    // Función helper para validar y convertir a número
-    const toNumberOrNull = (value: any): number | null => {
-      if (value == null || value === '') return null;
-      const num = Number(value);
-      return isNaN(num) || !isFinite(num) ? null : num;
-    };
-
-    // Función helper para validar email
-    const isValidEmail = (email: string): boolean => {
-      if (!email || email.trim() === '') return false;
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      return emailRegex.test(email.trim());
-    };
+    const toNumberOrNull = (v: any): number | null => (v == null || v === '' || isNaN(Number(v))) ? null : Number(v);
+    const isValidEmail = (e?: string) => !!e && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.trim());
 
     const payload: any = {};
     if (body.nombre !== undefined) payload.nombre = body.nombre;
@@ -135,7 +109,7 @@ export class CentrosApiService {
     if (body.calle !== undefined) payload.nombre_calle = body.calle ?? null;
     if (body.numero !== undefined) payload.numero_calle = toNumberOrNull(body.numero);
     if (body.telefono !== undefined) payload.telefono = toNumberOrNull(body.telefono);
-    if (body.correo !== undefined) payload.correo = (body.correo && isValidEmail(body.correo)) ? body.correo.trim() : null;
+    if (body.correo !== undefined) payload.correo = isValidEmail(body.correo) ? body.correo!.trim() : null;
     if (body.url_rrss !== undefined) payload.url_rrss = body.url_rrss ?? null;
 
     return this.http.patch<CentroEducativoDTO>(`${API}/centros/${id}`, payload);
