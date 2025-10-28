@@ -108,6 +108,17 @@ export class PracticasComponent {
     'RECHAZADA'
   ];
 
+  // Función para formatear el estado para mostrar al usuario
+  formatearEstado(estado: EstadoPractica): string {
+    const formato: Record<EstadoPractica, string> = {
+      'PENDIENTE': 'Pendiente',
+      'EN_CURSO': 'En Curso',
+      'FINALIZADA': 'Finalizada',
+      'RECHAZADA': 'Rechazada'
+    };
+    return formato[estado] || estado;
+  }
+
   // Propiedades para las fechas mínimas del datepicker
   fechaMinimaInicio: Date = new Date();
   fechaMinimaTermino: Date | null = null;

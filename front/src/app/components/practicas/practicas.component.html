@@ -184,7 +184,7 @@
                 <mat-select formControlName="estado">
                   @for (estado of estadosPractica; track estado) {
                     <mat-option [value]="estado">
-                      {{ estado }}
+                      {{ formatearEstado(estado) }}
                     </mat-option>
                   }
                 </mat-select>
@@ -260,7 +260,7 @@
             <!-- Estado -->
             <div class="StatusSection">
               <span class="StatusBadge" [ngClass]="assignment.estado.toLowerCase()">
-                {{ assignment.estado }}
+                {{ formatearEstado(assignment.estado) }}
               </span>
             </div>
 
@@ -312,7 +312,7 @@
                 <div class="DetailItem">
                   <label>Estado:</label>
                   <span class="StatusBadge" [ngClass]="practicaSeleccionada.estado.toLowerCase()">
-                    {{ practicaSeleccionada.estado }}
+                    {{ formatearEstado(practicaSeleccionada.estado) }}
                   </span>
                 </div>
                 <div class="DetailItem">
