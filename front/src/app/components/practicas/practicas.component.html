@@ -146,7 +146,11 @@
 
               <mat-form-field appearance="outline" class="FormField">
                 <mat-label>Tipo de Práctica</mat-label>
-                <input matInput formControlName="tipo" placeholder="Ej: Apoyo a la Docencia I">
+                <mat-select formControlName="tipo">
+                  @for (tipo of tiposPractica; track tipo) {
+                    <mat-option [value]="tipo">{{ tipo }}</mat-option>
+                  }
+                </mat-select>
               </mat-form-field>
             </div>
 

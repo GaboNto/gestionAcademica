@@ -28,7 +28,7 @@
       <div class="FiltersGrid">
         <mat-form-field appearance="outline" class="SearchField">
           <mat-label>Buscar</mat-label>
-          <input matInput [(ngModel)]="terminoBusqueda" (ngModelChange)="aplicarFiltros()" placeholder="Nombre, email o cargo..." />
+          <input matInput [(ngModel)]="terminoBusqueda" placeholder="Nombre, email, cargo, RUT..." />
           <mat-icon matSuffix>search</mat-icon>
         </mat-form-field>
 
@@ -65,42 +65,54 @@
         </mat-card-header>
 
         <mat-card-content class="FormContent">
-          <form class="FormGrid">
+          <form [formGroup]="formularioColaborador" class="FormGrid">
             <div class="FormRow">
               <mat-form-field appearance="outline" class="FormField">
-                <mat-label>Nombre completo</mat-label>
-                <input matInput [(ngModel)]="nuevoColaborador.nombre" name="nombre" required />
+                <mat-label>Nombre completo *</mat-label>
+                <input matInput formControlName="nombre" placeholder="Ej: Juan Pérez" />
+                @if (formularioColaborador.get('nombre')?.invalid && formularioColaborador.get('nombre')?.touched) {
+                  <mat-error>{{ getErrorNombre() }}</mat-error>
+                }
               </mat-form-field>
 
               <mat-form-field appearance="outline" class="FormField">
-                <mat-label>RUT</mat-label>
-                <input matInput [(ngModel)]="nuevoColaborador.rut" name="rut" placeholder="12.345.678-9" />
+                <mat-label>RUT *</mat-label>
+                <input matInput formControlName="rut" placeholder="12.345.678-9" />
+                @if (formularioColaborador.get('rut')?.invalid && formularioColaborador.get('rut')?.touched) {
+                  <mat-error>{{ getErrorRut() }}</mat-error>
+                }
               </mat-form-field>
             </div>
 
             <div class="FormRow">
               <mat-form-field appearance="outline" class="FormField">
                 <mat-label>Email</mat-label>
-                <input matInput [(ngModel)]="nuevoColaborador.correo" name="correo" type="email" />
+                <input matInput formControlName="correo" type="email" placeholder="correo@ejemplo.com" />
+                @if (formularioColaborador.get('correo')?.invalid && formularioColaborador.get('correo')?.touched) {
+                  <mat-error>{{ getErrorCorreo() }}</mat-error>
+                }
               </mat-form-field>
 
               <mat-form-field appearance="outline" class="FormField">
                 <mat-label>Teléfono</mat-label>
-                <input matInput [(ngModel)]="nuevoColaborador.telefono" name="telefono" placeholder="987654321" type="number" />
+                <input matInput formControlName="telefono" placeholder="987654321" type="tel" />
+                @if (formularioColaborador.get('telefono')?.invalid && formularioColaborador.get('telefono')?.touched) {
+                  <mat-error>{{ getErrorTelefono() }}</mat-error>
+                }
               </mat-form-field>
             </div>
 
             <div class="FormRow">
               <mat-form-field appearance="outline" class="FormField FullWidth">
                 <mat-label>Dirección</mat-label>
-                <input matInput [(ngModel)]="nuevoColaborador.direccion" name="direccion" placeholder="Calle 123, Comuna, Región" />
+                <input matInput formControlName="direccion" placeholder="Calle 123, Comuna, Región" />
               </mat-form-field>
             </div>
 
             <div class="FormRow">
               <mat-form-field appearance="outline" class="FormField">
-                <mat-label>Rol</mat-label>
-                <mat-select [(ngModel)]="nuevoColaborador.tipo" name="tipo">
+                <mat-label>Rol *</mat-label>
+                <mat-select formControlName="tipo">
                   <mat-option value="COLABORADOR">Colaborador</mat-option>
                   <mat-option value="TUTOR">Supervisor</mat-option>
                   <mat-option value="TALLERISTA">Tallerista</mat-option>
@@ -109,14 +121,14 @@
 
               <mat-form-field appearance="outline" class="FormField">
                 <mat-label>Cargo</mat-label>
-                <input matInput [(ngModel)]="nuevoColaborador.cargo" name="cargo" placeholder="Profesor de Historia, Coordinador…" />
+                <input matInput formControlName="cargo" placeholder="Profesor de Historia, Coordinador…" />
               </mat-form-field>
             </div>
 
             <div class="FormRow">
               <mat-form-field appearance="outline" class="FormField FullWidth">
                 <mat-label>Universidad de egreso</mat-label>
-                <input matInput [(ngModel)]="nuevoColaborador.universidad_egreso" name="universidad_egreso" placeholder="Universidad de Chile, PUC…" />
+                <input matInput formControlName="universidad_egreso" placeholder="Universidad de Chile, PUC…" />
               </mat-form-field>
             </div>
           </form>
@@ -125,7 +137,7 @@
           <button mat-stroked-button (click)="alternarFormulario()" class="CancelBtn">
             Cancelar
           </button>
-          <button mat-raised-button color="primary" (click)="estaEditando ? actualizarColaborador() : agregarColaborador()" class="SubmitBtn">
+          <button mat-raised-button color="primary" (click)="estaEditando ? actualizarColaborador() : agregarColaborador()" [disabled]="formularioColaborador.invalid" class="SubmitBtn">
             <mat-icon>{{ estaEditando ? 'save' : 'person_add' }}</mat-icon> 
             {{ estaEditando ? 'Guardar cambios' : 'Añadir' }}
           </button>
@@ -143,7 +155,7 @@
           <p class="Muted">Cargando colaboradores...</p>
         </div>
       } @else {
-        @for (c of filtrados(); track c.id) {
+        @for (c of filtrados; track c.id) {
         <div class="ListItem">
           <div class="ItemContent">
             <!-- Avatar y nombre -->
@@ -182,7 +194,7 @@
   </mat-card>
 
   <!-- EMPTY -->
-  @if (!filtrados().length) {
+  @if (!filtrados.length) {
     <mat-card class="Elev Empty">
       <mat-card-content class="Muted EmptyContent">
         <mat-icon>group_off</mat-icon>

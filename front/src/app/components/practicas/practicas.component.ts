@@ -99,7 +99,13 @@ export class PracticasComponent {
   centros: CentroEducativo[] = [];
   colaboradores: Colaborador[] = [];
 
-  // Tipos de práctica ahora es un campo de texto libre
+  // Opciones de tipos de práctica
+  tiposPractica: string[] = [
+    'PRÁCTICA PROFESIONAL DOCENTE APOYO A LA DOCENCIA I',
+    'PRÁCTICA PROFESIONAL DE APOYO A LA DOCENCIA II',
+    'PRÁCTICA PROFESIONAL DE APOYO A LA DOCENCIA III',
+    'PRÁCTICA PROFESIONAL DOCENTE'
+  ];
 
   estadosPractica: EstadoPractica[] = [
     'PENDIENTE',
