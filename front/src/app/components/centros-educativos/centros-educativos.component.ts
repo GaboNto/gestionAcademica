@@ -67,11 +67,24 @@ export class CentrosEducativosComponent {
   searchTerm = '';
   selectedTipo: 'all' | TipoCentro = 'all';
 
-  // ===== regiones y comunas ===== (ejemplo; tú ya pegaste todas)
+  // ===== regiones y comunas ===== 
   readonly REGIONES: { nombre: string; comunas: string[] }[] = [
-    { nombre: 'Región de Arica y Parinacota', comunas: ['Arica', 'Camarones', 'Putre', 'General Lagos'] },
-    { nombre: 'Región de Tarapacá',           comunas: ['Iquique', 'Alto Hospicio', 'Pozo Almonte'] },
-    { nombre: 'Región Metropolitana de Santiago', comunas: ['Santiago', 'Providencia', 'Las Condes', 'La Florida', 'Puente Alto', 'Maipú'] },
+    { nombre: 'Región de Arica y Parinacota', comunas: ['Arica','Camarones','Putre','General Lagos'] },
+    { nombre: 'Región de Tarapacá', comunas: ['Iquique','Alto Hospicio','Pozo Almonte','Camiña','Colchane','Huara','Pica'] },
+    { nombre: 'Región de Antofagasta', comunas: ['Antofagasta','Mejillones','Sierra Gorda','Taltal','Calama','Ollagüe','San Pedro de Atacama','Tocopilla','María Elena'] },
+    { nombre: 'Región de Atacama', comunas: ['Copiapó','Caldera','Tierra Amarilla','Chañaral','Diego de Almagro','Vallenar','Freirina','Huasco','Alto del Carmen'] },
+    { nombre: 'Región de Coquimbo', comunas: ['La Serena','Coquimbo','Andacollo','La Higuera','Paihuano','Vicuña','Illapel','Canela','Los Vilos','Salamanca','Ovalle','Combarbalá','Monte Patria','Punitaqui','Río Hurtado'] },
+    { nombre: 'Región de Valparaíso', comunas: ['Valparaíso','Viña del Mar','Concón','Quilpué','Villa Alemana','Casablanca','Quintero','Puchuncaví','Limache','Olmué','San Antonio','Cartagena','El Quisco','El Tabo','Algarrobo','Santo Domingo','La Ligua','Cabildo','Papudo','Zapallar','Petorca','San Felipe','Llaillay','Catemu','Panquehue','Putaendo','Santa María','Los Andes','Calle Larga','Rinconada','San Esteban','Isla de Pascua','Juan Fernández'] },
+    { nombre: 'Región del Libertador General Bernardo O’Higgins', comunas: ['Rancagua','Machalí','Graneros','Doñihue','Requínoa','Rengo','Malloa','San Vicente','Las Cabras','Peumo','Pichidegua','San Fernando','Nancagua','Chimbarongo','Placilla','Santa Cruz','Lolol','Pumanque','Peralillo','Marchigüe','Pichilemu','La Estrella','Litueche','Navidad'] },
+    { nombre: 'Región del Maule', comunas: ['Talca','San Clemente','Pelarco','Río Claro','Maule','San Rafael','Curepto','Constitución','Empedrado','Linares','Colbún','Yerbas Buenas','Villa Alegre','Longaví','Retiro','Parral','Cauquenes','Chanco','Pelluhue','Curicó','Teno','Romeral','Rauco','Sagrada Familia','Hualañé','Licantén','Vichuquén'] },
+    { nombre: 'Región de Ñuble', comunas: ['Chillán','Chillán Viejo','Bulnes','Quillón','San Ignacio','Pinto','El Carmen','Yungay','Pemuco','Ñiquén','San Carlos','Coihueco','San Fabián','San Nicolás','Trehuaco','Ninhue','Portezuelo','Cobquecura','Coelemu','Quirihue'] },
+    { nombre: 'Región del Biobío', comunas: ['Concepción','Talcahuano','Hualpén','San Pedro de la Paz','Chiguayante','Penco','Tomé','Florida','Hualqui','Coronel','Lota','Santa Juana','Los Ángeles','Mulchén','Nacimiento','Negrete','San Rosendo','Laja','Yumbel','Cabrero','Tucapel','Antuco','Quilleco','Santa Bárbara','Quilaco','Alto Biobío','Arauco','Curanilahue','Lebu','Los Álamos','Cañete','Contulmo','Tirúa'] },
+    { nombre: 'Región de La Araucanía', comunas: ['Temuco','Padre Las Casas','Vilcún','Lautaro','Perquenco','Galvarino','Nueva Imperial','Carahue','Saavedra','Toltén','Teodoro Schmidt','Pitrufquén','Gorbea','Loncoche','Villarrica','Pucón','Curarrehue','Freire','Melipeuco','Cunco','Angol','Renaico','Collipulli','Ercilla','Los Sauces','Traiguén','Lumaco','Purén','Victoria','Curacautín','Lonquimay'] },
+    { nombre: 'Región de Los Ríos', comunas: ['Valdivia','Corral','Lanco','Mariquina','Máfil','Los Lagos','Paillaco','Panguipulli','La Unión','Futrono','Lago Ranco','Río Bueno'] },
+    { nombre: 'Región de Los Lagos', comunas: ['Puerto Montt','Puerto Varas','Frutillar','Llanquihue','Cochamó','Calbuco','Maullín','Los Muermos','Osorno','Puerto Octay','Purranque','Puyehue','Río Negro','San Juan de la Costa','San Pablo','Castro','Ancud','Quellón','Dalcahue','Curaco de Vélez','Puqueldón','Queilén','Quinchao','Chonchi','Quemchi'] },
+    { nombre: 'Región de Aysén del General Carlos Ibáñez del Campo', comunas: ['Coyhaique','Lago Verde','Aysén','Cisnes','Guaitecas','Cochrane','O’Higgins','Tortel','Chile Chico','Río Ibáñez'] },
+    { nombre: 'Región de Magallanes y de la Antártica Chilena', comunas: ['Punta Arenas','Río Verde','Laguna Blanca','San Gregorio','Porvenir','Primavera','Timaukel','Puerto Natales','Torres del Paine','Cabo de Hornos','Antártica'] },
+    { nombre: 'Región Metropolitana de Santiago', comunas: ['Santiago','Cerrillos','Cerro Navia','Conchalí','El Bosque','Estación Central','Huechuraba','Independencia','La Cisterna','La Florida','La Granja','La Pintana','La Reina','Las Condes','Lo Barnechea','Lo Espejo','Lo Prado','Macul','Maipú','Ñuñoa','Pedro Aguirre Cerda','Peñalolén','Providencia','Pudahuel','Quilicura','Quinta Normal','Recoleta','Renca','San Joaquín','San Miguel','San Ramón','Vitacura','Puente Alto','Pirque','San José de Maipo','Colina','Lampa','Tiltil','Melipilla','María Pinto','Curacaví','Alhué','San Pedro','Talagante','El Monte','Isla de Maipo','Padre Hurtado','Peñaflor'] },
   ];
   comunasFiltradas: string[] = [];
 
@@ -79,7 +92,6 @@ export class CentrosEducativosComponent {
   editId: number | null = null;
   newCentroEducativo: Partial<CentroEducativo> = {
     nombre: '',
-    // por compatibilidad con Prisma enum
     tipo: 'SLEP',
     region: '',
     comuna: '',
@@ -94,8 +106,8 @@ export class CentrosEducativosComponent {
 
   // ===== contactos (SOLO edición) =====
   contactosForm = {
-    directorNombre: '', directorCorreo: '', directorTelefono: '',
-    utpNombre: '',      utpCorreo: '',      utpTelefono: '',
+    directorNombre: '', directorRut: '', directorCorreo: '', directorTelefono: '',
+    utpNombre: '',      utpRut: '',      utpCorreo: '',      utpTelefono: '',
   };
   private contactoDirectorId: number | null = null;
   private contactoUtpId: number | null = null;
@@ -107,21 +119,16 @@ export class CentrosEducativosComponent {
   selectedCentroEducativo: CentroDetalle | null = null;
   detalleCargando = false;
 
-  constructor() {
-    this.load();
-  }
+  constructor() { this.load(); }
 
   // ===== carga lista desde backend =====
   load() {
     this.centrosApi.list({ page: 1, limit: 1000 }).subscribe({
-      next: (r) => {
-        this.centrosEducativos = (r.items ?? []).map(this.mapDTOtoUI);
-      },
+      next: (r) => { this.centrosEducativos = (r.items ?? []).map(this.mapDTOtoUI); },
       error: () => this.snack.open('No se pudieron cargar los centros', 'Cerrar', { duration: 2500 })
     });
   }
 
-  // mapea DTO del back a UI del front
   private mapDTOtoUI = (dto: CentroEducativoDTO): CentroEducativo => ({
     id: dto.id,
     nombre: dto.nombre,
@@ -132,8 +139,8 @@ export class CentrosEducativosComponent {
     direccion: dto.direccion ?? undefined,
     url_rrss: dto.url_rrss ?? undefined,
     calle: dto.nombre_calle ?? undefined,
-    numero: dto.numero_calle ?? undefined,
-    telefono: dto.telefono ?? undefined,
+    numero: (dto.numero_calle as any) ?? undefined,
+    telefono: (dto.telefono as any) ?? undefined,
     correo: dto.correo ?? undefined,
   });
 
@@ -166,10 +173,9 @@ export class CentrosEducativosComponent {
       correo: '',
     };
     this.comunasFiltradas = [];
-    // reset contactos
     this.contactosForm = {
-      directorNombre: '', directorCorreo: '', directorTelefono: '',
-      utpNombre: '', utpCorreo: '', utpTelefono: '',
+      directorNombre: '', directorRut: '', directorCorreo: '', directorTelefono: '',
+      utpNombre: '',      utpRut: '',      utpCorreo: '',      utpTelefono: '',
     };
     this.contactoDirectorId = null;
     this.contactoUtpId = null;
@@ -179,7 +185,6 @@ export class CentrosEducativosComponent {
   // ===== CRUD centro =====
   addOrUpdateCentro() {
     const c = this.newCentroEducativo;
-
     if (!c.nombre?.trim() || !c.tipo || !c.region || !c.comuna || !c.convenio) {
       this.snack.open('Debe completar todos los campos requeridos.', 'Cerrar', { duration: 2500 });
       return;
@@ -187,7 +192,6 @@ export class CentrosEducativosComponent {
 
     const payloadCentro = {
       nombre: c.nombre!.trim(),
-      // ¡IMPORTANTE! debe ser el string del enum de Prisma
       tipo: c.tipo as TipoCentro,
       region: c.region!,
       comuna: c.comuna!,
@@ -206,7 +210,6 @@ export class CentrosEducativosComponent {
 
     req$.subscribe({
       next: () => {
-        // En edición, además guardamos Director/UTP
         if (this.isEditing && this.editId != null) {
           const centroId = this.editId;
           const toNum = (v?: string | number | null) => {
@@ -217,45 +220,35 @@ export class CentrosEducativosComponent {
 
           // DIRECTOR
           if ((this.contactosForm.directorNombre || '').trim() !== '') {
+            const base = {
+              rut: (this.contactosForm.directorRut || `TEMP-Director-${centroId}-${Date.now()}`).trim(),
+              nombre: this.contactosForm.directorNombre.trim(),
+              correo: this.contactosForm.directorCorreo?.trim() || undefined,
+              telefono: toNum(this.contactosForm.directorTelefono),
+              rol: 'Director',
+              centroId,
+            };
             if (this.contactoDirectorId) {
-              ops.push(this.trabajadoresApi.update(this.contactoDirectorId, {
-                nombre: this.contactosForm.directorNombre.trim(),
-                correo: this.contactosForm.directorCorreo?.trim() || undefined,
-                telefono: toNum(this.contactosForm.directorTelefono) ?? undefined,
-                rol: 'Director',
-                centroId,
-              }).toPromise());
+              ops.push(this.trabajadoresApi.update(this.contactoDirectorId, base).toPromise());
             } else {
-              ops.push(this.trabajadoresApi.create({
-                rut: `TEMP-Director-${centroId}-${Date.now()}`,
-                nombre: this.contactosForm.directorNombre.trim(),
-                correo: this.contactosForm.directorCorreo?.trim() || undefined,
-                telefono: toNum(this.contactosForm.directorTelefono),
-                rol: 'Director',
-                centroId,
-              }).toPromise());
+              ops.push(this.trabajadoresApi.create(base).toPromise());
             }
           }
 
           // UTP
           if ((this.contactosForm.utpNombre || '').trim() !== '') {
+            const base = {
+              rut: (this.contactosForm.utpRut || `TEMP-UTP-${centroId}-${Date.now()}`).trim(),
+              nombre: this.contactosForm.utpNombre.trim(),
+              correo: this.contactosForm.utpCorreo?.trim() || undefined,
+              telefono: toNum(this.contactosForm.utpTelefono),
+              rol: 'UTP',
+              centroId,
+            };
             if (this.contactoUtpId) {
-              ops.push(this.trabajadoresApi.update(this.contactoUtpId, {
-                nombre: this.contactosForm.utpNombre.trim(),
-                correo: this.contactosForm.utpCorreo?.trim() || undefined,
-                telefono: toNum(this.contactosForm.utpTelefono) ?? undefined,
-                rol: 'UTP',
-                centroId,
-              }).toPromise());
+              ops.push(this.trabajadoresApi.update(this.contactoUtpId, base).toPromise());
             } else {
-              ops.push(this.trabajadoresApi.create({
-                rut: `TEMP-UTP-${centroId}-${Date.now()}`,
-                nombre: this.contactosForm.utpNombre.trim(),
-                correo: this.contactosForm.utpCorreo?.trim() || undefined,
-                telefono: toNum(this.contactosForm.utpTelefono),
-                rol: 'UTP',
-                centroId,
-              }).toPromise());
+              ops.push(this.trabajadoresApi.create(base).toPromise());
             }
           }
 
@@ -267,7 +260,6 @@ export class CentrosEducativosComponent {
             this.toggleForm(); this.resetForm(); this.load();
           });
         } else {
-          // Creación de centro (no toca contactos)
           this.snack.open('Centro agregado.', 'OK', { duration: 2000 });
           this.toggleForm(); this.resetForm(); this.load();
         }
@@ -283,7 +275,6 @@ export class CentrosEducativosComponent {
     this.newCentroEducativo = { ...c };
     this.onRegionChange();
 
-    // reiniciar ids
     this.contactoDirectorId = null;
     this.contactoUtpId = null;
 
@@ -294,10 +285,12 @@ export class CentrosEducativosComponent {
         if (d) {
           this.contactoDirectorId = d.id;
           this.contactosForm.directorNombre = d.nombre || '';
+          this.contactosForm.directorRut = d.rut || '';
           this.contactosForm.directorCorreo = d.correo || '';
           this.contactosForm.directorTelefono = d.telefono != null ? String(d.telefono) : '';
         } else {
           this.contactosForm.directorNombre = '';
+          this.contactosForm.directorRut = '';
           this.contactosForm.directorCorreo = '';
           this.contactosForm.directorTelefono = '';
         }
@@ -311,10 +304,12 @@ export class CentrosEducativosComponent {
         if (u) {
           this.contactoUtpId = u.id;
           this.contactosForm.utpNombre = u.nombre || '';
+          this.contactosForm.utpRut = u.rut || '';
           this.contactosForm.utpCorreo = u.correo || '';
           this.contactosForm.utpTelefono = u.telefono != null ? String(u.telefono) : '';
         } else {
           this.contactosForm.utpNombre = '';
+          this.contactosForm.utpRut = '';
           this.contactosForm.utpCorreo = '';
           this.contactosForm.utpTelefono = '';
         }
@@ -333,19 +328,14 @@ export class CentrosEducativosComponent {
     });
   }
 
-  // Detalles (dialog) — ahora pide el detalle con trabajadores
   viewCentro(c: CentroEducativo) {
     this.detalleCargando = true;
     this.selectedCentroEducativo = null;
 
     this.centrosApi.getById(c.id).subscribe({
       next: (full) => {
-        // mapeamos a nuestro tipo de UI y preservamos trabajadores
         const base = this.mapDTOtoUI(full);
-        this.selectedCentroEducativo = {
-          ...base,
-          trabajadores: full.trabajadores ?? []
-        };
+        this.selectedCentroEducativo = { ...base, trabajadores: full.trabajadores ?? [] };
         this.detalleCargando = false;
       },
       error: () => {
@@ -368,15 +358,10 @@ export class CentrosEducativosComponent {
         c.region.toLowerCase().includes(t) ||
         c.comuna.toLowerCase().includes(t) ||
         (c.tipo || '').toString().toLowerCase().includes(t);
-
       const matchTipo = this.selectedTipo === 'all' || c.tipo === this.selectedTipo;
       return matchSearch && matchTipo;
     });
-
-    list = [...list].sort((a, b) =>
-      this.sortAZ ? a.nombre.localeCompare(b.nombre) : b.nombre.localeCompare(a.nombre)
-    );
-
+    list = [...list].sort((a, b) => this.sortAZ ? a.nombre.localeCompare(b.nombre) : b.nombre.localeCompare(a.nombre));
     return list;
   }
 }
