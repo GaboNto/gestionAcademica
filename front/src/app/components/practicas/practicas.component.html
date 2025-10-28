@@ -154,9 +154,9 @@
             <div class="FormRow">
               <mat-form-field appearance="outline" class="FormField">
                 <mat-label>Fecha de Inicio *</mat-label>
-                <input matInput [matDatepicker]="pickerInicio" formControlName="fecha_inicio">
+                <input matInput [matDatepicker]="pickerInicio" formControlName="fecha_inicio" [min]="fechaMinimaInicio">
                 <mat-datepicker-toggle matIconSuffix [for]="pickerInicio"></mat-datepicker-toggle>
-                <mat-datepicker #pickerInicio></mat-datepicker>
+                <mat-datepicker #pickerInicio [startAt]="fechaMinimaInicio"></mat-datepicker>
                 @if (formularioPractica.get('fecha_inicio')?.hasError('required')) {
                   <mat-error>
                     Debe seleccionar una fecha de inicio
@@ -166,9 +166,14 @@
 
               <mat-form-field appearance="outline" class="FormField">
                 <mat-label>Fecha de Término</mat-label>
-                <input matInput [matDatepicker]="pickerTermino" formControlName="fecha_termino">
+                <input matInput [matDatepicker]="pickerTermino" formControlName="fecha_termino" [min]="fechaMinimaTermino">
                 <mat-datepicker-toggle matIconSuffix [for]="pickerTermino"></mat-datepicker-toggle>
                 <mat-datepicker #pickerTermino></mat-datepicker>
+                @if (formularioPractica.get('fecha_termino')?.hasError('fechaAnterior')) {
+                  <mat-error>
+                    La fecha de término no puede ser anterior a la fecha de inicio
+                  </mat-error>
+                }
               </mat-form-field>
             </div>
 
@@ -179,7 +184,7 @@
                 <mat-select formControlName="estado">
                   @for (estado of estadosPractica; track estado) {
                     <mat-option [value]="estado">
-                      {{ estado }}
+                      {{ formatearEstado(estado) }}
                     </mat-option>
                   }
                 </mat-select>
@@ -255,7 +260,7 @@
             <!-- Estado -->
             <div class="StatusSection">
               <span class="StatusBadge" [ngClass]="assignment.estado.toLowerCase()">
-                {{ assignment.estado }}
+                {{ formatearEstado(assignment.estado) }}
               </span>
             </div>
 
@@ -307,7 +312,7 @@
                 <div class="DetailItem">
                   <label>Estado:</label>
                   <span class="StatusBadge" [ngClass]="practicaSeleccionada.estado.toLowerCase()">
-                    {{ practicaSeleccionada.estado }}
+                    {{ formatearEstado(practicaSeleccionada.estado) }}
                   </span>
                 </div>
                 <div class="DetailItem">

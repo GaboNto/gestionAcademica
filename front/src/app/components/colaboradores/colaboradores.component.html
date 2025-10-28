@@ -99,7 +99,7 @@
 
             <div class="FormRow">
               <mat-form-field appearance="outline" class="FormField">
-                <mat-label>Tipo</mat-label>
+                <mat-label>Rol</mat-label>
                 <mat-select [(ngModel)]="nuevoColaborador.tipo" name="tipo">
                   <mat-option value="COLABORADOR">Colaborador</mat-option>
                   <mat-option value="TUTOR">Supervisor</mat-option>
@@ -156,7 +156,7 @@
 
             <!-- Rol y cargo -->
             <div class="ItemRole">
-                <strong>{{ c.tipo || 'Sin tipo' }}</strong>
+                <strong>{{ c.tipo || 'Sin rol' }}</strong>
                 @if (c.cargo) {
                   <span> · {{ c.cargo }}</span>
               }
@@ -231,7 +231,7 @@
             </div>
             
             <div class="DetailItem">
-              <label>Tipo:</label>
+              <label>Rol:</label>
               <span>{{ colaboradorSeleccionado.tipo || 'No especificado' }}</span>
             </div>
             

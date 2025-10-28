@@ -108,8 +108,46 @@ export class PracticasComponent {
     'RECHAZADA'
   ];
 
+  // Función para formatear el estado para mostrar al usuario
+  formatearEstado(estado: EstadoPractica): string {
+    const formato: Record<EstadoPractica, string> = {
+      'PENDIENTE': 'Pendiente',
+      'EN_CURSO': 'En Curso',
+      'FINALIZADA': 'Finalizada',
+      'RECHAZADA': 'Rechazada'
+    };
+    return formato[estado] || estado;
+  }
+
+  // Propiedades para las fechas mínimas del datepicker
+  fechaMinimaInicio: Date = new Date();
+  fechaMinimaTermino: Date | null = null;
+
+  // Validador personalizado para verificar que fecha_termino no sea anterior a fecha_inicio
+  validarFechas = (formGroup: FormGroup): { [key: string]: any } | null => {
+    const fechaInicio = formGroup.get('fecha_inicio')?.value;
+    const fechaTermino = formGroup.get('fecha_termino')?.value;
+
+    if (fechaInicio && fechaTermino) {
+      const inicio = new Date(fechaInicio);
+      const termino = new Date(fechaTermino);
+
+      if (termino < inicio) {
+        formGroup.get('fecha_termino')?.setErrors({ fechaAnterior: true });
+        return { fechaInvalida: true };
+      }
+    }
+
+    // Limpiar error si las fechas son válidas
+    if (formGroup.get('fecha_termino')?.hasError('fechaAnterior')) {
+      formGroup.get('fecha_termino')?.setErrors(null);
+    }
+
+    return null;
+  }
+
   constructor() {
-    // Inicializar formulario
+    // Inicializar formulario con validaciones personalizadas
     this.formularioPractica = this.fb.group({
       estudianteRut: ['', [Validators.required]],
       centroId: ['', [Validators.required]],
@@ -118,6 +156,18 @@ export class PracticasComponent {
       fecha_termino: [''],
       tipo: [''],
       estado: ['PENDIENTE']
+    }, { validators: this.validarFechas });
+
+    // Suscribirse a cambios en fecha_inicio para actualizar fechaMinimaTermino
+    this.formularioPractica.get('fecha_inicio')?.valueChanges.subscribe(fechaInicio => {
+      if (fechaInicio) {
+        this.fechaMinimaTermino = new Date(fechaInicio);
+        // Reiniciar fecha_termino si está vacía o es anterior a la nueva fecha de inicio
+        const fechaTermino = this.formularioPractica.get('fecha_termino')?.value;
+        if (fechaTermino && new Date(fechaTermino) < new Date(fechaInicio)) {
+          this.formularioPractica.patchValue({ fecha_termino: '' }, { emitEvent: false });
+        }
+      }
     });
 
     // Cargar datos desde las APIs
@@ -317,6 +367,8 @@ export class PracticasComponent {
     this.formularioPractica.reset({
       estado: 'PENDIENTE'
     });
+    // Resetear fechaMinimaTermino cuando se abre el formulario
+    this.fechaMinimaTermino = null;
     // Reinicializar filtros
     this.estudianteFiltrado = [...this.estudiantes];
     this.centroFiltrado = [...this.centros];
@@ -328,6 +380,8 @@ export class PracticasComponent {
     this.formularioPractica.reset({
       estado: 'PENDIENTE'
     });
+    // Resetear fechaMinimaTermino cuando se cierra el formulario
+    this.fechaMinimaTermino = null;
   }
 
   // Métodos de filtrado para autocompletado (máximo 5 resultados)
