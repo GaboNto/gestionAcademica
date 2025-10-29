@@ -10,7 +10,7 @@ export interface Colaborador {
   nombre: string;
   correo?: string;
   telefono?: number;
-  tipo?: 'COLABORADOR' | 'TUTOR' | 'TALLERISTA';
+  tipo?: 'Colaborador' | 'Supervisor' | 'Tallerista';
   cargo?: string;
   universidad_egreso?: string;
   direccion?: string;
@@ -27,7 +27,7 @@ export interface ColaboradorResponse {
 }
 
 export interface QueryColaboradorParams {
-  tipo?: 'COLABORADOR' | 'TUTOR' | 'TALLERISTA';
+  tipo?: 'Colaborador' | 'Supervisor' | 'Tallerista';
   search?: string;
   page?: number;
   limit?: number;

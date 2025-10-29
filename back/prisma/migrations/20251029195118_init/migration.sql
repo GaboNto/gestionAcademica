@@ -22,7 +22,7 @@ CREATE TABLE `estudiante` (
 -- CreateTable
 CREATE TABLE `practica` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `estado` ENUM('PENDIENTE', 'EN_CURSO', 'FINALIZADA', 'RECHAZADA') NOT NULL,
+    `estado` ENUM('PENDIENTE', 'EN CURSO', 'FINALIZADA', 'RECHAZADA') NOT NULL,
     `fecha_inicio` DATETIME(3) NOT NULL,
     `fecha_termino` DATETIME(3) NULL,
     `tipo` VARCHAR(191) NULL,
@@ -73,7 +73,7 @@ CREATE TABLE `colaborador` (
     `correo` VARCHAR(191) NULL,
     `direccion` VARCHAR(191) NULL,
     `telefono` INTEGER NULL,
-    `tipo` ENUM('COLABORADOR', 'TUTOR', 'TALLERISTA') NULL,
+    `tipo` ENUM('Colaborador', 'Supervisor', 'Tallerista') NULL,
     `cargo` VARCHAR(191) NULL,
     `universidad_egreso` VARCHAR(191) NULL,
 

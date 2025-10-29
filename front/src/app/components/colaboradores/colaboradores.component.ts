@@ -15,7 +15,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 // Servicios y tipos
 import { ColaboradoresService, Colaborador } from '../../services/colaboradores.service';
 
-type TipoColaborador = 'COLABORADOR' | 'TUTOR' | 'TALLERISTA';
+type TipoColaborador = 'Colaborador' | 'Supervisor' | 'Tallerista';
 
 // Interfaz local para el formulario (compatible con la API)
 interface ColaboradorForm {
@@ -121,7 +121,7 @@ export class ColaboradoresComponent {
       correo: ['', [Validators.email]],
       telefono: ['', [this.validarTelefono]],
       direccion: [''],
-      tipo: ['COLABORADOR', [Validators.required]],
+      tipo: ['Colaborador', [Validators.required]],
       cargo: [''],
       universidad_egreso: ['']
     });
@@ -201,7 +201,7 @@ export class ColaboradoresComponent {
     const datosParaEnviar: any = {
       rut: valores.rut?.trim(),
       nombre: valores.nombre?.trim(),
-      tipo: valores.tipo || 'COLABORADOR'
+      tipo: valores.tipo || 'Colaborador'
     };
 
     // Agregar campos opcionales solo si tienen valor
@@ -345,7 +345,7 @@ export class ColaboradoresComponent {
       rut: colaborador.rut || '',
       nombre: colaborador.nombre || '',
       correo: colaborador.correo || '',
-      tipo: colaborador.tipo || 'COLABORADOR',
+      tipo: colaborador.tipo || 'Colaborador',
       cargo: colaborador.cargo || '',
       universidad_egreso: colaborador.universidad_egreso || '',
       telefono: colaborador.telefono || '',
@@ -383,7 +383,7 @@ export class ColaboradoresComponent {
     const datosParaEnviar: any = {
       rut: valores.rut?.trim(),
       nombre: valores.nombre?.trim(),
-      tipo: valores.tipo || 'COLABORADOR'
+      tipo: valores.tipo || 'Colaborador'
     };
 
     // Agregar campos opcionales solo si tienen valor

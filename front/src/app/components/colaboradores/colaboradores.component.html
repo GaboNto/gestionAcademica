@@ -36,9 +36,9 @@
           <mat-label>Rol</mat-label>
         <mat-select [(ngModel)]="rolSeleccionado" (selectionChange)="aplicarFiltros()">
             <mat-option value="all">Todos los roles</mat-option>
-          <mat-option value="TUTOR">Tutor</mat-option>
-          <mat-option value="COLABORADOR">Colaborador</mat-option>
-          <mat-option value="TALLERISTA">Tallerista</mat-option>
+          <mat-option value="Supervisor">Supervisor</mat-option>
+          <mat-option value="Colaborador">Colaborador</mat-option>
+          <mat-option value="Tallerista">Tallerista</mat-option>
           </mat-select>
         </mat-form-field>
       </div>
@@ -113,9 +113,9 @@
               <mat-form-field appearance="outline" class="FormField">
                 <mat-label>Rol *</mat-label>
                 <mat-select formControlName="tipo">
-                  <mat-option value="COLABORADOR">Colaborador</mat-option>
-                  <mat-option value="TUTOR">Supervisor</mat-option>
-                  <mat-option value="TALLERISTA">Tallerista</mat-option>
+                  <mat-option value="Colaborador">Colaborador</mat-option>
+                  <mat-option value="Supervisor">Supervisor</mat-option>
+                  <mat-option value="Tallerista">Tallerista</mat-option>
                 </mat-select>
               </mat-form-field>
 

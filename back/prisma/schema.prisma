@@ -136,7 +136,7 @@ model TrabajadorEduc {
   telefono  Int?  // (O) opcional
 
   centroId  Int
-  centro    CentroEducativo @relation(fields: [centroId], references: [id])
+  centro    CentroEducativo @relation(fields: [centroId], references: [id], onDelete: Cascade)
 
   @@map("trabajador_educ")
 }
