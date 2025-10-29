@@ -509,18 +509,26 @@ export class PracticasComponent {
     if (typeof value === 'string') {
       const colaboradorId = parseInt(value);
       const colaborador = this.colaboradores.find(c => c.id === colaboradorId);
-      return colaborador ? `${colaborador.nombre} - ${colaborador.tipo || ''} (${colaborador.cargo || ''})` : '';
+      if (!colaborador) return '';
+      const cargo = colaborador.cargo?.trim();
+      const cargoStr = cargo ? ` (${cargo})` : '';
+      return `${colaborador.nombre} - ${colaborador.tipo || ''}${cargoStr}`;
     }
     
     // Si es un número, buscar el colaborador
     if (typeof value === 'number') {
       const colaborador = this.colaboradores.find(c => c.id === value);
-      return colaborador ? `${colaborador.nombre} - ${colaborador.tipo || ''} (${colaborador.cargo || ''})` : '';
+      if (!colaborador) return '';
+      const cargo = colaborador.cargo?.trim();
+      const cargoStr = cargo ? ` (${cargo})` : '';
+      return `${colaborador.nombre} - ${colaborador.tipo || ''}${cargoStr}`;
     }
     
     // Si es un objeto con ID
     if (typeof value === 'object' && value.id) {
-      return `${value.nombre} - ${value.tipo || ''} (${value.cargo || ''})`;
+      const cargo = (value.cargo as string | undefined)?.trim();
+      const cargoStr = cargo ? ` (${cargo})` : '';
+      return `${value.nombre} - ${value.tipo || ''}${cargoStr}`;
     }
     
     return '';

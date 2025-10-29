@@ -20,7 +20,7 @@ export class CreateColaboradorDto {
   telefono?: number;
 
   @IsOptional() @IsEnum(TipoColaborador)
-  tipo?: TipoColaborador; // COLABORADOR | TUTOR | TALLERISTA
+  tipo?: TipoColaborador; // COLABORADOR | Supervisor | TALLERISTA
 
   @IsOptional() @IsString()
   cargo?: string;
