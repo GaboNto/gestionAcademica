@@ -1,9 +1,7 @@
 .wrap { max-width: 1120px; margin: 16px auto; padding: 0 16px; }
 .elev { border: 1px solid #e5e7eb; border-radius: 14px; }
 
-.toolbar {
-  display: flex; align-items: center; gap: 16px; margin-bottom: 12px;
-}
+.toolbar { display: flex; align-items: center; gap: 16px; margin-bottom: 12px; }
 .titles h1 { margin: 0; font-size: 22px; }
 .muted { color:#64748b; }
 .actions { margin-left: auto; display:flex; gap: 8px; }
