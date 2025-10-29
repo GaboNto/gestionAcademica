@@ -133,7 +133,7 @@
                                   (optionSelected)="onColaboradorSeleccionado($event)">
                   @for (colaborador of colaboradorFiltrado; track colaborador.id) {
                     <mat-option [value]="colaborador">
-                      {{ colaborador.nombre }} - {{ colaborador.tipo || '' }} ({{ colaborador.cargo || '' }})
+                      {{ colaborador.nombre }} - {{ colaborador.tipo || '' }}{{ colaborador.cargo ? ' (' + colaborador.cargo + ')' : '' }}
                     </mat-option>
                   }
                 </mat-autocomplete>
