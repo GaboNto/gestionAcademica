@@ -92,7 +92,7 @@
 .empty { margin-top: 12px; }
 .empty__content { display: grid; place-items: center; gap: 8px; }
 
-/* Modal */
+/* Modal Detalles */
 .details-dialog { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; }
 .dialog-overlay { position: absolute; inset: 0; background: rgba(0,0,0,.5); cursor: pointer; }
 .dialog-content { position: relative; background: #fff; border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0,0,0,.1),0 10px 10px -5px rgba(0,0,0,.04); max-width: 680px; width: 92%; max-height: 80vh; overflow-y: auto; }
@@ -105,10 +105,49 @@
 .detail-item span { font-size: 16px; color: #1f2937; }
 .dialog-actions { display: flex; justify-content: flex-end; gap: 12px; padding: 24px; border-top: 1px solid #e5e7eb; margin-top: 24px; }
 
+/* Responsive modal */
 @media (max-width: 640px) {
   .dialog-content { width: 95%; margin: 16px; }
   .dialog-header { padding: 16px 16px 0; }
   .dialog-body { padding: 0 16px; }
   .dialog-actions { padding: 16px; flex-direction: column; }
   .dialog-actions button { width: 100%; }
+}
+
+/* === Confirm Dialog (nuevo) === */
+.confirm-dialog { 
+  position: fixed; inset: 0; z-index: 1100; 
+  display: flex; align-items: center; justify-content: center;
+}
+.confirm-dialog .dialog-overlay { 
+  position: absolute; inset: 0; background: rgba(0,0,0,.45); 
+}
+.confirm-card {
+  position: relative; background: #fff; width: 560px; max-width: 92%;
+  border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0,0,0,.1), 0 10px 10px -5px rgba(0,0,0,.04);
+  display: flex; flex-direction: column;
+}
+.confirm-header {
+  display: flex; align-items: center; gap: 12px;
+  padding: 20px 24px 8px; border-bottom: 1px solid #e5e7eb;
+}
+.confirm-header h2 { margin: 0; font-size: 20px; font-weight: 600; color: #1f2937; }
+.warn-icon {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: #fef3c7; color: #b45309; display: grid; place-items: center;
+}
+.confirm-body { padding: 12px 24px 0; }
+.confirm-body p { margin: 0 0 6px; font-size: 15px; color: #111827; }
+.confirm-body .muted { margin-top: 2px; }
+
+.confirm-actions {
+  display: flex; justify-content: flex-end; gap: 12px;
+  padding: 16px 16px 20px; border-top: 1px solid #e5e7eb; margin-top: 12px;
+}
+.btn-danger mat-icon { margin-right: 6px; }
+
+@media (max-width: 640px) {
+  .confirm-card { width: 95%; margin: 16px; }
+  .confirm-actions { flex-direction: column; }
+  .confirm-actions button { width: 100%; }
 }

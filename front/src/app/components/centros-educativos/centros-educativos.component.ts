@@ -119,6 +119,9 @@ export class CentrosEducativosComponent {
   selectedCentroEducativo: CentroDetalle | null = null;
   detalleCargando = false;
 
+  // ===== NUEVO: diálogo confirmación =====
+  pendingDelete: CentroEducativo | null = null;
+
   constructor() { this.load(); }
 
   // ===== carga lista desde backend =====
@@ -317,14 +320,29 @@ export class CentrosEducativosComponent {
     });
   }
 
-  removeCentro(c: CentroEducativo) {
-    if (isPlatformBrowser(this.platformId)) {
-      const ok = window.confirm(`¿Eliminar “${c.nombre}” de ${c.comuna}?`);
-      if (!ok) return;
-    }
-    this.centrosApi.delete(c.id).subscribe({
-      next: () => { this.snack.open('Centro eliminado.', 'OK', { duration: 2000 }); this.load(); },
-      error: () => { this.snack.open('No se pudo eliminar.', 'Cerrar', { duration: 2500 }); }
+  // ===== Confirmación de eliminación (NUEVO) =====
+  askDelete(c: CentroEducativo) {
+    this.pendingDelete = c;
+  }
+
+  cancelDelete() {
+    this.pendingDelete = null;
+  }
+
+  confirmDelete() {
+    if (!this.pendingDelete) return;
+    const id = this.pendingDelete.id;
+
+    this.centrosApi.delete(id).subscribe({
+      next: () => {
+        this.snack.open('Centro eliminado.', 'OK', { duration: 2000 });
+        this.pendingDelete = null;
+        this.load();
+      },
+      error: () => {
+        this.snack.open('No se pudo eliminar.', 'Cerrar', { duration: 2500 });
+        this.pendingDelete = null;
+      }
     });
   }
 

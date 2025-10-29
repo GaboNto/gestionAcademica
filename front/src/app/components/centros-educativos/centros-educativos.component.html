@@ -239,7 +239,8 @@
             <button mat-icon-button color="primary" (click)="editCentro(c)" title="Editar">
               <mat-icon>edit</mat-icon>
             </button>
-            <button mat-icon-button color="warn" (click)="removeCentro(c)" title="Eliminar">
+            <!-- cambio: abre el modal de confirmación -->
+            <button mat-icon-button color="warn" (click)="askDelete(c)" title="Eliminar">
               <mat-icon>delete</mat-icon>
             </button>
           </div>
@@ -258,7 +259,8 @@
 
   <!-- DIALOG DETALLES -->
   <div class="details-dialog" *ngIf="selectedCentroEducativo">
-    <div class="dialog-overlay" (click)="closeDetails()"></div>
+  <div class="dialog-overlay" (click)="closeDetails()"></div>
+
     <div class="dialog-content">
       <div class="dialog-header">
         <h2>Información del Centro</h2>
@@ -308,6 +310,32 @@
         <button mat-stroked-button (click)="closeDetails()">Cerrar</button>
         <button mat-raised-button color="primary" (click)="editCentro(selectedCentroEducativo!)">
           <mat-icon>edit</mat-icon> Editar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DIALOG CONFIRMAR ELIMINACIÓN -->
+  <div class="confirm-dialog" *ngIf="pendingDelete">
+    <div class="dialog-overlay" (click)="cancelDelete()" tabindex="0"></div>
+
+    <div class="dialog-content confirm-card" (keydown.escape)="cancelDelete()">
+      <div class="confirm-header">
+        <div class="warn-icon">
+          <mat-icon>warning_amber</mat-icon>
+        </div>
+        <h2>Confirmar eliminación</h2>
+      </div>
+
+      <div class="confirm-body">
+      <p>¿Estás seguro de que quieres eliminar a <b>{{ pendingDelete!.nombre }}</b>?</p>
+        <p class="muted">Esta acción no se puede deshacer.</p>
+      </div>
+
+      <div class="confirm-actions">
+        <button mat-stroked-button (click)="cancelDelete()">Cancelar</button>
+        <button mat-flat-button color="warn" (click)="confirmDelete()" class="btn-danger">
+          <mat-icon>delete</mat-icon> Eliminar
         </button>
       </div>
     </div>
