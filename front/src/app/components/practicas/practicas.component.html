@@ -30,15 +30,24 @@
           <input matInput [(ngModel)]="terminoBusqueda" placeholder="Nombre, RUT o colegio..." />
           <mat-icon matSuffix>search</mat-icon>
         </mat-form-field>
-    
+        
+        <!-- Nuevo filtro: Nivel (Plan) -->
+        <mat-form-field appearance="outline" class="FilterField">
+          <mat-label>Nivel</mat-label>
+          <mat-select [(ngModel)]="nivelSeleccionado">
+            <mat-option value="all">Todos los niveles</mat-option>
+            <mat-option *ngFor="let n of niveles" [value]="n">{{ n }}</mat-option>
+          </mat-select>
+        </mat-form-field>
 
         <mat-form-field appearance="outline" class="FilterField">
-          <mat-label>Centro Educativo</mat-label>
+          <mat-label>Tipo de Centro Educativo</mat-label>
           <mat-select [(ngModel)]="colegioSeleccionado">
-            <mat-option value="all">Todos los centros</mat-option>
-            <mat-option value="Colegio San José">Colegio San José</mat-option>
-            <mat-option value="Liceo Técnico">Liceo Técnico</mat-option>
-            <mat-option value="Escuela Municipal">Escuela Municipal</mat-option>
+            <mat-select-trigger>
+              {{ colegioSeleccionado === 'all' ? 'Todos los tipos' : (colegioSeleccionado | lowercase) }}
+            </mat-select-trigger>
+            <mat-option value="all">Todos los tipos</mat-option>
+            <mat-option *ngFor="let t of tiposCentro" [value]="t">{{ t | lowercase }}</mat-option>
           </mat-select>
         </mat-form-field>
       </div>

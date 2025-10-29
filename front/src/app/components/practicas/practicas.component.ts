@@ -78,7 +78,8 @@ export class PracticasComponent {
 
   // Filtros
   terminoBusqueda = '';
-  colegioSeleccionado: 'all' | 'Colegio San José' | 'Liceo Técnico' | 'Escuela Municipal' = 'all';
+  colegioSeleccionado: 'all' | string = 'all';
+  nivelSeleccionado: 'all' | string = 'all';
 
   // Estado para modal de detalles
   practicaSeleccionada: Practica | null = null;
@@ -106,6 +107,11 @@ export class PracticasComponent {
     'PRÁCTICA PROFESIONAL DE APOYO A LA DOCENCIA III',
     'PRÁCTICA PROFESIONAL DOCENTE'
   ];
+
+  // Opciones de niveles/plan (derivadas de los datos cargados)
+  niveles: string[] = [];
+  // Tipos de centro educativo (derivados de los datos cargados)
+  tiposCentro: string[] = [];
 
   estadosPractica: EstadoPractica[] = [
     'PENDIENTE',
@@ -188,6 +194,7 @@ export class PracticasComponent {
     this.practicasService.listar().subscribe({
       next: (practicas) => {
         this.practicas = practicas.map((p: any) => this.transformarPractica(p));
+        this.recalcularNivelesDesdeDatos();
         
         // Extraer RUTs de estudiantes con prácticas activas
         const rutConPracticas = new Set<string>();
@@ -239,6 +246,13 @@ export class PracticasComponent {
       next: (response) => {
         this.centros = response.items || [];
         this.centroFiltrado = this.centros.slice(0, 5);
+        // Recalcular tipos de centros
+        const setTipos = new Set<string>();
+        this.centros.forEach(c => { 
+          const t = (c.tipo || '').trim(); 
+          if (t) setTipos.add(t); 
+        });
+        this.tiposCentro = Array.from(setTipos).sort((a, b) => a.localeCompare(b));
       },
       error: (err) => {
         console.error('Error al cargar centros:', err);
@@ -265,6 +279,7 @@ export class PracticasComponent {
       next: (practicas) => {
         // Transformar datos de la API al formato local
         this.practicas = practicas.map((p: any) => this.transformarPractica(p));
+        this.recalcularNivelesDesdeDatos();
         
         // Actualizar lista de estudiantes disponibles
         this.actualizarEstudiantesDisponibles();
@@ -317,7 +332,7 @@ export class PracticasComponent {
       estudiante: {
         rut: p.estudiante?.rut || '',
         nombre: p.estudiante?.nombre || '',
-        nivel: 'Media', // Puedes agregar este campo si lo necesitas
+        nivel: p.estudiante?.plan || p.estudiante?.nivel || '',
         email: p.estudiante?.email
       },
       centro: {
@@ -361,11 +376,22 @@ export class PracticasComponent {
         practica.centro.nombre?.toLowerCase().includes(termino) ||
         practica.colaborador.nombre?.toLowerCase().includes(termino);
 
-      // Filtro de colegio
-      const coincideColegio = this.colegioSeleccionado === 'all' || practica.centro.nombre === this.colegioSeleccionado;
+      // Filtro por tipo de centro educativo
+      const coincideColegio = this.colegioSeleccionado === 'all' || (practica.centro.tipo || '').toLowerCase() === this.colegioSeleccionado.toLowerCase();
+      // Filtro de nivel/plan del estudiante
+      const coincideNivel = this.nivelSeleccionado === 'all' || (practica.estudiante.nivel || '').toLowerCase() === this.nivelSeleccionado.toLowerCase();
 
-      return coincideBusqueda && coincideColegio;
+      return coincideBusqueda && coincideColegio && coincideNivel;
     });
+  }
+
+  private recalcularNivelesDesdeDatos() {
+    const set = new Set<string>();
+    this.practicas.forEach(p => {
+      const n = (p.estudiante?.nivel || '').trim();
+      if (n) set.add(n);
+    });
+    this.niveles = Array.from(set).sort((a, b) => a.localeCompare(b));
   }
 
   abrirNuevaAsignacion() {
