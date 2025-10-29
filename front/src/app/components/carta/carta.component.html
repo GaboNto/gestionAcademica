@@ -23,6 +23,7 @@
 
   <mat-card class="elev">
     <mat-card-content>
+
       <!-- Línea 1: Tipo de práctica y Centro -->
       <div class="grid g3">
         <mat-form-field appearance="outline">
@@ -94,6 +95,36 @@
 
       <mat-divider class="sep"></mat-divider>
 
+      <!-- NUEVA LÍNEA: Tutora/or responsable -->
+      <div class="grid g1">
+        <mat-form-field appearance="outline" class="full">
+          <mat-label>Tutora/or de práctica responsable</mat-label>
+          <mat-select [formControl]="form.controls.supervisorId" required>
+            <!-- Buscador dentro del panel -->
+            <mat-option disabled>
+              <mat-icon>search</mat-icon>
+              <input
+                matInput
+                placeholder="Buscar nombre…"
+                (keyup)="supervisorFilter = $any($event.target).value; _markForCheck()"
+                (click)="$event.stopPropagation()"
+                [value]="supervisorFilter"
+                class="search-input" />
+            </mat-option>
+
+            <mat-option *ngFor="let s of filteredSupervisores" [value]="s.id">
+              {{ s.trato ? (s.trato + ' ') : '' }}{{ s.nombre }}
+            </mat-option>
+          </mat-select>
+          <mat-hint>Seleccione la persona tutora responsable</mat-hint>
+          <mat-error *ngIf="form.controls.supervisorId.hasError('required')">
+            Selecciona a la tutora o tutor responsable
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <mat-divider class="sep"></mat-divider>
+
       <!-- Línea 3: Periodo -->
       <div class="grid g2">
         <mat-form-field appearance="outline">
@@ -122,11 +153,12 @@
 
       <mat-divider class="sep"></mat-divider>
 
-      <!-- Nota: Jefatura fija; fecha/folio automáticos al generar -->
+      <!-- Nota fija -->
       <div class="meta-note">
         La carta se firmará como <b>Dr. IGNACIO JARA PARRA</b>, <b>Jefe de Carrera</b>.
         La <b>fecha</b> se usa la del día de generación y el <b>folio</b> se asigna al presionar <i>Grabar</i>.
       </div>
+
     </mat-card-content>
   </mat-card>
 </div>

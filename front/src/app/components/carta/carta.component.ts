@@ -26,7 +26,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 // jsPDF
 import { jsPDF } from 'jspdf';
 
-// Tipado utilitario (no es de jsPDF)
+// Tipos
 type TipoPractica =
   | 'Apoyo a la Docencia I'
   | 'Apoyo a la Docencia II'
@@ -40,6 +40,9 @@ interface Centro {
   convenio: 'Marco SLEP' | 'Solicitud directa' | 'ADEP';
   direccion?: string; director?: ContactoCentro; utp?: ContactoCentro;
 }
+
+type Trato = 'Srta.' | 'Sra.' | 'Sr.';
+interface Supervisor { id: number; nombre: string; trato?: Trato; correo?: string }
 
 @Component({
   standalone: true,
@@ -60,6 +63,7 @@ export class CartaComponent {
   private platformId = inject(PLATFORM_ID);
   private cdr = inject(ChangeDetectorRef);
 
+  // ===== Mock de datos =====
   estudiantes: Estudiante[] = [
     { id: 1, nombre: 'Almendra Rojas Quiroga', rut: '21.879.810-1' },
     { id: 2, nombre: 'Pedro Caquisane Calle',  rut: '22.111.989-4' },
@@ -80,33 +84,52 @@ export class CartaComponent {
     },
   ];
 
+  // Nueva lista de personas tutoras (mock)
+  supervisores: Supervisor[] = [
+    { id: 101, nombre: 'Carolina Quintana Talvac', trato: 'Srta.' },
+    { id: 102, nombre: 'María José Fuentes', trato: 'Sra.' },
+    { id: 103, nombre: 'Ignacio Rojas', trato: 'Sr.' },
+  ];
+
   tiposPractica: TipoPractica[] = [
     'Apoyo a la Docencia I', 'Apoyo a la Docencia II',
     'Apoyo a la Docencia III', 'Práctica Profesional',
   ];
 
+  // ===== Form =====
   form = this.fb.group(
     {
       tipoPractica: ['Apoyo a la Docencia I' as TipoPractica, Validators.required],
       centroId: [null as number | null, Validators.required],
       estudiantesIds: [[] as number[], [Validators.required, Validators.minLength(1)]],
+      supervisorId: [null as number | null, Validators.required],     // NUEVO
       periodoInicio: [null as Date | null, Validators.required],
       periodoFin: [null as Date | null, Validators.required],
     },
     { validators: [periodoValidator] }
   );
 
+  // ===== Filtros de select con buscador =====
   studentFilter = '';
+  supervisorFilter = ''; // NUEVO
+
   get filteredStudents(): Estudiante[] {
     const t = this.studentFilter.trim().toLowerCase();
     if (!t) return this.estudiantes;
     return this.estudiantes.filter(e => e.nombre.toLowerCase().includes(t) || e.rut.toLowerCase().includes(t));
   }
+  get filteredSupervisores(): Supervisor[] {
+    const t = this.supervisorFilter.trim().toLowerCase();
+    if (!t) return this.supervisores;
+    return this.supervisores.filter(s => s.nombre.toLowerCase().includes(t));
+  }
+
   _markForCheck(){ this.cdr.markForCheck(); }
 
   private readonly JEFATURA_NOMBRE = 'Dr. IGNACIO JARA PARRA';
   private readonly JEFATURA_CARGO  = 'Jefe de Carrera';
 
+  // ===== Helpers selección =====
   get centroSeleccionado(): Centro | undefined {
     const id = this.form.value.centroId ?? null;
     return this.centros.find(c => c.id === id!);
@@ -115,8 +138,13 @@ export class CartaComponent {
     const ids = this.form.value.estudiantesIds ?? [];
     return this.estudiantes.filter(e => ids.includes(e.id));
   }
+  get supervisorSeleccionado(): Supervisor | undefined {
+    const id = this.form.value.supervisorId ?? null;
+    return this.supervisores.find(s => s.id === id!);
+  }
   get plural(): boolean { return this.alumnosSeleccionados.length > 1; }
 
+  // ===== Fechas =====
   private fechaLarga(d: Date | null): string {
     if (!d) return '';
     const f = new Date(d);
@@ -124,6 +152,7 @@ export class CartaComponent {
   }
   private fechaHoy(): string { return this.fechaLarga(new Date()); }
 
+  // ===== Texto carta =====
   private listaEstudiantes(): string {
     return this.alumnosSeleccionados.map(s => `• ${s.nombre}, Rut ${s.rut}`).join('\n');
   }
@@ -149,6 +178,7 @@ export class CartaComponent {
     const cargoLinea = cargo ? `\n${cargo}` : '';
     return `Señor(a)\n${linea}${cargoLinea}\n${centro}\n${direccion}\nPresente\n\nDe mi consideración:\n`;
   }
+
   private cuerpoSegunPDF(): string {
     const tipo = this.form.value.tipoPractica;
     const pi = this.form.value.periodoInicio ? this.fechaLarga(this.form.value.periodoInicio) : '';
@@ -160,7 +190,13 @@ export class CartaComponent {
       `solicitamos su autorización para que ${this.plural ? 'los siguientes estudiantes realicen' : 'el siguiente estudiante realice'} ` +
       `${this.plural ? 'sus' : 'su'} práctica ${tipo} en ese establecimiento${periodoTxt}:`;
 
-    const adjuntos = `La tutora de práctica responsable es la Srta. Carolina Quintana Talvac.
+    // Supervisor dinámico
+    const sup = this.supervisorSeleccionado;
+    const supLinea = sup
+      ? `La tutora de práctica responsable es la ${sup.trato ?? ''} ${sup.nombre}.`.replace(/\s+/g, ' ').trim()
+      : 'La tutora de práctica responsable es la Srta. Carolina Quintana Talvac.'; // fallback
+
+    const adjuntos = `${supLinea}
 
 Adjuntamos el detalle de la estructura de la práctica solicitada, junto con los siguientes documentos:
 • Credencial del profesor en práctica.
@@ -180,9 +216,12 @@ Universidad de Tarapacá`;
 
     return `${intro}\n\n${this.listaEstudiantes()}\n\n${adjuntos}\n${firma}`;
   }
+
   private documentoPlano(refConFolio: boolean, folio?: string): string {
     return `${this.encabezado(refConFolio, folio)}\n${this.saludo()}${this.cuerpoSegunPDF()}\n\nAdj.: Lo indicado.\nc.c.: Archivo`;
   }
+
+  // ===== Folio =====
   private nextFolio(): string {
     if (!isPlatformBrowser(this.platformId)) return '';
     const key = 'app.carta.folio';
@@ -196,38 +235,42 @@ Universidad de Tarapacá`;
     return `${String(n).padStart(3,'0')}/${y}`;
   }
 
+  // ===== Acciones =====
   previa() {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
-      this.snack.open('Completa los campos requeridos (centro, estudiantes, periodo).', 'OK', { duration: 2200 });
+      this.snack.open('Completa los campos requeridos (centro, estudiantes, supervisor y periodo).', 'OK', { duration: 2200 });
       return;
     }
     this.crearYMostrarPDF(this.documentoPlano(false), 'Vista previa de carta');
   }
+
   grabar() {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
-      this.snack.open('Completa los campos requeridos (centro, estudiantes, periodo).', 'OK', { duration: 2200 });
+      this.snack.open('Completa los campos requeridos (centro, estudiantes, supervisor y periodo).', 'OK', { duration: 2200 });
       return;
     }
     const folio = this.nextFolio();
     this.crearYMostrarPDF(this.documentoPlano(true, folio), `Carta folio ${folio}`);
     this.snack.open(`Carta generada con folio ${folio}.`, 'OK', { duration: 2400 });
   }
+
   limpiar() {
     this.form.reset({
       tipoPractica: 'Apoyo a la Docencia I',
       centroId: null,
       estudiantesIds: [],
+      supervisorId: null,
       periodoInicio: null,
       periodoFin: null,
     });
     this.studentFilter = '';
+    this.supervisorFilter = '';
   }
 
-  // ====== GENERACIÓN PDF CON jsPDF ======
+  // ====== Generación PDF con jsPDF ======
   private crearYMostrarPDF(texto: string, titulo: string) {
-    // Carta en formato "letter" (8.5x11 pulgadas). jsPDF usa puntos (pt) por defecto (72pt = 1in).
     const doc = new jsPDF({ unit: 'pt', format: 'letter' }); // 612 x 792 pt
     const margin = { left: 56, top: 64, right: 56, bottom: 64 };
     const pageWidth  = doc.internal.pageSize.getWidth();
@@ -255,16 +298,15 @@ Universidad de Tarapacá`;
 
     for (const p of paragraphs) {
       const lines = doc.splitTextToSize(p, contentWidth);
-      const height = lines.length * 14; // aprox 14pt por línea
+      const height = lines.length * 14;
       if (y + height > pageHeight - margin.bottom) {
         doc.addPage(); y = margin.top;
       }
       doc.text(lines, margin.left, y);
-      y += height + 8; // espacio entre párrafos
+      y += height + 8;
     }
 
-    // Exportar a Data URL para embeber en iframe (con controles nativos del navegador)
-    const dataUrl = doc.output('datauristring'); // "data:application/pdf;base64,...."
+    const dataUrl = doc.output('datauristring');
     this.dialog.open(PdfDialogComponent, {
       data: { dataUrl, title: titulo },
       width: '980px',
@@ -273,7 +315,7 @@ Universidad de Tarapacá`;
   }
 }
 
-/* ========= Visor PDF (sanitiza la data URL) ========= */
+/* ========= Visor PDF ========= */
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 @Component({
