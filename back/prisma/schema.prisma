@@ -11,13 +11,13 @@ datasource db {
 // Enums útiles
 // ---------------------------------------------------------------------
 enum TipoColaborador {
-  COLABORADOR   // profesor del aula en el centro educativo (acompaña directamente)
-  TUTOR      // guía y evalúa formalmente desde la institución (reemplaza "supervisor")
-  TALLERISTA // dirige talleres/actividades prácticas
+  Colaborador   // profesor del aula en el centro educativo (acompaña directamente)
+  Supervisor      // guía y evalúa formalmente desde la institución (reemplaza "supervisor")
+  Tallerista // dirige talleres/actividades prácticas
 }
 enum EstadoPractica {
   PENDIENTE
-  EN_CURSO
+  EN_CURSO @map("EN CURSO")
   FINALIZADA
   RECHAZADA
 }
