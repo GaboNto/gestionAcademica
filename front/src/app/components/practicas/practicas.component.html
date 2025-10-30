@@ -83,7 +83,8 @@
                 <input matInput 
                        placeholder="Escriba nombre o RUT del estudiante..."
                        (input)="filtrarEstudiantes($event)"
-                       (focus)="mostrarTodosEstudiantes()"
+                       (focus)="mostrarTodosEstudiantes()
+                       "
                        [matAutocomplete]="autoEstudiante"
                        formControlName="estudianteRut">
                 <mat-autocomplete #autoEstudiante="matAutocomplete" 
@@ -127,31 +128,50 @@
               </mat-form-field>
             </div>
 
-            <!-- Información del Colaborador y Tipo -->
+            <!-- Información del Colaborador (MULTI 1..2) y Tipo -->
             <div class="FormRow">
-              <mat-form-field appearance="outline" class="FormField">
-                <mat-label>Colaborador/Supervisor *</mat-label>
-                <input matInput 
-                       placeholder="Escriba nombre, rol o especialidad del colaborador..."
-                       (input)="filtrarColaboradores($event)"
-                       (focus)="mostrarTodosColaboradores()"
-                       [matAutocomplete]="autoColaborador"
-                       formControlName="colaboradorId">
-                <mat-autocomplete #autoColaborador="matAutocomplete" 
-                                  [displayWith]="mostrarColaborador.bind(this)"
-                                  (optionSelected)="onColaboradorSeleccionado($event)">
-                  @for (colaborador of colaboradorFiltrado; track colaborador.id) {
-                    <mat-option [value]="colaborador">
-                      {{ colaborador.nombre }} - {{ colaborador.tipo || '' }}{{ colaborador.cargo ? ' (' + colaborador.cargo + ')' : '' }}
-                    </mat-option>
-                  }
-                </mat-autocomplete>
-                @if (formularioPractica.get('colaboradorId')?.hasError('required')) {
-                  <mat-error>
-                    Debe seleccionar un colaborador
-                  </mat-error>
-                }
-              </mat-form-field>
+              <!-- MULTI: Colaboradores/Supervisores (reemplaza mat-chip-list por mat-chip-grid) -->
+<mat-form-field appearance="outline" class="FormField FullWidth">
+  <mat-label>Colaboradores / Supervisores *</mat-label>
+
+  <mat-chip-grid #chipGrid aria-label="Colaboradores seleccionados">
+    <mat-chip-row *ngFor="let c of selectedColaboradores; let i = index"
+                  [removable]="true"
+                  (removed)="removerColaborador(c)">
+      {{ c.nombre }}{{ c.cargo ? ' (' + c.cargo + ')' : '' }}
+      <button matChipRemove type="button" aria-label="Quitar">
+        <mat-icon>close</mat-icon>
+      </button>
+    </mat-chip-row>
+
+    <input
+      matInput
+      [matChipInputFor]="chipGrid"
+      placeholder="Buscar colaborador por nombre, rol o cargo..."
+      [matAutocomplete]="autoColabMulti"
+      (input)="filtrarColaboradores($event)"
+      (focus)="mostrarTodosColaboradores()"
+      [disabled]="isMaxColaboradoresSeleccionados()">
+  </mat-chip-grid>
+
+  <mat-autocomplete
+    #autoColabMulti="matAutocomplete"
+    (optionSelected)="onColaboradorSeleccionadoMultiple($event)">
+    <mat-option *ngFor="let colaborador of colaboradorFiltrado" [value]="colaborador">
+      {{ colaborador.nombre }} - {{ colaborador.tipo || '' }}{{ colaborador.cargo ? ' (' + colaborador.cargo + ')' : '' }}
+    </mat-option>
+  </mat-autocomplete>
+
+  <mat-hint align="start">Puedes seleccionar hasta 2.</mat-hint>
+
+  <mat-error *ngIf="formularioPractica.get('colaboradoresIds')?.hasError('requiredMin')">
+    Debes seleccionar al menos 1 colaborador/supervisor
+  </mat-error>
+  <mat-error *ngIf="formularioPractica.get('colaboradoresIds')?.hasError('maxSeleccionados')">
+    Máximo 2 colaboradores/supervisores
+  </mat-error>
+</mat-form-field>
+
 
               <mat-form-field appearance="outline" class="FormField">
                 <mat-label>Tipo de Práctica</mat-label>

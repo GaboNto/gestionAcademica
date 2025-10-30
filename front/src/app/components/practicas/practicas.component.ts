@@ -15,9 +15,10 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatChipsModule } from '@angular/material/chips';
 
 // Servicios
-import { PracticasService, Estudiante, CentroEducativo, Colaborador, EstadoPractica, Practica as PracticaAPI } from '../../services/practicas.service';
+import { PracticasService, Estudiante, CentroEducativo, Colaborador, EstadoPractica } from '../../services/practicas.service';
 import { ColaboradoresService } from '../../services/colaboradores.service';
 import { HttpClient } from '@angular/common/http';
 
@@ -65,7 +66,8 @@ interface Practica {
     MatNativeDateModule,
     MatSnackBarModule,
     MatDividerModule,
-    MatAutocompleteModule
+    MatAutocompleteModule,
+    MatChipsModule
   ]
 })
 export class PracticasComponent {
@@ -120,6 +122,17 @@ export class PracticasComponent {
     'RECHAZADA'
   ];
 
+  // Selección múltiple de colaboradores (máx. 2)
+  selectedColaboradores: Colaborador[] = [];
+
+  // Validador de 1..2 seleccionados
+  validarColaboradores = (control: any) => {
+    const arr: number[] = control?.value || [];
+    if (!arr || arr.length === 0) return { requiredMin: true };
+    if (arr.length > 2) return { maxSeleccionados: true };
+    return null;
+  };
+
   // Función para formatear el estado para mostrar al usuario
   formatearEstado(estado: EstadoPractica): string {
     const formato: Record<EstadoPractica, string> = {
@@ -150,7 +163,6 @@ export class PracticasComponent {
       }
     }
 
-    // Limpiar error si las fechas son válidas
     if (formGroup.get('fecha_termino')?.hasError('fechaAnterior')) {
       formGroup.get('fecha_termino')?.setErrors(null);
     }
@@ -163,7 +175,13 @@ export class PracticasComponent {
     this.formularioPractica = this.fb.group({
       estudianteRut: ['', [Validators.required]],
       centroId: ['', [Validators.required]],
-      colaboradorId: ['', [Validators.required]],
+
+      // Compatibilidad: primer colaborador (invisible en el input)
+      colaboradorId: [''],
+
+      // NUEVO: IDs de colaboradores seleccionados (1..2)
+      colaboradoresIds: [[], [this.validarColaboradores]],
+
       fecha_inicio: ['', Validators.required],
       fecha_termino: [''],
       tipo: [''],
@@ -174,7 +192,6 @@ export class PracticasComponent {
     this.formularioPractica.get('fecha_inicio')?.valueChanges.subscribe(fechaInicio => {
       if (fechaInicio) {
         this.fechaMinimaTermino = new Date(fechaInicio);
-        // Reiniciar fecha_termino si está vacía o es anterior a la nueva fecha de inicio
         const fechaTermino = this.formularioPractica.get('fecha_termino')?.value;
         if (fechaTermino && new Date(fechaTermino) < new Date(fechaInicio)) {
           this.formularioPractica.patchValue({ fecha_termino: '' }, { emitEvent: false });
@@ -207,13 +224,10 @@ export class PracticasComponent {
         // Cargar estudiantes y filtrar los que ya tienen prácticas
         this.http.get<any[]>('http://localhost:3000/estudiante').subscribe({
           next: (estudiantes) => {
-            // Filtrar estudiantes que NO tienen prácticas asignadas
             this.estudiantes = estudiantes.filter(est => !rutConPracticas.has(est.rut));
             this.estudianteFiltrado = this.estudiantes.slice(0, 5);
           },
-          error: (err) => {
-            console.error('Error al cargar estudiantes:', err);
-          }
+          error: (err) => { console.error('Error al cargar estudiantes:', err); }
         });
 
         // Cargar otros datos
@@ -221,7 +235,6 @@ export class PracticasComponent {
       },
       error: (err) => {
         console.error('Error al cargar prácticas:', err);
-        // Si falla, cargar todos los estudiantes
         this.cargarTodosEstudiantes();
       }
     });
@@ -233,20 +246,16 @@ export class PracticasComponent {
         this.estudiantes = estudiantes;
         this.estudianteFiltrado = this.estudiantes.slice(0, 5);
       },
-      error: (err) => {
-        console.error('Error al cargar estudiantes:', err);
-      }
+      error: (err) => { console.error('Error al cargar estudiantes:', err); }
     });
   }
 
   cargarCentrosYColaboradores() {
-
     // Cargar centros educativos
     this.http.get<any>('http://localhost:3000/centros?page=1&limit=100').subscribe({
       next: (response) => {
         this.centros = response.items || [];
         this.centroFiltrado = this.centros.slice(0, 5);
-        // Recalcular tipos de centros
         const setTipos = new Set<string>();
         this.centros.forEach(c => { 
           const t = (c.tipo || '').trim(); 
@@ -254,9 +263,7 @@ export class PracticasComponent {
         });
         this.tiposCentro = Array.from(setTipos).sort((a, b) => a.localeCompare(b));
       },
-      error: (err) => {
-        console.error('Error al cargar centros:', err);
-      }
+      error: (err) => { console.error('Error al cargar centros:', err); }
     });
 
     // Cargar colaboradores
@@ -265,9 +272,7 @@ export class PracticasComponent {
         this.colaboradores = response.items || [];
         this.colaboradorFiltrado = this.colaboradores.slice(0, 5);
       },
-      error: (err) => {
-        console.error('Error al cargar colaboradores:', err);
-      }
+      error: (err) => { console.error('Error al cargar colaboradores:', err); }
     });
 
     this.cargando = false;
@@ -277,11 +282,8 @@ export class PracticasComponent {
   cargarPracticas() {
     this.practicasService.listar().subscribe({
       next: (practicas) => {
-        // Transformar datos de la API al formato local
         this.practicas = practicas.map((p: any) => this.transformarPractica(p));
         this.recalcularNivelesDesdeDatos();
-        
-        // Actualizar lista de estudiantes disponibles
         this.actualizarEstudiantesDisponibles();
       },
       error: (err) => {
@@ -293,30 +295,22 @@ export class PracticasComponent {
 
   // Actualizar lista de estudiantes disponibles (sin prácticas)
   actualizarEstudiantesDisponibles() {
-    // Extraer RUTs de estudiantes con prácticas asignadas
     const rutConPracticas = new Set<string>();
     this.practicas.forEach((p: any) => {
-      if (p.estudiante?.rut) {
-        rutConPracticas.add(p.estudiante.rut);
-      }
+      if (p.estudiante?.rut) rutConPracticas.add(p.estudiante.rut);
     });
 
-    // Cargar todos los estudiantes desde la API
     this.http.get<any[]>('http://localhost:3000/estudiante').subscribe({
       next: (estudiantes) => {
-        // Filtrar estudiantes que NO tienen prácticas asignadas
         this.estudiantes = estudiantes.filter(est => !rutConPracticas.has(est.rut));
         this.estudianteFiltrado = this.estudiantes.slice(0, 5);
       },
-      error: (err) => {
-        console.error('Error al actualizar estudiantes:', err);
-      }
+      error: (err) => { console.error('Error al actualizar estudiantes:', err); }
     });
   }
 
   // Transformar datos de la API al formato local
   transformarPractica(p: any): Practica {
-    // Formatear fechas correctamente
     const formatearFecha = (fecha: any): string => {
       if (!fecha) return '';
       const date = new Date(fecha);
@@ -359,27 +353,24 @@ export class PracticasComponent {
   // Datos de prácticas (se cargan desde la API)
   practicas: Practica[] = [];
 
-  // Funciones
+  // FILTROS
   asignacionesFiltradas(): Practica[] {
     const termino = this.terminoBusqueda.toLowerCase().trim();
 
     return this.practicas.filter(practica => {
-      // Verificar que practica y sus propiedades existan
-      if (!practica || !practica.estudiante || !practica.centro || !practica.colaborador) {
-        return false;
-      }
+      if (!practica || !practica.estudiante || !practica.centro || !practica.colaborador) return false;
 
-      // Filtro de búsqueda
       const coincideBusqueda = !termino ||
         practica.estudiante.nombre?.toLowerCase().includes(termino) ||
         practica.estudiante.rut?.toLowerCase().includes(termino) ||
         practica.centro.nombre?.toLowerCase().includes(termino) ||
         practica.colaborador.nombre?.toLowerCase().includes(termino);
 
-      // Filtro por tipo de centro educativo
-      const coincideColegio = this.colegioSeleccionado === 'all' || (practica.centro.tipo || '').toLowerCase() === this.colegioSeleccionado.toLowerCase();
-      // Filtro de nivel/plan del estudiante
-      const coincideNivel = this.nivelSeleccionado === 'all' || (practica.estudiante.nivel || '').toLowerCase() === this.nivelSeleccionado.toLowerCase();
+      const coincideColegio = this.colegioSeleccionado === 'all' ||
+        (practica.centro.tipo || '').toLowerCase() === this.colegioSeleccionado.toLowerCase();
+
+      const coincideNivel = this.nivelSeleccionado === 'all' ||
+        (practica.estudiante.nivel || '').toLowerCase() === this.nivelSeleccionado.toLowerCase();
 
       return coincideBusqueda && coincideColegio && coincideNivel;
     });
@@ -397,11 +388,12 @@ export class PracticasComponent {
   abrirNuevaAsignacion() {
     this.mostrarFormulario = true;
     this.formularioPractica.reset({
-      estado: 'PENDIENTE'
+      estado: 'PENDIENTE',
+      colaboradoresIds: [],
+      colaboradorId: ''
     });
-    // Resetear fechaMinimaTermino cuando se abre el formulario
+    this.selectedColaboradores = [];
     this.fechaMinimaTermino = null;
-    // Reinicializar filtros
     this.estudianteFiltrado = [...this.estudiantes];
     this.centroFiltrado = [...this.centros];
     this.colaboradorFiltrado = [...this.colaboradores];
@@ -410,234 +402,178 @@ export class PracticasComponent {
   cerrarFormulario() {
     this.mostrarFormulario = false;
     this.formularioPractica.reset({
-      estado: 'PENDIENTE'
+      estado: 'PENDIENTE',
+      colaboradoresIds: [],
+      colaboradorId: ''
     });
-    // Resetear fechaMinimaTermino cuando se cierra el formulario
+    this.selectedColaboradores = [];
     this.fechaMinimaTermino = null;
   }
 
   // Métodos de filtrado para autocompletado (máximo 5 resultados)
   filtrarEstudiantes(event: any) {
-    const filtro = event.target.value.toLowerCase();
+    const filtro = (event?.target?.value || '').toLowerCase();
     let filtrados: Estudiante[];
-    
-    if (!filtro) {
-      // Si no hay filtro, mostrar los primeros 5 estudiantes
-      filtrados = this.estudiantes.slice(0, 5);
-    } else {
-      // Filtrar por nombre o RUT y limitar a 5
-      filtrados = this.estudiantes.filter(estudiante =>
-      estudiante.nombre.toLowerCase().includes(filtro) ||
-      estudiante.rut.toLowerCase().includes(filtro)
+    if (!filtro) filtrados = this.estudiantes.slice(0, 5);
+    else {
+      filtrados = this.estudiantes.filter(e =>
+        e.nombre.toLowerCase().includes(filtro) ||
+        e.rut.toLowerCase().includes(filtro)
       ).slice(0, 5);
     }
-    
     this.estudianteFiltrado = filtrados;
   }
 
   filtrarCentros(event: any) {
-    const filtro = event.target.value.toLowerCase();
+    const filtro = (event?.target?.value || '').toLowerCase();
     let filtrados: CentroEducativo[];
-    
-    if (!filtro) {
-      // Si no hay filtro, mostrar los primeros 5 centros
-      filtrados = this.centros.slice(0, 5);
-    } else {
-      // Filtrar por nombre, comuna o región y limitar a 5
-      filtrados = this.centros.filter(centro =>
-      centro.nombre.toLowerCase().includes(filtro) ||
-      centro.comuna?.toLowerCase().includes(filtro) ||
-      centro.region?.toLowerCase().includes(filtro)
+    if (!filtro) filtrados = this.centros.slice(0, 5);
+    else {
+      filtrados = this.centros.filter(c =>
+        c.nombre.toLowerCase().includes(filtro) ||
+        c.comuna?.toLowerCase().includes(filtro) ||
+        c.region?.toLowerCase().includes(filtro)
       ).slice(0, 5);
     }
-    
     this.centroFiltrado = filtrados;
   }
 
   filtrarColaboradores(event: any) {
-    const filtro = event.target.value.toLowerCase();
+    const filtro = (event?.target?.value || '').toLowerCase();
     let filtrados: Colaborador[];
-    
-    if (!filtro) {
-      // Si no hay filtro, mostrar los primeros 5 colaboradores
-      filtrados = this.colaboradores.slice(0, 5);
-    } else {
-      // Filtrar por nombre, tipo o cargo y limitar a 5
-      filtrados = this.colaboradores.filter(colaborador =>
-      colaborador.nombre.toLowerCase().includes(filtro) ||
-        (colaborador.tipo && colaborador.tipo.toLowerCase().includes(filtro)) ||
-        (colaborador.cargo && colaborador.cargo.toLowerCase().includes(filtro))
+    if (!filtro) filtrados = this.colaboradores.slice(0, 5);
+    else {
+      filtrados = this.colaboradores.filter(c =>
+        c.nombre.toLowerCase().includes(filtro) ||
+        (c.tipo && c.tipo.toLowerCase().includes(filtro)) ||
+        (c.cargo && c.cargo.toLowerCase().includes(filtro))
       ).slice(0, 5);
     }
-    
     this.colaboradorFiltrado = filtrados;
   }
 
-  // Mostrar los primeros 5 elementos cuando se hace click en el campo
-  mostrarTodosEstudiantes() {
-    this.estudianteFiltrado = this.estudiantes.slice(0, 5);
-  }
+  // Mostrar los primeros 5 elementos al enfocar
+  mostrarTodosEstudiantes() { this.estudianteFiltrado = this.estudiantes.slice(0, 5); }
+  mostrarTodosCentros() { this.centroFiltrado = this.centros.slice(0, 5); }
+  mostrarTodosColaboradores() { this.colaboradorFiltrado = this.colaboradores.slice(0, 5); }
 
-  mostrarTodosCentros() {
-    this.centroFiltrado = this.centros.slice(0, 5);
-  }
-
-  mostrarTodosColaboradores() {
-    this.colaboradorFiltrado = this.colaboradores.slice(0, 5);
-  }
-
-  // Métodos para mostrar el valor seleccionado en el autocomplete
+  // displayWith helpers
   mostrarEstudiante(value: any): string {
     if (!value) return '';
-    
-    // Si es un string (RUT), buscar el estudiante
     if (typeof value === 'string') {
-      const estudiante = this.estudiantes.find(e => e.rut === value);
-    return estudiante ? `${estudiante.nombre} - ${estudiante.rut}` : '';
-  }
-
-    // Si es un objeto con RUT
-    if (typeof value === 'object' && value.rut) {
-      return `${value.nombre} - ${value.rut}`;
+      const est = this.estudiantes.find(e => e.rut === value);
+      return est ? `${est.nombre} - ${est.rut}` : '';
     }
-    
+    if (typeof value === 'object' && value.rut) return `${value.nombre} - ${value.rut}`;
     return '';
   }
 
   mostrarCentro(value: any): string {
     if (!value) return '';
-    
-    // Si es un string (ID convertido), buscar el centro
     if (typeof value === 'string') {
-      const centroId = parseInt(value);
-      const centro = this.centros.find(c => c.id === centroId);
-      return centro ? `${centro.nombre} - ${centro.comuna}, ${centro.region}` : '';
+      const id = parseInt(value);
+      const c = this.centros.find(x => x.id === id);
+      return c ? `${c.nombre} - ${c.comuna}, ${c.region}` : '';
     }
-    
-    // Si es un número, buscar el centro
     if (typeof value === 'number') {
-      const centro = this.centros.find(c => c.id === value);
-    return centro ? `${centro.nombre} - ${centro.comuna}, ${centro.region}` : '';
-  }
-
-    // Si es un objeto con ID
+      const c = this.centros.find(x => x.id === value);
+      return c ? `${c.nombre} - ${c.comuna}, ${c.region}` : '';
+    }
     if (typeof value === 'object' && value.id) {
       return `${value.nombre} - ${value.comuna}, ${value.region}`;
     }
-    
     return '';
   }
 
-  mostrarColaborador(value: any): string {
-    if (!value) return '';
-    
-    // Si es un string (ID convertido), buscar el colaborador
-    if (typeof value === 'string') {
-      const colaboradorId = parseInt(value);
-      const colaborador = this.colaboradores.find(c => c.id === colaboradorId);
-      if (!colaborador) return '';
-      const cargo = colaborador.cargo?.trim();
-      const cargoStr = cargo ? ` (${cargo})` : '';
-      return `${colaborador.nombre} - ${colaborador.tipo || ''}${cargoStr}`;
-    }
-    
-    // Si es un número, buscar el colaborador
-    if (typeof value === 'number') {
-      const colaborador = this.colaboradores.find(c => c.id === value);
-      if (!colaborador) return '';
-      const cargo = colaborador.cargo?.trim();
-      const cargoStr = cargo ? ` (${cargo})` : '';
-      return `${colaborador.nombre} - ${colaborador.tipo || ''}${cargoStr}`;
-    }
-    
-    // Si es un objeto con ID
-    if (typeof value === 'object' && value.id) {
-      const cargo = (value.cargo as string | undefined)?.trim();
-      const cargoStr = cargo ? ` (${cargo})` : '';
-      return `${value.nombre} - ${value.tipo || ''}${cargoStr}`;
-    }
-    
-    return '';
-  }
-
-  // Métodos para manejar la selección
+  // Single select (compatibilidad en otros campos)
   onEstudianteSeleccionado(event: any) {
     const estudiante = event.option.value;
-    // Guardar el RUT como string pero también guardar el objeto para displayWith
-    this.formularioPractica.patchValue({ 
-      estudianteRut: estudiante.rut 
-    });
+    this.formularioPractica.patchValue({ estudianteRut: estudiante.rut });
   }
 
   onCentroSeleccionado(event: any) {
     const centro = event.option.value;
-    // Guardar el ID como string pero también guardar el objeto para displayWith
-    this.formularioPractica.patchValue({ 
-      centroId: centro.id.toString() 
-    });
+    this.formularioPractica.patchValue({ centroId: centro.id.toString() });
   }
 
-  onColaboradorSeleccionado(event: any) {
-    const colaborador = event.option.value;
-    // Guardar el ID como string pero también guardar el objeto para displayWith
-    this.formularioPractica.patchValue({ 
-      colaboradorId: colaborador.id.toString() 
+  // MULTI: seleccionar y quitar colaboradores
+  onColaboradorSeleccionadoMultiple(event: any) {
+    const colaborador: Colaborador = event.option.value;
+    if (this.selectedColaboradores.some(c => c.id === colaborador.id)) return;
+    if (this.selectedColaboradores.length >= 2) return;
+
+    this.selectedColaboradores = [...this.selectedColaboradores, colaborador];
+
+    const ids = this.selectedColaboradores.map(c => c.id);
+    this.formularioPractica.patchValue({
+      colaboradoresIds: ids,
+      colaboradorId: ids.length ? ids[0].toString() : ''
     });
+    this.formularioPractica.get('colaboradoresIds')?.updateValueAndValidity();
+  }
+
+  removerColaborador(colaborador: Colaborador) {
+    this.selectedColaboradores = this.selectedColaboradores.filter(c => c.id !== colaborador.id);
+    const ids = this.selectedColaboradores.map(c => c.id);
+    this.formularioPractica.patchValue({
+      colaboradoresIds: ids,
+      colaboradorId: ids.length ? ids[0].toString() : ''
+    });
+    this.formularioPractica.get('colaboradoresIds')?.updateValueAndValidity();
+  }
+
+  isMaxColaboradoresSeleccionados(): boolean {
+    return this.selectedColaboradores.length >= 2;
   }
 
   guardarPractica() {
     if (this.formularioPractica.valid) {
       const formData = this.formularioPractica.value;
-      
-      // Preparar datos para enviar a la API
-      const dto = {
+
+      const ids: number[] = (formData.colaboradoresIds || [])
+        .map((x: any) => Number(x))
+        .filter((n: any) => !isNaN(n));
+
+      const primerId = ids.length
+        ? ids[0]
+        : (formData.colaboradorId ? parseInt(formData.colaboradorId) : undefined);
+
+      const dto: any = {
         estudianteRut: formData.estudianteRut,
         centroId: parseInt(formData.centroId),
-        colaboradorId: parseInt(formData.colaboradorId),
+        // Compatibilidad: primer colaborador
+        colaboradorId: primerId,
+        // Nuevo: arreglo 1..2
+        colaboradoresIds: ids.length ? ids : (primerId ? [primerId] : []),
         fecha_inicio: this.formatearFecha(formData.fecha_inicio),
         fecha_termino: formData.fecha_termino ? this.formatearFecha(formData.fecha_termino) : undefined,
-          tipo: formData.tipo || undefined,
+        tipo: formData.tipo || undefined,
         estado: formData.estado || 'PENDIENTE'
       };
 
       this.practicasService.crear(dto).subscribe({
-        next: (response) => {
-        this.snack.open(
+        next: () => {
+          this.snack.open(
             `✓ Práctica asignada exitosamente`, 
-          'Cerrar', 
-          { 
-            duration: 4000,
-            horizontalPosition: 'center',
-            verticalPosition: 'bottom',
-            panelClass: ['success-snackbar']
-          }
-        );
-          // Recargar prácticas
+            'Cerrar', 
+            { duration: 4000, horizontalPosition: 'center', verticalPosition: 'bottom', panelClass: ['success-snackbar'] }
+          );
           this.cargarPracticas();
-        // Cerrar formulario
-        this.cerrarFormulario();
+          this.cerrarFormulario();
         },
         error: (err) => {
           console.error('Error al crear práctica:', err);
           let mensaje = 'Error al crear práctica';
-          if (err.error && err.error.message) {
-            mensaje = err.error.message;
-          }
+          if (err.error && err.error.message) mensaje = err.error.message;
           this.snack.open(mensaje, 'Cerrar', {
-            duration: 4000,
-          horizontalPosition: 'center',
-          verticalPosition: 'bottom',
-          panelClass: ['error-snackbar']
-        });
-      }
+            duration: 4000, horizontalPosition: 'center', verticalPosition: 'bottom', panelClass: ['error-snackbar']
+          });
+        }
       });
     } else {
       this.formularioPractica.markAllAsTouched();
       this.snack.open('⚠️ Por favor completa todos los campos requeridos', 'Cerrar', {
-        duration: 3000,
-        horizontalPosition: 'center',
-        verticalPosition: 'bottom',
-        panelClass: ['warning-snackbar']
+        duration: 3000, horizontalPosition: 'center', verticalPosition: 'bottom', panelClass: ['warning-snackbar']
       });
     }
   }
@@ -655,17 +591,8 @@ export class PracticasComponent {
   // Formatear fecha a ISO string
   private formatearFecha(fecha: any): string {
     if (!fecha) return '';
-    
-    // Si es una Date, convertirla a ISO
-    if (fecha instanceof Date) {
-      return fecha.toISOString().split('T')[0]; // Retorna YYYY-MM-DD
-    }
-    
-    // Si ya es string, retornarlo
-    if (typeof fecha === 'string') {
-      return fecha;
-    }
-    
+    if (fecha instanceof Date) return fecha.toISOString().split('T')[0];
+    if (typeof fecha === 'string') return fecha;
     return '';
   }
 }
