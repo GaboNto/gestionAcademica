@@ -8,9 +8,10 @@ import { CentrosModule } from './centros/centros.module';
 import { TrabajadorModule } from './trabajador/trabajador.module';
 import { PracticasModule } from './practicas/practicas.module';
 import { EstudianteModule } from './estudiante/estudiante.module';
+import { CartaModule } from './carta/carta.module';
 
 @Module({
-  imports: [PrismaModule, AuthorizationRequestsModule, ColaboradoresModule, CentrosModule, TrabajadorModule, PracticasModule, EstudianteModule],
+  imports: [PrismaModule, AuthorizationRequestsModule, ColaboradoresModule, CentrosModule, TrabajadorModule, PracticasModule, EstudianteModule, CartaModule],
   controllers: [AppController],
   providers: [AppService],
 })

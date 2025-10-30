@@ -4,3 +4,8 @@ back/prisma/migrations/20251015185102_init/migration.sql
 
 # Ignorar archivo seed
 back/prisma/seed.ts
+# Ignorar archivos comprimidos
+*.zip
+
+# Ignorar el archivo basura que se creó
+et --hard d617bed7
