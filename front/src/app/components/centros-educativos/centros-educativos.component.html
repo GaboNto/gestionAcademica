@@ -138,8 +138,6 @@
               </mat-select>
             </mat-form-field>
           </div>
-
-          <!-- (Se eliminaron los campos de Director/UTP del form principal) -->
         </form>
       </mat-card-content>
 
@@ -159,40 +157,42 @@
     <mat-card-content class="list-container">
       <div class="list-item" *ngFor="let c of filteredCentros()">
         <div class="item-content">
-          <div class="item-main">
-            <div class="item-info">
-              <h3>{{ c.nombre }}</h3>
-              <p class="muted">
-                {{ c.region }} · {{ c.comuna }}
-                <ng-container *ngIf="c.calle || c.numero"> · {{ c.calle }} {{ c.numero }}</ng-container>
-              </p>
+          <!-- Col 1: Nombre + dirección -->
+          <div class="col col-name">
+            <div class="title truncate">{{ c.nombre }}</div>
+            <div class="sub muted truncate">
+              {{ c.region }} · {{ c.comuna }}
+              <ng-container *ngIf="c.calle || c.numero"> · {{ c.calle }} {{ c.numero }}</ng-container>
             </div>
           </div>
 
-          <div class="item-middle">
-            <b>{{ c.tipo }}</b>
-            <ng-container *ngIf="c.convenio"> · {{ c.convenio }}</ng-container>
+          <!-- Col 2: Tipo/Convenio -->
+          <div class="col col-type">
+            <div class="type-badge truncate">{{ c.tipo }}</div>
+            <div class="conv muted truncate" *ngIf="c.convenio">{{ c.convenio }}</div>
           </div>
 
-          <div class="item-contacts" *ngIf="c.telefono || c.correo || c.url_rrss">
+          <!-- Col 3: Contacto -->
+          <div class="col col-contact">
             <div class="contact" *ngIf="c.telefono">
-              <mat-icon>call</mat-icon>
-              <span>{{ c.telefono }}</span>
+              <mat-icon>call</mat-icon><span class="truncate">{{ c.telefono }}</span>
             </div>
             <div class="contact" *ngIf="c.correo">
-              <mat-icon>email</mat-icon>
-              <span>{{ c.correo }}</span>
+              <mat-icon>email</mat-icon><span class="truncate">{{ c.correo }}</span>
+            </div>
+            <div class="contact" *ngIf="c.url_rrss">
+              <mat-icon>link</mat-icon><span class="truncate">{{ c.url_rrss }}</span>
             </div>
           </div>
 
-          <div class="item-actions">
+          <!-- Col 4: Acciones -->
+          <div class="col col-actions">
             <button mat-icon-button (click)="viewCentro(c)" title="Ver detalles">
               <mat-icon>visibility</mat-icon>
             </button>
             <button mat-icon-button color="primary" (click)="editCentro(c)" title="Editar">
               <mat-icon>edit</mat-icon>
             </button>
-            <!-- NUEVO: Añadir contactos -->
             <button mat-icon-button color="accent" (click)="openContacts(c)" title="Añadir contactos">
               <mat-icon>person_add</mat-icon>
             </button>
@@ -214,6 +214,7 @@
   </mat-card>
 
   <!-- DIALOG DETALLES -->
+  <!-- (sin cambios funcionales; lo dejo igual que tu versión) -->
   <div class="details-dialog" *ngIf="selectedCentroEducativo">
     <div class="dialog-overlay" (click)="closeDetails()"></div>
 
@@ -272,9 +273,9 @@
   </div>
 
   <!-- DIALOG CONFIRMAR ELIMINACIÓN -->
+  <!-- (sin cambios) -->
   <div class="confirm-dialog" *ngIf="pendingDelete">
     <div class="dialog-overlay" (click)="cancelDelete()" tabindex="0"></div>
-
     <div class="dialog-content confirm-card" (keydown.escape)="cancelDelete()">
       <div class="confirm-header">
         <div class="warn-icon">
@@ -282,12 +283,10 @@
         </div>
         <h2>Confirmar eliminación</h2>
       </div>
-
       <div class="confirm-body">
         <p>¿Estás seguro de que quieres eliminar a <b>{{ pendingDelete!.nombre }}</b>?</p>
         <p class="muted">Esta acción no se puede deshacer.</p>
       </div>
-
       <div class="confirm-actions">
         <button mat-stroked-button (click)="cancelDelete()">Cancelar</button>
         <button mat-flat-button color="warn" (click)="confirmDelete()" class="btn-danger">
@@ -298,6 +297,7 @@
   </div>
 
   <!-- DIALOG AÑADIR/EDITAR CONTACTOS -->
+  <!-- (sin cambios funcionales) -->
   <div class="details-dialog" *ngIf="contactsForCentro">
     <div class="dialog-overlay" (click)="closeContacts()"></div>
 
@@ -311,7 +311,6 @@
 
       <div class="dialog-body">
         <div class="details-grid" style="grid-template-columns: 1fr 1fr; gap: 16px;">
-          <!-- DIRECTOR -->
           <div class="detail-item" style="grid-column: 1 / -1;">
             <label style="font-size:16px">Director</label>
           </div>
@@ -332,7 +331,6 @@
             <input matInput [(ngModel)]="contactosForm.directorTelefono" name="directorTelefono" />
           </mat-form-field>
 
-          <!-- UTP -->
           <div class="detail-item" style="grid-column: 1 / -1; margin-top: 8px;">
             <label style="font-size:16px">UTP</label>
           </div>

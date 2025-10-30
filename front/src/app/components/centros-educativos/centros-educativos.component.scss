@@ -34,28 +34,15 @@
   .filters-section { padding: 16px 20px 12px; }
 }
 
-/* Encabezado de filtros: icono y título en la misma línea */
+/* Encabezado de filtros */
 .filters-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 0 0 12px 4px;
-  color: #1f2937;
-}
-.filters-header mat-icon {
-  display: inline-flex;
-  font-size: 22px;
-  color: #000000;
-  line-height: 1;
-}
-.filters-header h2 {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 600;
-  line-height: 1;
+  display: flex; align-items: center; gap: 8px;
+  padding: 0 0 12px 4px; color: #1f2937;
+  mat-icon { font-size: 22px; color: #000; line-height: 1; }
+  h2 { margin: 0; font-size: 18px; font-weight: 600; line-height: 1; }
 }
 
-/* Formulario */
+/* Formulario (igual) */
 .form-container { margin-bottom: 20px; transition: all .3s ease; overflow: hidden; max-height: 0; opacity: 0; }
 .form-container.form-open { max-height: 2000px; opacity: 1; }
 .form-card { margin: 0; box-shadow: 0 4px 6px -1px rgba(0,0,0,.1), 0 2px 4px -1px rgba(0,0,0,.06); border: 1px solid #e2e8f0; }
@@ -77,36 +64,67 @@
 
 /* Footer fijo del formulario */
 .form-footer {
-  position: sticky;
-  bottom: 0;
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  padding: 12px 16px 16px;
-  border-top: 1px solid #f1f5f9;
-  background: #ffffff;
-  z-index: 5;
-  border-bottom-left-radius: 14px;
-  border-bottom-right-radius: 14px;
+  position: sticky; bottom: 0; display: flex; justify-content: flex-end; gap: 12px;
+  padding: 12px 16px 16px; border-top: 1px solid #f1f5f9; background: #fff; z-index: 5;
+  border-bottom-left-radius: 14px; border-bottom-right-radius: 14px;
 }
 .form-footer button mat-icon { margin-right: 6px; }
 
-/* Listado */
+/* === LISTADO (alineado) === */
 .list-container { padding: 0 !important; }
 .elev:has(.list-container) { margin-top: 0; border-top-left-radius: 0; border-top-right-radius: 0; border-top: none; border-radius: 0 0 12px 12px; }
 
-.list-item { border-bottom: 1px solid #e5e7eb; transition: background-color .2s ease; }
+.list-item { border-bottom: 1px solid #e5e7eb; }
 .list-item:last-child { border-bottom: none; }
-.list-item:hover { background: #f8fafc; }
 
-.item-content { display: grid; grid-template-columns: 1fr 1fr 1fr auto; align-items: center; gap: 16px; padding: 16px 24px; }
-.item-main { display: flex; align-items: center; gap: 12px; }
-.item-info h3 { margin: 0; font-size: 16px; font-weight: 500; color: #1f2937; }
-.item-info p { margin: 0; font-size: 14px; color: #6b7280; }
-.item-middle { color: #374151; font-size: 14px; }
-.item-contacts { display: flex; gap: 14px; align-items: center; color: #374151; }
-.item-contacts .contact { display: inline-flex; gap: 6px; align-items: center; }
-.item-actions { display: flex; gap: 4px; min-width: 120px; }
+.item-content {
+  display: grid;
+  /* Columnas estables: nombre(>), tipo, contacto, acciones */
+  grid-template-columns: minmax(260px, 1.3fr) 0.6fr 0.9fr auto;
+  gap: 16px;
+  align-items: center;
+  padding: 14px 24px;
+  min-height: 64px; /* altura consistente */
+}
+.item-content:hover { background: #f8fafc; }
+
+.col { min-width: 0; } /* permite ellipsis dentro */
+.col-actions { display: flex; gap: 4px; justify-self: end; }
+
+/* Col 1: nombre y dirección */
+.col-name .title { font-weight: 600; font-size: 16px; color: #1f2937; line-height: 1.2; }
+.col-name .sub { margin-top: 2px; font-size: 13px; }
+
+/* Col 2: tipo/convenio */
+.col-type { display: flex; flex-direction: column; gap: 2px; align-items: flex-start; }
+.type-badge {
+  font-weight: 600; font-size: 13px; line-height: 20px;
+  padding: 2px 8px; border-radius: 999px; border: 1px solid #e5e7eb; background: #fff;
+  max-width: 100%;
+}
+.conv { font-size: 12px; }
+
+/* Col 3: contacto (iconos centrados) */
+.col-contact { display: grid; grid-auto-rows: minmax(20px, auto); gap: 4px; align-content: center; }
+.contact { display: inline-flex; align-items: center; gap: 6px; min-width: 0; }
+.contact mat-icon { font-size: 18px; height: 18px; width: 18px; line-height: 18px; }
+
+/* Utilidad: truncar */
+.truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Responsive: apilar en pantallas pequeñas */
+@media (max-width: 880px) {
+  .item-content {
+    grid-template-columns: 1fr 1fr auto;
+    grid-template-areas:
+      "name name actions"
+      "type contact actions";
+  }
+  .col-name { grid-area: name; }
+  .col-type { grid-area: type; }
+  .col-contact { grid-area: contact; }
+  .col-actions { grid-area: actions; align-self: start; }
+}
 
 /* Empty */
 .empty { margin-top: 12px; }
