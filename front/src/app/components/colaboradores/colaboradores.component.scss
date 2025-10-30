@@ -510,37 +510,7 @@
 }
 
 /* Modal de confirmación de eliminación */
-.DeleteConfirmDialog {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 1100;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
 
-.DeleteDialogContent {
-  position: relative;
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  max-width: 480px;
-  width: 90%;
-  max-height: 80vh;
-  overflow-y: auto;
-}
-
-.DeleteDialogHeader {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 24px 24px 0;
-  border-bottom: 1px solid #e5e7eb;
-  margin-bottom: 24px;
-}
 
 .DeleteIcon {
   width: 40px;
@@ -605,28 +575,6 @@
   color: #374151;
 }
 
-.ConfirmDeleteBtn {
-  background: #dc2626;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 12px 24px;
-  font-weight: 600;
-  font-size: 14px;
-  text-transform: none;
-  transition: all 0.2s ease;
-  min-width: 120px;
-}
-
-.ConfirmDeleteBtn:hover {
-  background: #b91c1c;
-  box-shadow: 0 4px 6px -1px rgba(220, 38, 38, 0.3);
-}
-
-.ConfirmDeleteBtn mat-icon {
-  margin-right: 8px;
-  font-size: 18px;
-}
 
 /* Responsive para el modal de confirmación */
 @media (max-width: 640px) {
@@ -655,4 +603,41 @@
   .DeleteDialogActions button {
     width: 100%;
   }
+}
+/* === Confirm Dialog unificado (mismo diseño que Centros) === */
+.confirm-dialog { 
+  position: fixed; inset: 0; z-index: 1100; 
+  display: flex; align-items: center; justify-content: center;
+}
+.confirm-dialog .dialog-overlay { 
+  position: absolute; inset: 0; background: rgba(0,0,0,.45); 
+}
+.confirm-card {
+  position: relative; background: #fff; width: 560px; max-width: 92%;
+  border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0,0,0,.1), 0 10px 10px -5px rgba(0,0,0,.04);
+  display: flex; flex-direction: column;
+}
+.confirm-header {
+  display: flex; align-items: center; gap: 12px;
+  padding: 20px 24px 8px; border-bottom: 1px solid #e5e7eb;
+}
+.confirm-header h2 { margin: 0; font-size: 20px; font-weight: 600; color: #1f2937; }
+.warn-icon {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: #fef3c7; color: #b45309; display: grid; place-items: center;
+}
+.confirm-body { padding: 12px 24px 0; }
+.confirm-body p { margin: 0 0 6px; font-size: 15px; color: #111827; }
+.confirm-body .Muted { margin-top: 2px; }
+
+.confirm-actions {
+  display: flex; justify-content: flex-end; gap: 12px;
+  padding: 16px 16px 20px; border-top: 1px solid #e5e7eb; margin-top: 12px;
+}
+.btn-danger mat-icon { margin-right: 6px; }
+
+@media (max-width: 640px) {
+  .confirm-card { width: 95%; margin: 16px; }
+  .confirm-actions { flex-direction: column; }
+  .confirm-actions button { width: 100%; }
 }

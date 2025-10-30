@@ -256,14 +256,31 @@ export class CentrosEducativosComponent {
           }
 
           Promise.all(ops).then(() => {
-            this.snack.open('Centro y contactos guardados.', 'OK', { duration: 2000 });
+            this.snack.open('✓ Centro y contactos guardados exitosamente', 'Cerrar', {
+  duration: 4000,
+  horizontalPosition: 'center',
+  verticalPosition: 'bottom',
+  panelClass: ['success-snackbar']
+});
             this.toggleForm(); this.resetForm(); this.load();
           }).catch(() => {
-            this.snack.open('Centro guardado, pero falló guardar contactos.', 'Cerrar', { duration: 3000 });
-            this.toggleForm(); this.resetForm(); this.load();
+            this.snack.open('✓ Centro guardado, pero falló guardar contactos.', 'Cerrar', {
+  duration: 4000,
+  horizontalPosition: 'center',
+  verticalPosition: 'bottom',
+  panelClass: ['success-snackbar']
+});
+this.toggleForm();
+this.resetForm();
+this.load();
           });
         } else {
-          this.snack.open('Centro agregado.', 'OK', { duration: 2000 });
+          this.snack.open('✓ Centro agregado correctamente', 'Cerrar', {
+  duration: 4000,
+  horizontalPosition: 'center',
+  verticalPosition: 'bottom',
+  panelClass: ['success-snackbar']
+});
           this.toggleForm(); this.resetForm(); this.load();
         }
       },
@@ -335,7 +352,13 @@ export class CentrosEducativosComponent {
 
     this.centrosApi.delete(id).subscribe({
       next: () => {
-        this.snack.open('Centro eliminado.', 'OK', { duration: 2000 });
+        this.snack.open('✓ Centro eliminado correctamente', 'Cerrar', {
+  duration: 4000,
+  horizontalPosition: 'center',
+  verticalPosition: 'bottom',
+  panelClass: ['success-snackbar']
+});
+
         this.pendingDelete = null;
         this.load();
       },

@@ -34,6 +34,30 @@
   .filters-section { padding: 16px 20px 12px; }
 }
 
+/* Encabezado de filtros: icono y título en la misma línea */
+.filters-header {
+  display: flex;
+  align-items: center;   /* centra verticalmente */
+  gap: 8px;              /* espacio entre icono y texto */
+  padding: 0 0 12px 4px;
+  color: #1f2937;
+}
+
+.filters-header mat-icon {
+  display: inline-flex;  /* asegura que no se apile */
+  font-size: 22px;
+  color: #000000;
+  line-height: 1;
+}
+
+.filters-header h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1;        /* evita que “baje” */
+}
+
+
 /* Formulario */
 .form-container { margin-bottom: 20px; transition: all .3s ease; overflow: hidden; max-height: 0; opacity: 0; }
 .form-container.form-open { max-height: 2000px; opacity: 1; }
@@ -150,4 +174,44 @@
   .confirm-card { width: 95%; margin: 16px; }
   .confirm-actions { flex-direction: column; }
   .confirm-actions button { width: 100%; }
+}
+
+/* === Snackbar oscuro de éxito (igual a Colaboradores) === */
+::ng-deep .success-snackbar {
+  .mdc-snackbar__surface {
+    background: #374151 !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+    border-radius: 8px !important;
+    padding: 0 !important;
+    min-width: 400px !important;
+    max-width: 600px !important;
+  }
+
+  .mat-mdc-snack-bar-label,
+  .mdc-snackbar__label {
+    color: #fff !important;
+    font-weight: 400 !important;
+    font-size: 15px !important;
+    padding: 16px 20px !important;
+    letter-spacing: 0.2px !important;
+  }
+
+  .mat-mdc-button.mat-mdc-snack-bar-action {
+    color: #fff !important;
+    font-weight: 500 !important;
+    font-size: 14px !important;
+    opacity: 0.9 !important;
+    text-transform: none !important;
+    margin-right: 8px !important;
+    transition: all .2s ease !important;
+
+    &:hover { opacity: 1 !important; background: rgba(255,255,255,.1) !important; }
+  }
+}
+
+@media (max-width: 640px) {
+  ::ng-deep .success-snackbar .mdc-snackbar__surface {
+    min-width: auto !important;
+    max-width: calc(100vw - 32px) !important;
+  }
 }

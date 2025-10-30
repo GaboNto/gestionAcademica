@@ -269,34 +269,29 @@
       </div>
     </div>
   }
+<!-- MODAL DE CONFIRMACIÓN (nuevo diseño igual al de Centros) -->
+@if (mostrarConfirmarEliminar && colaboradorAEliminar) {
+  <div class="confirm-dialog">
+    <div class="dialog-overlay" (click)="cerrarConfirmarEliminar()" tabindex="0"></div>
 
-  <!-- MODAL DE CONFIRMACIÓN DE ELIMINACIÓN -->
-  @if (mostrarConfirmarEliminar && colaboradorAEliminar) {
-    <div class="DeleteConfirmDialog">
-      <div class="DialogOverlay" (click)="cerrarConfirmarEliminar()"></div>
-      <div class="DeleteDialogContent">
-        <div class="DeleteDialogHeader">
-          <div class="DeleteIcon">
-            <mat-icon>warning</mat-icon>
-          </div>
-          <h2>Confirmar eliminación</h2>
-        </div>
-        
-        <div class="DeleteDialogBody">
-          <p>¿Estás seguro de que quieres eliminar a <strong>{{ colaboradorAEliminar.nombre }}</strong>?</p>
-          <p class="WarningText">Esta acción no se puede deshacer.</p>
-        </div>
-        
-        <div class="DeleteDialogActions">
-          <button mat-stroked-button (click)="cerrarConfirmarEliminar()" class="CancelDeleteBtn">
-            Cancelar
-          </button>
-          <button mat-raised-button color="warn" (click)="confirmarEliminar()" class="ConfirmDeleteBtn">
-            <mat-icon>delete</mat-icon>
-            Eliminar
-          </button>
-        </div>
+    <div class="dialog-content confirm-card" (keydown.escape)="cerrarConfirmarEliminar()">
+      <div class="confirm-header">
+        <div class="warn-icon"><mat-icon>warning_amber</mat-icon></div>
+        <h2>Confirmar eliminación</h2>
+      </div>
+
+      <div class="confirm-body">
+        <p>¿Estás seguro de que quieres eliminar a <b>{{ colaboradorAEliminar.nombre }}</b>?</p>
+        <p class="Muted">Esta acción no se puede deshacer.</p>
+      </div>
+
+      <div class="confirm-actions">
+        <button mat-stroked-button (click)="cerrarConfirmarEliminar()">Cancelar</button>
+        <button mat-flat-button color="warn" (click)="confirmarEliminar()" class="btn-danger">
+          <mat-icon>delete</mat-icon> Eliminar
+        </button>
       </div>
     </div>
-  }
-</div>
+  </div>
+}
+

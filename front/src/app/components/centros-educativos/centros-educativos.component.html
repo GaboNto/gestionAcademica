@@ -7,10 +7,7 @@
     </div>
     <div class="spacer"></div>
 
-    <button mat-stroked-button (click)="toggleSort()" class="btn-sort">
-      <mat-icon>sort_by_alpha</mat-icon>
-      {{ sortAZ ? 'A → Z' : 'Z → A' }}
-    </button>
+ 
 
     <button mat-flat-button color="primary" (click)="toggleForm()" class="btn-add">
       <mat-icon>{{ showForm ? 'close' : 'add_business' }}</mat-icon>
@@ -19,24 +16,32 @@
   </div>
 
   <!-- FILTROS -->
-  <div class="filters-section">
-    <div class="filters">
-      <mat-form-field appearance="outline" class="flex1">
-        <mat-label>Buscar por nombre, tipo, región o comuna…</mat-label>
-        <input matInput [(ngModel)]="searchTerm" />
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="role-filter">
-        <mat-label>Tipo (filtro)</mat-label>
-        <mat-select [(ngModel)]="selectedTipo">
-          <mat-option value="all">Todos</mat-option>
-          <mat-option value="PARTICULAR">Particular</mat-option>
-          <mat-option value="PARTICULAR_SUBVENCIONADO">Particular subvencionado</mat-option>
-          <mat-option value="SLEP">SLEP</mat-option>
-        </mat-select>
-      </mat-form-field>
-    </div>
+<div class="filters-section">
+  <!-- Encabezado de título (igual que el otro diseño) -->
+  <div class="filters-header">
+    <mat-icon>search</mat-icon>
+    <h2>Filtros de Búsqueda</h2>
   </div>
+
+  <div class="filters">
+    <mat-form-field appearance="outline" class="flex1">
+      <mat-label>Buscar </mat-label>
+      <input matInput [(ngModel)]="searchTerm" />
+      <mat-icon matSuffix>search</mat-icon>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="role-filter">
+      <mat-label>Tipo (filtro)</mat-label>
+      <mat-select [(ngModel)]="selectedTipo">
+        <mat-option value="all">Todos</mat-option>
+        <mat-option value="PARTICULAR">Particular</mat-option>
+        <mat-option value="PARTICULAR_SUBVENCIONADO">Particular subvencionado</mat-option>
+        <mat-option value="SLEP">SLEP</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+</div>
+
 
   <!-- FORMULARIO (crear/editar) -->
   <div class="form-container" [class.form-open]="showForm">
@@ -206,7 +211,6 @@
       <div class="list-item" *ngFor="let c of filteredCentros()">
         <div class="item-content">
           <div class="item-main">
-            <div class="avatar-small teal"><mat-icon>apartment</mat-icon></div>
             <div class="item-info">
               <h3>{{ c.nombre }}</h3>
               <p class="muted">
