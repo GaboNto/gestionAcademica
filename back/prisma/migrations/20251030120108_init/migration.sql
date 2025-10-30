@@ -220,7 +220,7 @@ ALTER TABLE `practica` ADD CONSTRAINT `practica_centroId_fkey` FOREIGN KEY (`cen
 ALTER TABLE `practica` ADD CONSTRAINT `practica_colaboradorId_fkey` FOREIGN KEY (`colaboradorId`) REFERENCES `colaborador`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `trabajador_educ` ADD CONSTRAINT `trabajador_educ_centroId_fkey` FOREIGN KEY (`centroId`) REFERENCES `centro_educativo`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `trabajador_educ` ADD CONSTRAINT `trabajador_educ_centroId_fkey` FOREIGN KEY (`centroId`) REFERENCES `centro_educativo`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `actividad` ADD CONSTRAINT `actividad_practicaId_fkey` FOREIGN KEY (`practicaId`) REFERENCES `practica`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
