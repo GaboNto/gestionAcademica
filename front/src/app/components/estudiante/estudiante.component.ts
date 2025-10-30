@@ -39,9 +39,11 @@ interface Estudiante {
 })
 export class EstudiantesComponent {
   estudiantes: Estudiante[] = [
-    // Ejemplo de datos iniciales
-    { id: 1, name: 'Ana Soto', rut: '12.345.678-9', code: 'EST001', level: '4to año', cohort: '2024', email: 'ana@uta.cl', phone: '+56 9 1234 5678' },
-    { id: 2, name: 'Pedro Ramírez', rut: '98.765.432-1', code: 'EST002', level: '5to año', cohort: '2023', email: 'pedro@uta.cl', phone: '+56 9 8765 4321' }
+    { id: 1, name: 'GARCÍA ARANCIBIA BRAYAN IGNACIO', rut: '21.278.881-3', code: 'EST001', level: '1er año', cohort: '2021', email: 'brayan.garcia.arancibia@alumnos.uta.cl', phone: '+56 9 8616 0619' },
+    { id: 2, name: 'PAILAMILLA PÉREZ GABRIEL ANTONIO', rut: '21.073.336-1', code: 'EST002', level: '1er año', cohort: '2021', email: 'gabriel.pailamilla.perez@alumnos.uta.cl', phone: '+56 9 9706 1651' },
+    { id: 3, name: 'SANTIAGO YOVICH VRANIKA FERNANDA', rut: '21.231.344-0', code: 'EST003', level: '1er año', cohort: '2021', email: 'vranika.santiago.yovich@alumnos.uta.cl', phone: '+56 9 6230 8315' },
+    { id: 4, name: 'VARAS BURGOS PABLO IGNACIO', rut: '20.968.184-6', code: 'EST004', level: '1er año', cohort: '2021', email: 'pablo.varas.burgos@alumnos.uta.cl', phone: '+56 9 4022 4149' },
+    { id: 5, name: 'VENTURA BRICEÑO FERNANDA JAVIERA', rut: '21.201.516-4', code: 'EST005', level: '1er año', cohort: '2021', email: 'fernanda.ventura.briceno@alumnos.uta.cl', phone: '+56 9 6577 3347' }
   ];
 
   searchTerm: string = '';
