@@ -7,8 +7,6 @@
     </div>
     <div class="spacer"></div>
 
- 
-
     <button mat-flat-button color="primary" (click)="toggleForm()" class="btn-add">
       <mat-icon>{{ showForm ? 'close' : 'add_business' }}</mat-icon>
       {{ showForm ? 'Cerrar' : 'Agregar centro' }}
@@ -16,32 +14,30 @@
   </div>
 
   <!-- FILTROS -->
-<div class="filters-section">
-  <!-- Encabezado de título (igual que el otro diseño) -->
-  <div class="filters-header">
-    <mat-icon>search</mat-icon>
-    <h2>Filtros de Búsqueda</h2>
+  <div class="filters-section">
+    <div class="filters-header">
+      <mat-icon>search</mat-icon>
+      <h2>Filtros de Búsqueda</h2>
+    </div>
+
+    <div class="filters">
+      <mat-form-field appearance="outline" class="flex1">
+        <mat-label>Buscar</mat-label>
+        <input matInput [(ngModel)]="searchTerm" />
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="role-filter">
+        <mat-label>Tipo (filtro)</mat-label>
+        <mat-select [(ngModel)]="selectedTipo">
+          <mat-option value="all">Todos</mat-option>
+          <mat-option value="PARTICULAR">Particular</mat-option>
+          <mat-option value="PARTICULAR_SUBVENCIONADO">Particular subvencionado</mat-option>
+          <mat-option value="SLEP">SLEP</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
   </div>
-
-  <div class="filters">
-    <mat-form-field appearance="outline" class="flex1">
-      <mat-label>Buscar </mat-label>
-      <input matInput [(ngModel)]="searchTerm" />
-      <mat-icon matSuffix>search</mat-icon>
-    </mat-form-field>
-
-    <mat-form-field appearance="outline" class="role-filter">
-      <mat-label>Tipo (filtro)</mat-label>
-      <mat-select [(ngModel)]="selectedTipo">
-        <mat-option value="all">Todos</mat-option>
-        <mat-option value="PARTICULAR">Particular</mat-option>
-        <mat-option value="PARTICULAR_SUBVENCIONADO">Particular subvencionado</mat-option>
-        <mat-option value="SLEP">SLEP</mat-option>
-      </mat-select>
-    </mat-form-field>
-  </div>
-</div>
-
 
   <!-- FORMULARIO (crear/editar) -->
   <div class="form-container" [class.form-open]="showForm">
@@ -143,54 +139,7 @@
             </mat-form-field>
           </div>
 
-          <!-- Trabajadores -->
-          <div class="form-row" *ngIf="isEditing" style="grid-column: 1 / -1;">
-            <h3 style="margin: 8px 0 0;">Trabajadores del centro</h3>
-          </div>
-
-          <!-- Director -->
-          <div class="form-row" *ngIf="isEditing">
-            <mat-form-field appearance="outline" class="form-field">
-              <mat-label>Director - Nombre</mat-label>
-              <input matInput [(ngModel)]="contactosForm.directorNombre" name="directorNombre" />
-            </mat-form-field>
-            <mat-form-field appearance="outline" class="form-field">
-              <mat-label>Director - RUT</mat-label>
-              <input matInput [(ngModel)]="contactosForm.directorRut" name="directorRut" />
-            </mat-form-field>
-          </div>
-          <div class="form-row" *ngIf="isEditing">
-            <mat-form-field appearance="outline" class="form-field">
-              <mat-label>Director - Correo</mat-label>
-              <input matInput type="email" [(ngModel)]="contactosForm.directorCorreo" name="directorCorreo" />
-            </mat-form-field>
-            <mat-form-field appearance="outline" class="form-field">
-              <mat-label>Director - Teléfono</mat-label>
-              <input matInput [(ngModel)]="contactosForm.directorTelefono" name="directorTelefono" />
-            </mat-form-field>
-          </div>
-
-          <!-- UTP -->
-          <div class="form-row" *ngIf="isEditing">
-            <mat-form-field appearance="outline" class="form-field">
-              <mat-label>UTP - Nombre</mat-label>
-              <input matInput [(ngModel)]="contactosForm.utpNombre" name="utpNombre" />
-            </mat-form-field>
-            <mat-form-field appearance="outline" class="form-field">
-              <mat-label>UTP - RUT</mat-label>
-              <input matInput [(ngModel)]="contactosForm.utpRut" name="utpRut" />
-            </mat-form-field>
-          </div>
-          <div class="form-row" *ngIf="isEditing">
-            <mat-form-field appearance="outline" class="form-field">
-              <mat-label>UTP - Correo</mat-label>
-              <input matInput type="email" [(ngModel)]="contactosForm.utpCorreo" name="utpCorreo" />
-            </mat-form-field>
-            <mat-form-field appearance="outline" class="form-field">
-              <mat-label>UTP - Teléfono</mat-label>
-              <input matInput [(ngModel)]="contactosForm.utpTelefono" name="utpTelefono" />
-            </mat-form-field>
-          </div>
+          <!-- (Se eliminaron los campos de Director/UTP del form principal) -->
         </form>
       </mat-card-content>
 
@@ -243,7 +192,10 @@
             <button mat-icon-button color="primary" (click)="editCentro(c)" title="Editar">
               <mat-icon>edit</mat-icon>
             </button>
-            <!-- cambio: abre el modal de confirmación -->
+            <!-- NUEVO: Añadir contactos -->
+            <button mat-icon-button color="accent" (click)="openContacts(c)" title="Añadir contactos">
+              <mat-icon>person_add</mat-icon>
+            </button>
             <button mat-icon-button color="warn" (click)="askDelete(c)" title="Eliminar">
               <mat-icon>delete</mat-icon>
             </button>
@@ -263,7 +215,7 @@
 
   <!-- DIALOG DETALLES -->
   <div class="details-dialog" *ngIf="selectedCentroEducativo">
-  <div class="dialog-overlay" (click)="closeDetails()"></div>
+    <div class="dialog-overlay" (click)="closeDetails()"></div>
 
     <div class="dialog-content">
       <div class="dialog-header">
@@ -332,7 +284,7 @@
       </div>
 
       <div class="confirm-body">
-      <p>¿Estás seguro de que quieres eliminar a <b>{{ pendingDelete!.nombre }}</b>?</p>
+        <p>¿Estás seguro de que quieres eliminar a <b>{{ pendingDelete!.nombre }}</b>?</p>
         <p class="muted">Esta acción no se puede deshacer.</p>
       </div>
 
@@ -340,6 +292,74 @@
         <button mat-stroked-button (click)="cancelDelete()">Cancelar</button>
         <button mat-flat-button color="warn" (click)="confirmDelete()" class="btn-danger">
           <mat-icon>delete</mat-icon> Eliminar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DIALOG AÑADIR/EDITAR CONTACTOS -->
+  <div class="details-dialog" *ngIf="contactsForCentro">
+    <div class="dialog-overlay" (click)="closeContacts()"></div>
+
+    <div class="dialog-content">
+      <div class="dialog-header">
+        <h2>Añadir/Editar contactos</h2>
+        <button mat-icon-button (click)="closeContacts()" class="close-btn">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <div class="dialog-body">
+        <div class="details-grid" style="grid-template-columns: 1fr 1fr; gap: 16px;">
+          <!-- DIRECTOR -->
+          <div class="detail-item" style="grid-column: 1 / -1;">
+            <label style="font-size:16px">Director</label>
+          </div>
+          <mat-form-field appearance="outline">
+            <mat-label>Nombre</mat-label>
+            <input matInput [(ngModel)]="contactosForm.directorNombre" name="directorNombre" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>RUT</mat-label>
+            <input matInput [(ngModel)]="contactosForm.directorRut" name="directorRut" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Correo</mat-label>
+            <input matInput type="email" [(ngModel)]="contactosForm.directorCorreo" name="directorCorreo" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Teléfono</mat-label>
+            <input matInput [(ngModel)]="contactosForm.directorTelefono" name="directorTelefono" />
+          </mat-form-field>
+
+          <!-- UTP -->
+          <div class="detail-item" style="grid-column: 1 / -1; margin-top: 8px;">
+            <label style="font-size:16px">UTP</label>
+          </div>
+          <mat-form-field appearance="outline">
+            <mat-label>Nombre</mat-label>
+            <input matInput [(ngModel)]="contactosForm.utpNombre" name="utpNombre" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>RUT</mat-label>
+            <input matInput [(ngModel)]="contactosForm.utpRut" name="utpRut" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Correo</mat-label>
+            <input matInput type="email" [(ngModel)]="contactosForm.utpCorreo" name="utpCorreo" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Teléfono</mat-label>
+            <input matInput [(ngModel)]="contactosForm.utpTelefono" name="utpTelefono" />
+          </mat-form-field>
+        </div>
+      </div>
+
+      <div class="dialog-actions">
+        <button mat-stroked-button (click)="closeContacts()">Cancelar</button>
+        <button mat-raised-button color="primary" (click)="saveContactsForCentro()">
+          <mat-icon>save</mat-icon>
+          Guardar contactos
         </button>
       </div>
     </div>

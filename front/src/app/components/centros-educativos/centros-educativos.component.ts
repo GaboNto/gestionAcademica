@@ -1,5 +1,5 @@
 import { Component, inject, PLATFORM_ID } from '@angular/core';
-import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 // Angular Material
@@ -104,7 +104,7 @@ export class CentrosEducativosComponent {
     correo: '',
   };
 
-  // ===== contactos (SOLO edición) =====
+  // ===== contactos (modal nuevo) =====
   contactosForm = {
     directorNombre: '', directorRut: '', directorCorreo: '', directorTelefono: '',
     utpNombre: '',      utpRut: '',      utpCorreo: '',      utpTelefono: '',
@@ -119,8 +119,11 @@ export class CentrosEducativosComponent {
   selectedCentroEducativo: CentroDetalle | null = null;
   detalleCargando = false;
 
-  // ===== NUEVO: diálogo confirmación =====
+  // confirm delete
   pendingDelete: CentroEducativo | null = null;
+
+  // modal contactos (nuevo)
+  contactsForCentro: CentroEducativo | null = null;
 
   constructor() { this.load(); }
 
@@ -214,73 +217,20 @@ export class CentrosEducativosComponent {
     req$.subscribe({
       next: () => {
         if (this.isEditing && this.editId != null) {
-          const centroId = this.editId;
-          const toNum = (v?: string | number | null) => {
-            const s = (v ?? '').toString().trim();
-            return s !== '' ? Number(s) : null;
-          };
-          const ops: Promise<any>[] = [];
-
-          // DIRECTOR
-          if ((this.contactosForm.directorNombre || '').trim() !== '') {
-            const base = {
-              rut: (this.contactosForm.directorRut || `TEMP-Director-${centroId}-${Date.now()}`).trim(),
-              nombre: this.contactosForm.directorNombre.trim(),
-              correo: this.contactosForm.directorCorreo?.trim() || undefined,
-              telefono: toNum(this.contactosForm.directorTelefono),
-              rol: 'Director',
-              centroId,
-            };
-            if (this.contactoDirectorId) {
-              ops.push(this.trabajadoresApi.update(this.contactoDirectorId, base).toPromise());
-            } else {
-              ops.push(this.trabajadoresApi.create(base).toPromise());
-            }
-          }
-
-          // UTP
-          if ((this.contactosForm.utpNombre || '').trim() !== '') {
-            const base = {
-              rut: (this.contactosForm.utpRut || `TEMP-UTP-${centroId}-${Date.now()}`).trim(),
-              nombre: this.contactosForm.utpNombre.trim(),
-              correo: this.contactosForm.utpCorreo?.trim() || undefined,
-              telefono: toNum(this.contactosForm.utpTelefono),
-              rol: 'UTP',
-              centroId,
-            };
-            if (this.contactoUtpId) {
-              ops.push(this.trabajadoresApi.update(this.contactoUtpId, base).toPromise());
-            } else {
-              ops.push(this.trabajadoresApi.create(base).toPromise());
-            }
-          }
-
-          Promise.all(ops).then(() => {
-            this.snack.open('✓ Centro y contactos guardados exitosamente', 'Cerrar', {
-  duration: 4000,
-  horizontalPosition: 'center',
-  verticalPosition: 'bottom',
-  panelClass: ['success-snackbar']
-});
-            this.toggleForm(); this.resetForm(); this.load();
-          }).catch(() => {
-            this.snack.open('✓ Centro guardado, pero falló guardar contactos.', 'Cerrar', {
-  duration: 4000,
-  horizontalPosition: 'center',
-  verticalPosition: 'bottom',
-  panelClass: ['success-snackbar']
-});
-this.toggleForm();
-this.resetForm();
-this.load();
+          this.snack.open('✓ Centro actualizado correctamente', 'Cerrar', {
+            duration: 4000,
+            horizontalPosition: 'center',
+            verticalPosition: 'bottom',
+            panelClass: ['success-snackbar']
           });
+          this.toggleForm(); this.resetForm(); this.load();
         } else {
           this.snack.open('✓ Centro agregado correctamente', 'Cerrar', {
-  duration: 4000,
-  horizontalPosition: 'center',
-  verticalPosition: 'bottom',
-  panelClass: ['success-snackbar']
-});
+            duration: 4000,
+            horizontalPosition: 'center',
+            verticalPosition: 'bottom',
+            panelClass: ['success-snackbar']
+          });
           this.toggleForm(); this.resetForm(); this.load();
         }
       },
@@ -294,57 +244,11 @@ this.load();
     this.showForm = true;
     this.newCentroEducativo = { ...c };
     this.onRegionChange();
-
-    this.contactoDirectorId = null;
-    this.contactoUtpId = null;
-
-    // cargar DIRECTOR
-    this.trabajadoresApi.list({ centroId: c.id, rol: 'Director', page: 1, limit: 1 }).subscribe({
-      next: r => {
-        const d = r.items?.[0];
-        if (d) {
-          this.contactoDirectorId = d.id;
-          this.contactosForm.directorNombre = d.nombre || '';
-          this.contactosForm.directorRut = d.rut || '';
-          this.contactosForm.directorCorreo = d.correo || '';
-          this.contactosForm.directorTelefono = d.telefono != null ? String(d.telefono) : '';
-        } else {
-          this.contactosForm.directorNombre = '';
-          this.contactosForm.directorRut = '';
-          this.contactosForm.directorCorreo = '';
-          this.contactosForm.directorTelefono = '';
-        }
-      }
-    });
-
-    // cargar UTP
-    this.trabajadoresApi.list({ centroId: c.id, rol: 'UTP', page: 1, limit: 1 }).subscribe({
-      next: r => {
-        const u = r.items?.[0];
-        if (u) {
-          this.contactoUtpId = u.id;
-          this.contactosForm.utpNombre = u.nombre || '';
-          this.contactosForm.utpRut = u.rut || '';
-          this.contactosForm.utpCorreo = u.correo || '';
-          this.contactosForm.utpTelefono = u.telefono != null ? String(u.telefono) : '';
-        } else {
-          this.contactosForm.utpNombre = '';
-          this.contactosForm.utpRut = '';
-          this.contactosForm.utpCorreo = '';
-          this.contactosForm.utpTelefono = '';
-        }
-      }
-    });
   }
 
-  // ===== Confirmación de eliminación (NUEVO) =====
-  askDelete(c: CentroEducativo) {
-    this.pendingDelete = c;
-  }
-
-  cancelDelete() {
-    this.pendingDelete = null;
-  }
+  // ===== Confirmación de eliminación =====
+  askDelete(c: CentroEducativo) { this.pendingDelete = c; }
+  cancelDelete() { this.pendingDelete = null; }
 
   confirmDelete() {
     if (!this.pendingDelete) return;
@@ -353,12 +257,11 @@ this.load();
     this.centrosApi.delete(id).subscribe({
       next: () => {
         this.snack.open('✓ Centro eliminado correctamente', 'Cerrar', {
-  duration: 4000,
-  horizontalPosition: 'center',
-  verticalPosition: 'bottom',
-  panelClass: ['success-snackbar']
-});
-
+          duration: 4000,
+          horizontalPosition: 'center',
+          verticalPosition: 'bottom',
+          panelClass: ['success-snackbar']
+        });
         this.pendingDelete = null;
         this.load();
       },
@@ -369,6 +272,7 @@ this.load();
     });
   }
 
+  // ===== Detalles =====
   viewCentro(c: CentroEducativo) {
     this.detalleCargando = true;
     this.selectedCentroEducativo = null;
@@ -385,9 +289,105 @@ this.load();
       }
     });
   }
-
   closeDetails() { this.selectedCentroEducativo = null; }
 
+  // ===== Añadir/Editar contactos (modal) =====
+  openContacts(c: CentroEducativo) {
+    this.contactsForCentro = c;
+
+    // reset
+    this.contactoDirectorId = null;
+    this.contactoUtpId = null;
+    this.contactosForm = {
+      directorNombre: '', directorRut: '', directorCorreo: '', directorTelefono: '',
+      utpNombre: '',      utpRut: '',      utpCorreo: '',      utpTelefono: '',
+    };
+
+    // preload DIRECTOR
+    this.trabajadoresApi.list({ centroId: c.id, rol: 'Director', page: 1, limit: 1 }).subscribe({
+      next: r => {
+        const d = r.items?.[0];
+        if (d) {
+          this.contactoDirectorId = d.id;
+          this.contactosForm.directorNombre = d.nombre || '';
+          this.contactosForm.directorRut = d.rut || '';
+          this.contactosForm.directorCorreo = d.correo || '';
+          this.contactosForm.directorTelefono = d.telefono != null ? String(d.telefono) : '';
+        }
+      }
+    });
+
+    // preload UTP
+    this.trabajadoresApi.list({ centroId: c.id, rol: 'UTP', page: 1, limit: 1 }).subscribe({
+      next: r => {
+        const u = r.items?.[0];
+        if (u) {
+          this.contactoUtpId = u.id;
+          this.contactosForm.utpNombre = u.nombre || '';
+          this.contactosForm.utpRut = u.rut || '';
+          this.contactosForm.utpCorreo = u.correo || '';
+          this.contactosForm.utpTelefono = u.telefono != null ? String(u.telefono) : '';
+        }
+      }
+    });
+  }
+
+  closeContacts() { this.contactsForCentro = null; }
+
+  saveContactsForCentro() {
+    if (!this.contactsForCentro) return;
+    const centroId = this.contactsForCentro.id;
+
+    const toNum = (v?: string | number | null) => {
+      const s = (v ?? '').toString().trim();
+      return s !== '' ? Number(s) : null;
+    };
+
+    const ops: Promise<any>[] = [];
+
+    // DIRECTOR
+    if ((this.contactosForm.directorNombre || '').trim() !== '') {
+      const base = {
+        rut: (this.contactosForm.directorRut || `TEMP-Director-${centroId}-${Date.now()}`).trim(),
+        nombre: this.contactosForm.directorNombre.trim(),
+        correo: this.contactosForm.directorCorreo?.trim() || undefined,
+        telefono: toNum(this.contactosForm.directorTelefono),
+        rol: 'Director',
+        centroId,
+      };
+      if (this.contactoDirectorId) ops.push(this.trabajadoresApi.update(this.contactoDirectorId, base).toPromise());
+      else ops.push(this.trabajadoresApi.create(base).toPromise());
+    }
+
+    // UTP
+    if ((this.contactosForm.utpNombre || '').trim() !== '') {
+      const base = {
+        rut: (this.contactosForm.utpRut || `TEMP-UTP-${centroId}-${Date.now()}`).trim(),
+        nombre: this.contactosForm.utpNombre.trim(),
+        correo: this.contactosForm.utpCorreo?.trim() || undefined,
+        telefono: toNum(this.contactosForm.utpTelefono),
+        rol: 'UTP',
+        centroId,
+      };
+      if (this.contactoUtpId) ops.push(this.trabajadoresApi.update(this.contactoUtpId, base).toPromise());
+      else ops.push(this.trabajadoresApi.create(base).toPromise());
+    }
+
+    Promise.all(ops).then(() => {
+      this.snack.open('✓ Contactos guardados correctamente', 'Cerrar', {
+        duration: 4000,
+        horizontalPosition: 'center',
+        verticalPosition: 'bottom',
+        panelClass: ['success-snackbar']
+      });
+      this.closeContacts();
+      this.load();
+    }).catch(() => {
+      this.snack.open('✗ Error al guardar contactos', 'Cerrar', { duration: 3500 });
+    });
+  }
+
+  // ===== orden y filtro =====
   toggleSort() { this.sortAZ = !this.sortAZ; }
 
   filteredCentros(): CentroEducativo[] {

@@ -37,26 +37,23 @@
 /* Encabezado de filtros: icono y título en la misma línea */
 .filters-header {
   display: flex;
-  align-items: center;   /* centra verticalmente */
-  gap: 8px;              /* espacio entre icono y texto */
+  align-items: center;
+  gap: 8px;
   padding: 0 0 12px 4px;
   color: #1f2937;
 }
-
 .filters-header mat-icon {
-  display: inline-flex;  /* asegura que no se apile */
+  display: inline-flex;
   font-size: 22px;
   color: #000000;
   line-height: 1;
 }
-
 .filters-header h2 {
   margin: 0;
   font-size: 18px;
   font-weight: 600;
-  line-height: 1;        /* evita que “baje” */
+  line-height: 1;
 }
-
 
 /* Formulario */
 .form-container { margin-bottom: 20px; transition: all .3s ease; overflow: hidden; max-height: 0; opacity: 0; }
@@ -104,7 +101,6 @@
 
 .item-content { display: grid; grid-template-columns: 1fr 1fr 1fr auto; align-items: center; gap: 16px; padding: 16px 24px; }
 .item-main { display: flex; align-items: center; gap: 12px; }
-.avatar-small { display: grid; place-items: center; border-radius: 50%; width: 40px; height: 40px; background:#e0f2f1; color:#00695c; }
 .item-info h3 { margin: 0; font-size: 16px; font-weight: 500; color: #1f2937; }
 .item-info p { margin: 0; font-size: 14px; color: #6b7280; }
 .item-middle { color: #374151; font-size: 14px; }
@@ -116,7 +112,7 @@
 .empty { margin-top: 12px; }
 .empty__content { display: grid; place-items: center; gap: 8px; }
 
-/* Modal Detalles */
+/* Modal (Detalles / Contactos) */
 .details-dialog { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; }
 .dialog-overlay { position: absolute; inset: 0; background: rgba(0,0,0,.5); cursor: pointer; }
 .dialog-content { position: relative; background: #fff; border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0,0,0,.1),0 10px 10px -5px rgba(0,0,0,.04); max-width: 680px; width: 92%; max-height: 80vh; overflow-y: auto; }
@@ -129,7 +125,6 @@
 .detail-item span { font-size: 16px; color: #1f2937; }
 .dialog-actions { display: flex; justify-content: flex-end; gap: 12px; padding: 24px; border-top: 1px solid #e5e7eb; margin-top: 24px; }
 
-/* Responsive modal */
 @media (max-width: 640px) {
   .dialog-content { width: 95%; margin: 16px; }
   .dialog-header { padding: 16px 16px 0; }
@@ -138,36 +133,21 @@
   .dialog-actions button { width: 100%; }
 }
 
-/* === Confirm Dialog (nuevo) === */
-.confirm-dialog { 
-  position: fixed; inset: 0; z-index: 1100; 
-  display: flex; align-items: center; justify-content: center;
-}
-.confirm-dialog .dialog-overlay { 
-  position: absolute; inset: 0; background: rgba(0,0,0,.45); 
-}
+/* Confirm Dialog */
+.confirm-dialog { position: fixed; inset: 0; z-index: 1100; display: flex; align-items: center; justify-content: center; }
+.confirm-dialog .dialog-overlay { position: absolute; inset: 0; background: rgba(0,0,0,.45); }
 .confirm-card {
   position: relative; background: #fff; width: 560px; max-width: 92%;
   border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0,0,0,.1), 0 10px 10px -5px rgba(0,0,0,.04);
   display: flex; flex-direction: column;
 }
-.confirm-header {
-  display: flex; align-items: center; gap: 12px;
-  padding: 20px 24px 8px; border-bottom: 1px solid #e5e7eb;
-}
+.confirm-header { display: flex; align-items: center; gap: 12px; padding: 20px 24px 8px; border-bottom: 1px solid #e5e7eb; }
 .confirm-header h2 { margin: 0; font-size: 20px; font-weight: 600; color: #1f2937; }
-.warn-icon {
-  width: 40px; height: 40px; border-radius: 50%;
-  background: #fef3c7; color: #b45309; display: grid; place-items: center;
-}
+.warn-icon { width: 40px; height: 40px; border-radius: 50%; background: #fef3c7; color: #b45309; display: grid; place-items: center; }
 .confirm-body { padding: 12px 24px 0; }
 .confirm-body p { margin: 0 0 6px; font-size: 15px; color: #111827; }
 .confirm-body .muted { margin-top: 2px; }
-
-.confirm-actions {
-  display: flex; justify-content: flex-end; gap: 12px;
-  padding: 16px 16px 20px; border-top: 1px solid #e5e7eb; margin-top: 12px;
-}
+.confirm-actions { display: flex; justify-content: flex-end; gap: 12px; padding: 16px 16px 20px; border-top: 1px solid #e5e7eb; margin-top: 12px; }
 .btn-danger mat-icon { margin-right: 6px; }
 
 @media (max-width: 640px) {
@@ -176,7 +156,7 @@
   .confirm-actions button { width: 100%; }
 }
 
-/* === Snackbar oscuro de éxito (igual a Colaboradores) === */
+/* Snackbar oscuro de éxito */
 ::ng-deep .success-snackbar {
   .mdc-snackbar__surface {
     background: #374151 !important;
@@ -186,16 +166,13 @@
     min-width: 400px !important;
     max-width: 600px !important;
   }
-
-  .mat-mdc-snack-bar-label,
-  .mdc-snackbar__label {
+  .mat-mdc-snack-bar-label, .mdc-snackbar__label {
     color: #fff !important;
     font-weight: 400 !important;
     font-size: 15px !important;
     padding: 16px 20px !important;
     letter-spacing: 0.2px !important;
   }
-
   .mat-mdc-button.mat-mdc-snack-bar-action {
     color: #fff !important;
     font-weight: 500 !important;
@@ -204,7 +181,6 @@
     text-transform: none !important;
     margin-right: 8px !important;
     transition: all .2s ease !important;
-
     &:hover { opacity: 1 !important; background: rgba(255,255,255,.1) !important; }
   }
 }
