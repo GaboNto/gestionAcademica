@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "prisma": {
+    "seed": "ts-node prisma/seed.ts",
     "schema": "prisma/schema.prisma"
   },
   "scripts": {
@@ -33,7 +34,7 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
     "dayjs": "^1.11.18",
-    "puppeteer": "^24.27.0",
+    "puppeteer": "^24.26.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"
   },

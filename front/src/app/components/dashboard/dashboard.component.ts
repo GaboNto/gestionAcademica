@@ -77,8 +77,6 @@ export class DashboardComponent implements OnInit {
       // 👉 Aquí vive el módulo Usuarios
       return [
         { title: 'Usuarios', icon: 'manage_accounts', route: '/usuarios', desc: 'Roles y permisos' },
-        { title: 'Generar solicitud', icon: 'description', route: '/carta', desc: 'Carta de autorización' },
-
         { title: 'Colaboradores', icon: 'groups', route: '/colaboradores', desc: 'Alta, filtros y perfiles' },
         ...comunes
       ];
