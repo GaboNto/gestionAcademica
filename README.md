@@ -51,12 +51,3 @@ El sistema está construido bajo una **arquitectura cliente-servidor** compuesta
 git clone https://github.com/GaboNto/gestionAcademica.git
 cd gestionAcademica
 ----
-
-
-
-
-
-
-
-
-
