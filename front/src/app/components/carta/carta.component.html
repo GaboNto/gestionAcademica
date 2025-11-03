@@ -7,10 +7,20 @@
     </div>
 
     <div class="actions">
-      <button mat-stroked-button color="primary" (click)="previa()">
+      <button
+        mat-stroked-button
+        color="primary"
+        (click)="previa()"
+        [disabled]="form.invalid"
+      >
         <mat-icon>visibility</mat-icon> Previa
       </button>
-      <button mat-raised-button color="primary" (click)="grabar()">
+      <button
+        mat-raised-button
+        color="primary"
+        (click)="grabar()"
+        [disabled]="form.invalid"
+      >
         <mat-icon>picture_as_pdf</mat-icon> Grabar
       </button>
       <button mat-stroked-button color="warn" (click)="limpiar()">
@@ -23,32 +33,38 @@
     <mat-card-content>
       <!-- Línea 1: Tipo de práctica y Centro -->
       <div class="grid g3">
+        <!-- Tipo de práctica -->
         <mat-form-field appearance="outline">
           <mat-label>Tipo de práctica</mat-label>
-          <mat-select [formControl]="form.controls.tipoPractica">
-            <mat-option *ngFor="let t of tiposPractica" [value]="t">{{ t }}</mat-option>
+          <mat-select formControlName="tipoPractica" required>
+            <mat-option *ngFor="let t of tiposPractica" [value]="t">{{
+              t
+            }}</mat-option>
           </mat-select>
+          <mat-error *ngIf="form.get('tipoPractica')?.hasError('required')">
+            Selecciona un tipo de práctica
+          </mat-error>
         </mat-form-field>
 
+        <!-- Centro educativo -->
         <mat-form-field appearance="outline" class="full-when-sm">
           <mat-label>Centro educativo</mat-label>
-          <mat-select [formControl]="form.controls.centroId">
+          <mat-select formControlName="centroId" required>
             <mat-option *ngFor="let c of centros" [value]="c.id">
-              {{ c.nombre }} — {{ c.comuna }}, {{ c.region }}
+              {{ c.nombre }} — {{ c.comuna ?? "s/ comuna" }},
+              {{ c.region ?? "s/ región" }}
             </mat-option>
           </mat-select>
+
           <mat-hint *ngIf="centroSeleccionado">
-            Se dirigirá a:
-            <ng-container *ngIf="centroSeleccionado?.director; else utpOGenerico">
-              Director(a): {{ centroSeleccionado?.director?.nombre }}
-            </ng-container>
-            <ng-template #utpOGenerico>
-              <ng-container *ngIf="centroSeleccionado?.utp; else generico">
-                UTP: {{ centroSeleccionado?.utp?.nombre }}
-              </ng-container>
-              <ng-template #generico>Señor(a)</ng-template>
-            </ng-template>
+            Se dirigirá a: <b>{{ centroSeleccionado?.nombre }}</b> ({{
+              centroSeleccionado?.comuna ?? "—"
+            }})
           </mat-hint>
+
+          <mat-error *ngIf="form.get('centroId')?.hasError('required')">
+            Selecciona un centro educativo
+          </mat-error>
         </mat-form-field>
       </div>
 
@@ -58,50 +74,111 @@
       <div class="grid g1">
         <mat-form-field appearance="outline" class="full">
           <mat-label>Estudiantes</mat-label>
-          <mat-select [formControl]="form.controls.estudiantesIds" multiple>
-            <!-- Buscador dentro del panel -->
+          <mat-select formControlName="estudiantesIds" multiple required>
+            <!-- Buscador -->
             <mat-option disabled>
               <mat-icon>search</mat-icon>
               <input
                 matInput
                 placeholder="Buscar estudiante o RUT…"
-                (keyup)="studentFilter = $any($event.target).value"
+                (keyup)="
+                  studentFilter = $any($event.target).value; _markForCheck()
+                "
+                (click)="$event.stopPropagation()"
                 [value]="studentFilter"
-                style="width: calc(100% - 24px); margin-left: 8px; border: none; outline: none;"
+                class="search-input"
               />
             </mat-option>
 
-            <mat-option *ngFor="let e of filteredStudents" [value]="e.id">
+            <!-- IMPORTANTE: value usa el RUT -->
+            <mat-option *ngFor="let e of filteredStudents" [value]="e.rut">
               {{ e.nombre }} — Rut {{ e.rut }}
             </mat-option>
           </mat-select>
           <mat-hint>Puede seleccionar uno o más</mat-hint>
-        </mat-form-field>
-      </div>
-
-      <!-- Línea 3: Periodo -->
-      <div class="grid g2">
-        <mat-form-field appearance="outline">
-          <mat-label>Inicio</mat-label>
-          <input matInput [matDatepicker]="dp2" [formControl]="form.controls.periodoInicio">
-          <mat-datepicker-toggle matIconSuffix [for]="dp2"></mat-datepicker-toggle>
-          <mat-datepicker #dp2></mat-datepicker>
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>Fin</mat-label>
-          <input matInput [matDatepicker]="dp3" [formControl]="form.controls.periodoFin">
-          <mat-datepicker-toggle matIconSuffix [for]="dp3"></mat-datepicker-toggle>
-          <mat-datepicker #dp3></mat-datepicker>
+          <mat-error *ngIf="form.get('estudiantesIds')?.hasError('required')">
+            Selecciona al menos un(a) estudiante
+          </mat-error>
         </mat-form-field>
       </div>
 
       <mat-divider class="sep"></mat-divider>
 
-      <!-- Nota: Jefatura fija; fecha y folio automáticos al generar -->
+      <!-- Tutora/or responsable -->
+      <div class="grid g1">
+        <mat-form-field appearance="outline" class="full">
+          <mat-label>Tutora/or de práctica responsable</mat-label>
+          <mat-select formControlName="supervisorId" required>
+            <mat-option disabled>
+              <mat-icon>search</mat-icon>
+              <input
+                matInput
+                placeholder="Buscar nombre…"
+                (keyup)="
+                  supervisorFilter = $any($event.target).value; _markForCheck()
+                "
+                (click)="$event.stopPropagation()"
+                [value]="supervisorFilter"
+                class="search-input"
+              />
+            </mat-option>
+
+            <mat-option *ngFor="let s of filteredSupervisores" [value]="s.id">
+              {{ s.trato ? s.trato + " " : "" }}{{ s.nombre }}
+            </mat-option>
+          </mat-select>
+          <mat-hint>Seleccione la persona tutora responsable</mat-hint>
+          <mat-error *ngIf="form.get('supervisorId')?.hasError('required')">
+            Selecciona a la tutora o tutor responsable
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <mat-divider class="sep"></mat-divider>
+
+      <!-- Línea 3: Periodo -->
+      <div class="grid g2">
+        <mat-form-field appearance="outline">
+          <mat-label>Inicio</mat-label>
+          <input
+            matInput
+            [matDatepicker]="dp2"
+            formControlName="periodoInicio"
+            required
+          />
+          <mat-datepicker-toggle matSuffix [for]="dp2"></mat-datepicker-toggle>
+          <mat-datepicker #dp2></mat-datepicker>
+          <mat-error *ngIf="form.get('periodoInicio')?.hasError('required')">
+            Selecciona la fecha de inicio
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Fin</mat-label>
+          <input
+            matInput
+            [matDatepicker]="dp3"
+            formControlName="periodoFin"
+            required
+          />
+          <mat-datepicker-toggle matSuffix [for]="dp3"></mat-datepicker-toggle>
+          <mat-datepicker #dp3></mat-datepicker>
+          <mat-error *ngIf="form.get('periodoFin')?.hasError('required')">
+            Selecciona la fecha de término
+          </mat-error>
+          <mat-error *ngIf="form.hasError('periodoInvalido')">
+            La fecha de término debe ser posterior al inicio
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <mat-divider class="sep"></mat-divider>
+
+      <!-- Nota informativa -->
       <div class="meta-note">
-        La carta se firmará como <b>Dr. IGNACIO JARA PARRA</b>, <b>Jefe de Carrera</b>.
-        La <b>fecha</b> se usa la del día de generación y el <b>folio</b> se asigna al presionar <i>Grabar</i>.
+        La carta se firmará como <b>Dr. IGNACIO JARA PARRA</b>,
+        <b>Jefe de Carrera</b>. La <b>fecha</b> será la del día de generación y
+        el <b>folio</b> se asignará al presionar <i>Grabar</i>.
       </div>
     </mat-card-content>
   </mat-card>
