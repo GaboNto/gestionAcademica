@@ -369,7 +369,7 @@ Universidad de Tarapacá`;
           `Carta folio ${folio}`
         );
 
-        this.snack.open(`Carta guardada con folio ${folio} ✅`, 'OK', {
+        this.snack.open(`Carta guardada con folio ${folio} `, 'OK', {
           duration: 2400,
         });
         this.limpiar();
@@ -377,7 +377,7 @@ Universidad de Tarapacá`;
       error: (err) => {
         console.error(err);
         // Usamos SnackBar en lugar de alert
-        this.snack.open('Error al crear la carta ❌', 'Cerrar', {
+        this.snack.open('Error al crear la carta ', 'Cerrar', {
           duration: 3000,
         });
       },
