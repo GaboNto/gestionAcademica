@@ -1,6 +1,16 @@
-back/prisma/migrations/20251015182804_init/migration.sql
-back/prisma/migrations/migration_lock.toml
-back/prisma/migrations/20251015185102_init/migration.sql
+# Ignorar dependencias (¡NUNCA SUBIR!)
+/front/node_modules
+/back/node_modules
+/node_modules
 
-# Ignorar archivo seed
-back/prisma/seed.ts
+# Ignorar carpetas de build/compilación
+/front/dist
+/front/.angular
+/back/dist
+
+# Ignorar archivos de caché y sistema
+.DS_Store
+/npm-debug.log
+
+# Ignorar archivos de entorno (contienen contraseñas)
+/back/.env
