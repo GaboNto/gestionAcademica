@@ -9,6 +9,7 @@ import { CentrosModule } from './centros/centros.module';
 import { TrabajadorModule } from './trabajador/trabajador.module';
 import { EstudianteModule } from './estudiante/estudiante.module';
 import { CartaModule } from './carta/carta.module';
+import { TutorModule } from './tutor/tutor.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { CartaModule } from './carta/carta.module';
     TrabajadorModule,
     EstudianteModule,
     CartaModule,                 // Nuevo
+    TutorModule,                 // Tutores (Supervisor / Tallerista)
   ],
   controllers: [AppController],
   providers: [AppService],
