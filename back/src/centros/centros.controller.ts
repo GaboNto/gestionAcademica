@@ -18,11 +18,6 @@ export class CentrosController {
     return this.service.findAll(q);
   }
 
-  @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.service.findOne(id);
-  }
-
   @Patch(':id')
   update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateCentroDto) {
     return this.service.update(id, dto);

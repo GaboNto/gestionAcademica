@@ -65,8 +65,6 @@ export class CentrosService {
           region: true,
           comuna: true,
           direccion: true,
-          nombre_calle: true,
-          numero_calle: true,
           telefono: true,
           correo: true,
           tipo: true,
@@ -92,32 +90,7 @@ export class CentrosService {
     };
   }
 
-  async findOne(id: number) {
-    const centro = await this.prisma.centroEducativo.findUnique({
-      where: { id },
-      include: {
-        practicas: {
-          select: {
-            id: true,
-            estado: true,
-            fecha_inicio: true,
-            fecha_termino: true,
-            estudiante: { select: { rut: true, nombre: true } },
-            colaborador: { select: { id: true, nombre: true, tipo: true } },
-          },
-          orderBy: { fecha_inicio: 'desc' },
-        },
-        trabajadores: {
-          select: { id: true, rut: true, nombre: true, rol: true, correo: true, telefono: true },
-          orderBy: { nombre: 'asc' },
-        },
-      },
-    });
-
-    if (!centro) throw new NotFoundException('Centro educativo no encontrado');
-    return centro;
-  }
-
+  
   async update(id: number, dto: UpdateCentroDto) {
     try {
       return await this.prisma.centroEducativo.update({ where: { id }, data: dto });

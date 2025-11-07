@@ -9,8 +9,24 @@ export class ColaboradoresService {
   constructor(private prisma: PrismaService) {}
 
   async create(dto: CreateColaboradorDto) {
-    // rut es único: si ya existe, prisma lanzará error único
-    return this.prisma.colaborador.create({ data: dto });
+    // Acepta 'cargo' (string) o 'cargos' (string[])
+    const cargosList = Array.isArray((dto as any).cargos)
+      ? ((dto as any).cargos as string[])
+          .filter((c) => !!c && c.trim())
+          .map((c) => ({ cargo: c.trim() }))
+      : dto.cargo && dto.cargo.trim()
+      ? [{ cargo: dto.cargo.trim() }]
+      : [];
+
+    const { cargo, cargos, ...rest } = dto as any;
+
+    return this.prisma.colaborador.create({
+      data: {
+        ...rest,
+        ...(cargosList.length ? { cargos: { create: cargosList } } : {}),
+      },
+      include: { cargos: true },
+    });
   }
 
   async findAll(q: QueryColaboradorDto) {
@@ -40,16 +56,20 @@ export class ColaboradoresService {
           nombre: true,
           correo: true,
           telefono: true,
-          tipo: true,
-          cargo: true,
           universidad_egreso: true,
+          cargos: { select: { id: true, cargo: true } },
         },
       }),
       this.prisma.colaborador.count({ where }),
     ]);
 
+    const itemsWithCargo = items.map((it: any) => ({
+      ...it,
+      cargo: Array.isArray(it.cargos) && it.cargos.length ? it.cargos.map((c: any) => c.cargo).join(', ') : undefined,
+    }));
+
     return {
-      items,
+      items: itemsWithCargo,
       page,
       limit,
       total,
@@ -71,6 +91,7 @@ export class ColaboradoresService {
             centro: { select: { id: true, nombre: true, comuna: true } },
           },
         },
+        cargos: { select: { id: true, cargo: true } },
       },
     });
     if (!col) throw new NotFoundException('Colaborador no encontrado');
@@ -79,7 +100,26 @@ export class ColaboradoresService {
 
   async update(id: number, dto: UpdateColaboradorDto) {
     try {
-      return await this.prisma.colaborador.update({ where: { id }, data: dto });
+      const cargosList = Array.isArray((dto as any).cargos)
+        ? ((dto as any).cargos as string[])
+            .filter((c) => !!c && c.trim())
+            .map((c) => ({ cargo: c.trim() }))
+        : (dto.cargo && (dto.cargo as string).trim())
+        ? [{ cargo: (dto.cargo as string).trim() }]
+        : [];
+
+      const { cargo, cargos, ...rest } = dto as any;
+
+      return await this.prisma.colaborador.update({
+        where: { id },
+        data: {
+          ...rest,
+          ...(cargo !== undefined || cargos !== undefined
+            ? { cargos: { deleteMany: {}, ...(cargosList.length ? { create: cargosList } : {}) } }
+            : {}),
+        },
+        include: { cargos: true },
+      });
     } catch {
       throw new NotFoundException('Colaborador no encontrado');
     }
