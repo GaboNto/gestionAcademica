@@ -38,12 +38,13 @@ export class PracticasService {
       throw new BadRequestException('Debe completar todos los campos requeridos.');
     }
 
-    const [estudiante, centro, colaborador] = await Promise.all([
+    const [estudiante, centro, colaborador, tutor] = await Promise.all([
       this.prisma.estudiante.findUnique({ where: { rut: dto.estudianteRut } }),
       this.prisma.centroEducativo.findUnique({ where: { id: dto.centroId } }),
       this.prisma.colaborador.findUnique({ where: { id: dto.colaboradorId } }),
+      this.prisma.tutor.findUnique({ where: { id: dto.tutorId } }),
     ]);
-    if (!estudiante || !centro || !colaborador) {
+    if (!estudiante || !centro || !colaborador || !tutor) {
       throw new BadRequestException('Debe completar todos los campos requeridos.');
     }
 
@@ -73,6 +74,7 @@ export class PracticasService {
         estudianteRut: dto.estudianteRut,
         centroId: dto.centroId,
         colaboradorId: dto.colaboradorId,
+        tutorId: dto.tutorId,
         fecha_inicio: start,
         fecha_termino: end,
         tipo: dto.tipo ?? null,
@@ -82,6 +84,7 @@ export class PracticasService {
         estudiante: true,
         centro: true,
         colaborador: true,
+        tutor: true,
       },
     });
 

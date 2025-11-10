@@ -17,6 +17,9 @@ export class CreatePracticaDto {
   @IsInt() @IsPositive()
   colaboradorId!: number;
 
+  @IsInt() @IsPositive()
+  tutorId!: number;
+
   @IsDateString()
   fecha_inicio!: string;
 
