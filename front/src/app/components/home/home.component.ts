@@ -38,6 +38,7 @@ export class HomeComponent {
         'Gestionar centros educativos',
         'Gestionar estudiantes',
         'Asignar prácticas',
+        'Gestionar tutores',
         'Gestionar colaboradores',
         'Ver reportes e historial'
       ],

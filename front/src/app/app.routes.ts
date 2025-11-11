@@ -22,6 +22,13 @@ export const routes: Routes = [
       import('./components/colaboradores/colaboradores.component').then(m => m.ColaboradoresComponent),
   },
 
+  // Gestión de tutores
+  {
+    path: 'tutores',
+    loadComponent: () =>
+      import('./components/tutores/tutores.component').then(m => m.TutoresComponent),
+  },
+
   // Gestión de usuarios
   {
     path: 'usuarios',

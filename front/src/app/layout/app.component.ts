@@ -129,16 +129,15 @@ export class AppComponent implements OnInit, AfterViewInit {
 
     if (id === 'practicas') {
       // Gestionar centros, estudiantes, prácticas, colaboradores, reportes/historial
-      const items: NavItem[] = [
-        { label: 'Dashboard',       icon: 'dashboard', route: '/dashboard' },
-        { label: 'Estudiantes',     icon: 'school',    route: '/estudiantes' },
-        { label: 'Colaboradores',   icon: 'groups',    route: '/colaboradores' },
-        { label: 'Prácticas',       icon: 'event_note',route: '/practicas' },     // crea la ruta si aún no existe
-        { label: 'Reportes/Historial', icon: 'timeline', route: '/reportes' },    // crea la ruta si aún no existe
+      return [
+        { label: 'Dashboard',          icon: 'dashboard',          route: '/dashboard' },
+        { label: 'Estudiantes',        icon: 'school',             route: '/estudiantes' },
+        { label: 'Tutores',            icon: 'supervisor_account', route: '/tutores' },
+        { label: 'Colaboradores',      icon: 'groups',             route: '/colaboradores' },
+        { label: 'Centros educativos', icon: 'domain',             route: '/centros-educativos' },
+        { label: 'Prácticas',          icon: 'event_note',         route: '/practicas' },     // crea la ruta si aún no existe
+        { label: 'Reportes/Historial', icon: 'timeline',           route: '/reportes' },     // crea la ruta si aún no existe
       ];
-      // Si ya tienes /centros, lo dejamos visible:
-      items.splice(3, 0, { label: 'Centros educativos', icon: 'domain', route: '/centros-educativos' }); // opcional
-      return items;
     }
 
     // Fallback si no calza
