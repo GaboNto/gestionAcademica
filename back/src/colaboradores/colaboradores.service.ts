@@ -77,26 +77,6 @@ export class ColaboradoresService {
     };
   }
 
-  async verPracticas(id: number) {
-    const col = await this.prisma.colaborador.findUnique({
-      where: { id },
-      include: {
-        practicas: {
-          select: {
-            id: true,
-            estado: true,
-            fecha_inicio: true,
-            fecha_termino: true,
-            estudiante: { select: { rut: true, nombre: true } },
-            centro: { select: { id: true, nombre: true, comuna: true } },
-          },
-        },
-        cargos: { select: { id: true, cargo: true } },
-      },
-    });
-    if (!col) throw new NotFoundException('Colaborador no encontrado');
-    return col;
-  }
 
   async update(id: number, dto: UpdateColaboradorDto) {
     try {

@@ -1,10 +1,7 @@
 import { Transform } from 'class-transformer';
-import { IsInt, IsOptional, IsString, Min, IsIn } from 'class-validator';
-import { TIPOS_TUTOR_PERMITIDOS } from './create-tutor.dto';
+import { IsInt, IsOptional, IsString, Min } from 'class-validator';
 
 export class QueryTutorDto {
-  @IsOptional() @IsString() @IsIn(TIPOS_TUTOR_PERMITIDOS as unknown as string[])
-  tipo?: 'Tallerista' | 'Supervisor';
 
   @IsOptional() @IsString()
   search?: string; // nombre|rut|correo contiene

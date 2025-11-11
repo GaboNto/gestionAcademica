@@ -10,6 +10,7 @@ import { TrabajadorModule } from './trabajador/trabajador.module';
 import { EstudianteModule } from './estudiante/estudiante.module';
 import { CartaModule } from './carta/carta.module';
 import { TutorModule } from './tutor/tutor.module';
+import { PracticasModule } from './practicas/practicas.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { TutorModule } from './tutor/tutor.module';
     EstudianteModule,
     CartaModule,                 // Nuevo
     TutorModule,                 // Tutores (Supervisor / Tallerista)
+    PracticasModule,             // Gestión de prácticas
   ],
   controllers: [AppController],
   providers: [AppService],

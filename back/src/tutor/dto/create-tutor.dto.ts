@@ -1,7 +1,4 @@
-import { IsArray, IsEmail, IsIn, IsNumber, IsOptional, IsString, Length } from 'class-validator';
-
-const TIPOS_PERMITIDOS = ['Tallerista', 'Supervisor'] as const;
-export type TipoTutor = (typeof TIPOS_PERMITIDOS)[number];
+import { IsArray, IsEmail, IsNumber, IsOptional, IsString, Length } from 'class-validator';
 
 export class CreateTutorDto {
   @IsString()
@@ -24,14 +21,6 @@ export class CreateTutorDto {
   @IsOptional() @IsString()
   universidad_egreso?: string;
 
-  // Acepta 'tipo' (string) o 'tipos' (string[])
-  @IsOptional() @IsString() @IsIn(TIPOS_PERMITIDOS as unknown as string[])
-  tipo?: TipoTutor;
-
-  @IsOptional() @IsArray()
-  @IsIn(TIPOS_PERMITIDOS as unknown as string[], { each: true })
-  tipos?: TipoTutor[];
-
   // Igual que colaborador: permitir 'cargo' o 'cargos'
   @IsOptional() @IsString()
   cargo?: string;
@@ -40,6 +29,3 @@ export class CreateTutorDto {
   @IsString({ each: true })
   cargos?: string[];
 }
-
-export const TIPOS_TUTOR_PERMITIDOS = TIPOS_PERMITIDOS;
-
