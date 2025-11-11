@@ -30,9 +30,8 @@ export class ColaboradoresService {
   }
 
   async findAll(q: QueryColaboradorDto) {
-    const { tipo, search, page = 1, limit = 10, orderBy = 'nombre', orderDir = 'asc' } = q;
+    const { search, page = 1, limit = 10, orderBy = 'nombre', orderDir = 'asc' } = q;
     const where = {
-      ...(tipo ? { tipo } : {}),
       ...(search
         ? {
             OR: [

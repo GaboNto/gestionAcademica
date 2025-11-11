@@ -8,11 +8,6 @@ datasource db {
 }
 
 // ------------------------- Enums -------------------------
-enum TipoColaborador {
-  Colaborador
-  Supervisor
-  Tallerista
-}
 
 enum EstadoPractica {
   EN_CURSO   @map("En Curso")
