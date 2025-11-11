@@ -128,58 +128,96 @@
               </mat-form-field>
             </div>
 
-            <!-- Información del Colaborador (MULTI 1..2) y Tipo -->
+            <!-- Colaboradores -->
             <div class="FormRow">
-              <!-- MULTI: Colaboradores/Supervisores (reemplaza mat-chip-list por mat-chip-grid) -->
-<mat-form-field appearance="outline" class="FormField FullWidth">
-  <mat-label>Colaboradores / Supervisores *</mat-label>
-
-  <mat-chip-grid #chipGrid aria-label="Colaboradores seleccionados">
-    <mat-chip-row *ngFor="let c of selectedColaboradores; let i = index"
-                  [removable]="true"
-                  (removed)="removerColaborador(c)">
-      {{ c.nombre }}{{ c.cargo ? ' (' + c.cargo + ')' : '' }}
-      <button matChipRemove type="button" aria-label="Quitar">
-        <mat-icon>close</mat-icon>
-      </button>
-    </mat-chip-row>
-
-    <input
-      matInput
-      [matChipInputFor]="chipGrid"
-      placeholder="Buscar colaborador por nombre, rol o cargo..."
-      [matAutocomplete]="autoColabMulti"
-      (input)="filtrarColaboradores($event)"
-      (focus)="mostrarTodosColaboradores()"
-      [disabled]="isMaxColaboradoresSeleccionados()">
-  </mat-chip-grid>
-
-  <mat-autocomplete
-    #autoColabMulti="matAutocomplete"
-    (optionSelected)="onColaboradorSeleccionadoMultiple($event)">
-    <mat-option *ngFor="let colaborador of colaboradorFiltrado" [value]="colaborador">
-      {{ colaborador.nombre }} - {{ colaborador.tipo || '' }}{{ colaborador.cargo ? ' (' + colaborador.cargo + ')' : '' }}
-    </mat-option>
-  </mat-autocomplete>
-
-  <mat-hint align="start">Puedes seleccionar hasta 2.</mat-hint>
-
-  <mat-error *ngIf="formularioPractica.get('colaboradoresIds')?.hasError('requiredMin')">
-    Debes seleccionar al menos 1 colaborador/supervisor
-  </mat-error>
-  <mat-error *ngIf="formularioPractica.get('colaboradoresIds')?.hasError('maxSeleccionados')">
-    Máximo 2 colaboradores/supervisores
-  </mat-error>
-</mat-form-field>
-
-
               <mat-form-field appearance="outline" class="FormField">
-                <mat-label>Tipo de Práctica</mat-label>
-                <mat-select formControlName="tipo">
-                  @for (tipo of tiposPractica; track tipo) {
-                    <mat-option [value]="tipo">{{ tipo }}</mat-option>
+                <mat-label>Colaborador 1 *</mat-label>
+                <mat-select formControlName="colaborador1Id">
+                  <mat-option [value]="null">Seleccionar colaborador...</mat-option>
+                  @for (colaborador of colaboradores; track colaborador.id) {
+                    <mat-option
+                      [value]="colaborador.id"
+                      [disabled]="isColaboradorSeleccionado(colaborador.id, 'colaborador1Id')">
+                      {{ colaborador.nombre }}{{ colaborador.cargo ? ' (' + colaborador.cargo + ')' : '' }}
+                    </mat-option>
                   }
                 </mat-select>
+                @if (formularioPractica.get('colaborador1Id')?.hasError('required')) {
+                  <mat-error>Debes seleccionar al menos un colaborador</mat-error>
+                }
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="FormField">
+                <mat-label>Colaborador 2 (opcional)</mat-label>
+                <mat-select formControlName="colaborador2Id">
+                  <mat-option [value]="null">Sin asignar</mat-option>
+                  @for (colaborador of colaboradores; track colaborador.id) {
+                    <mat-option
+                      [value]="colaborador.id"
+                      [disabled]="isColaboradorSeleccionado(colaborador.id, 'colaborador2Id')">
+                      {{ colaborador.nombre }}{{ colaborador.cargo ? ' (' + colaborador.cargo + ')' : '' }}
+                    </mat-option>
+                  }
+                </mat-select>
+                <mat-hint align="start">Puedes registrar hasta 2 colaboradores.</mat-hint>
+              </mat-form-field>
+            </div>
+
+            <!-- Tutores -->
+            <div class="FormRow">
+              <mat-form-field appearance="outline" class="FormField">
+                <mat-label>Tutor 1 *</mat-label>
+                <mat-select formControlName="tutor1Id">
+                  <mat-option [value]="null">Seleccionar tutor...</mat-option>
+                  @for (tutor of tutores; track tutor.id) {
+                    <mat-option [value]="tutor.id">
+                      {{ tutor.nombre }}{{ tutor.cargo ? ' (' + tutor.cargo + ')' : '' }}
+    </mat-option>
+                  }
+                </mat-select>
+                @if (formularioPractica.get('tutor1Id')?.hasError('required')) {
+                  <mat-error>Debes seleccionar al menos un tutor</mat-error>
+                }
+</mat-form-field>
+
+              <mat-form-field appearance="outline" class="FormField">
+                <mat-label>Rol Tutor 1 *</mat-label>
+                <mat-select formControlName="tutor1Rol">
+                  <mat-option [value]="''" disabled>Seleccionar rol</mat-option>
+                  @for (rol of rolesTutor; track rol) {
+                    <mat-option [value]="rol">{{ rol }}</mat-option>
+                  }
+                </mat-select>
+                @if (formularioPractica.get('tutor1Rol')?.hasError('required')) {
+                  <mat-error>Debes indicar un rol para el tutor</mat-error>
+                }
+              </mat-form-field>
+            </div>
+
+            <div class="FormRow">
+              <mat-form-field appearance="outline" class="FormField">
+                <mat-label>Tutor 2 (opcional)</mat-label>
+                <mat-select formControlName="tutor2Id">
+                  <mat-option [value]="null">Sin asignar</mat-option>
+                  @for (tutor of tutores; track tutor.id) {
+                    <mat-option [value]="tutor.id">
+                      {{ tutor.nombre }}{{ tutor.cargo ? ' (' + tutor.cargo + ')' : '' }}
+                    </mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="FormField">
+                <mat-label>Rol Tutor 2</mat-label>
+                <mat-select formControlName="tutor2Rol" [disabled]="!formularioPractica.get('tutor2Id')?.value">
+                  <mat-option [value]="''">Sin rol asignado</mat-option>
+                  @for (rol of rolesTutor; track rol) {
+                    <mat-option [value]="rol">{{ rol }}</mat-option>
+                  }
+                </mat-select>
+                @if (formularioPractica.get('tutor2Rol')?.hasError('required')) {
+                  <mat-error>Indica el rol para el tutor seleccionado</mat-error>
+                }
               </mat-form-field>
             </div>
 
@@ -210,8 +248,18 @@
               </mat-form-field>
             </div>
 
-            <!-- Estado -->
+            <!-- Tipo y Estado -->
             <div class="FormRow">
+              <mat-form-field appearance="outline" class="FormField">
+                <mat-label>Tipo de Práctica</mat-label>
+                <mat-select formControlName="tipo">
+                  <mat-option [value]="null">Sin especificar</mat-option>
+                  @for (tipo of tiposPractica; track tipo) {
+                    <mat-option [value]="tipo">{{ tipo }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+
               <mat-form-field appearance="outline" class="FormField">
                 <mat-label>Estado</mat-label>
                 <mat-select formControlName="estado">
@@ -264,7 +312,15 @@
                   <h4>{{ assignment.centro.nombre }}</h4>
                   <div class="SupervisorInfo">
                     <mat-icon class="LockIcon">supervisor_account</mat-icon>
-                    <span>Supervisor: {{ assignment.colaborador.nombre }}</span>
+                    <span>
+                      Colaboradores: {{ formatColaboradores(assignment.colaboradores) }}
+                    </span>
+                  </div>
+                  <div class="SupervisorInfo">
+                    <mat-icon class="LockIcon">badge</mat-icon>
+                    <span>
+                      Tutores: {{ formatTutores(assignment.tutores) }}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -403,30 +459,60 @@
               </div>
             </div>
 
-            <!-- Información del Supervisor -->
+            <!-- Colaboradores asignados -->
             <div class="DetailSection">
               <h3 class="SectionTitle">
-                <mat-icon>supervisor_account</mat-icon>
-                Supervisor
+                <mat-icon>groups</mat-icon>
+                Colaboradores
               </h3>
+              @if (practicaSeleccionada.colaboradores && practicaSeleccionada.colaboradores.length) {
               <div class="DetailsGrid">
+                  @for (colaborador of practicaSeleccionada.colaboradores; track colaborador.id) {
                 <div class="DetailItem">
                   <label>Nombre:</label>
-                  <span>{{ practicaSeleccionada.colaborador.nombre }}</span>
+                      <span>{{ colaborador.nombre }}</span>
                 </div>
                 <div class="DetailItem">
-                  <label>Email:</label>
-                  <span>{{ practicaSeleccionada.colaborador.correo || 'Sin especificar' }}</span>
+                      <label>Cargo:</label>
+                      <span>{{ colaborador.cargo || 'Sin especificar' }}</span>
                 </div>
                 <div class="DetailItem">
-                  <label>Tipo:</label>
-                  <span>{{ practicaSeleccionada.colaborador.tipo || 'Sin especificar' }}</span>
+                      <label>Correo:</label>
+                      <span>{{ colaborador.correo || 'Sin especificar' }}</span>
+                    </div>
+                  }
+                </div>
+              } @else {
+                <p class="Muted">Sin colaboradores registrados para esta práctica.</p>
+              }
+            </div>
+
+            <!-- Tutores asignados -->
+            <div class="DetailSection">
+              <h3 class="SectionTitle">
+                <mat-icon>badge</mat-icon>
+                Tutores
+              </h3>
+              @if (practicaSeleccionada.tutores && practicaSeleccionada.tutores.length) {
+                <div class="DetailsGrid">
+                  @for (tutor of practicaSeleccionada.tutores; track tutor.tutor.id) {
+                    <div class="DetailItem">
+                      <label>Nombre:</label>
+                      <span>{{ tutor.tutor.nombre }}</span>
+                    </div>
+                    <div class="DetailItem">
+                      <label>Rol:</label>
+                      <span>{{ tutor.rol }}</span>
                 </div>
                 <div class="DetailItem">
-                  <label>Cargo:</label>
-                  <span>{{ practicaSeleccionada.colaborador.cargo || 'Sin especificar' }}</span>
+                      <label>Correo:</label>
+                      <span>{{ tutor.tutor.correo || 'Sin especificar' }}</span>
+                    </div>
+                  }
                 </div>
-              </div>
+              } @else {
+                <p class="Muted">Sin tutores asignados para esta práctica.</p>
+              }
             </div>
 
             <!-- Actividades -->

@@ -148,6 +148,7 @@ export class PracticasService {
         estudiante: true,
         centro: true,
         practicaColaboradores: { include: { colaborador: true } },
+        practicaTutores: { include: { tutor: true } },
       },
     });
   }
@@ -213,6 +214,7 @@ export class PracticasService {
         estudiante: true,
         centro: true,
         practicaColaboradores: { include: { colaborador: true } },
+        practicaTutores: { include: { tutor: true } },
       },
     });
     if (!p) throw new NotFoundException('Práctica no encontrada');

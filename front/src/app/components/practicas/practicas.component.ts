@@ -1,5 +1,5 @@
-import { Component, inject, PLATFORM_ID } from '@angular/core';
-import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { Component, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 
@@ -15,11 +15,18 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
-import { MatChipsModule } from '@angular/material/chips';
 
 // Servicios
-import { PracticasService, Estudiante, CentroEducativo, Colaborador, EstadoPractica } from '../../services/practicas.service';
+import {
+  PracticasService,
+  Estudiante,
+  CentroEducativo,
+  Colaborador,
+  EstadoPractica,
+  TutorRol,
+} from '../../services/practicas.service';
 import { ColaboradoresService } from '../../services/colaboradores.service';
+import { TutoresService, Tutor } from '../../services/tutores.service';
 import { HttpClient } from '@angular/common/http';
 
 // Tipos de práctica (como string libre)
@@ -42,7 +49,8 @@ interface Practica {
   tipo?: TipoPractica;
   estudiante: Estudiante;
   centro: CentroEducativo;
-  colaborador: Colaborador; // Usando el tipo del servicio
+  colaboradores: Colaborador[];
+  tutores: { tutor: Tutor; rol: TutorRol }[];
   actividades?: Actividad[];
 }
 
@@ -66,16 +74,15 @@ interface Practica {
     MatNativeDateModule,
     MatSnackBarModule,
     MatDividerModule,
-    MatAutocompleteModule,
-    MatChipsModule
+    MatAutocompleteModule
   ]
 })
 export class PracticasComponent {
   private fb = inject(FormBuilder);
   private snack = inject(MatSnackBar);
-  private platformId = inject(PLATFORM_ID);
   private practicasService = inject(PracticasService);
   private colaboradoresService = inject(ColaboradoresService);
+  private tutoresService = inject(TutoresService);
   private http = inject(HttpClient);
 
   // Filtros
@@ -95,12 +102,12 @@ export class PracticasComponent {
   // Propiedades para autocompletado
   estudianteFiltrado: Estudiante[] = [];
   centroFiltrado: CentroEducativo[] = [];
-  colaboradorFiltrado: Colaborador[] = [];
 
   // Datos para los selects (se cargan desde la API)
   estudiantes: Estudiante[] = [];
   centros: CentroEducativo[] = [];
   colaboradores: Colaborador[] = [];
+  tutores: Tutor[] = [];
 
   // Opciones de tipos de práctica
   tiposPractica: string[] = [
@@ -117,30 +124,19 @@ export class PracticasComponent {
   tiposCentro: string[] = [];
 
   estadosPractica: EstadoPractica[] = [
-    'PENDIENTE',
     'EN_CURSO',
-    'FINALIZADA',
-    'RECHAZADA'
+    'APROBADO',
+    'REPROBADO'
   ];
 
-  // Selección múltiple de colaboradores (máx. 2)
-  selectedColaboradores: Colaborador[] = [];
-
-  // Validador de 1..2 seleccionados
-  validarColaboradores = (control: any) => {
-    const arr: number[] = control?.value || [];
-    if (!arr || arr.length === 0) return { requiredMin: true };
-    if (arr.length > 2) return { maxSeleccionados: true };
-    return null;
-  };
+  rolesTutor: TutorRol[] = ['Supervisor', 'Tallerista'];
 
   // Función para formatear el estado para mostrar al usuario
   formatearEstado(estado: EstadoPractica): string {
     const formato: Record<EstadoPractica, string> = {
-      'PENDIENTE': 'Pendiente',
       'EN_CURSO': 'En Curso',
-      'FINALIZADA': 'Finalizada',
-      'RECHAZADA': 'Rechazada'
+      'APROBADO': 'Aprobado',
+      'REPROBADO': 'Reprobado'
     };
     return formato[estado] || estado;
   }
@@ -176,18 +172,38 @@ export class PracticasComponent {
     this.formularioPractica = this.fb.group({
       estudianteRut: ['', [Validators.required]],
       centroId: ['', [Validators.required]],
-
-      // Compatibilidad: primer colaborador (invisible en el input)
-      colaboradorId: [''],
-
-      // NUEVO: IDs de colaboradores seleccionados (1..2)
-      colaboradoresIds: [[], [this.validarColaboradores]],
-
+      colaborador1Id: [null, [Validators.required]],
+      colaborador2Id: [null],
+      tutor1Id: [null, [Validators.required]],
+      tutor1Rol: ['', [Validators.required]],
+      tutor2Id: [null],
+      tutor2Rol: [''],
       fecha_inicio: ['', Validators.required],
       fecha_termino: [''],
       tipo: [''],
       estado: ['PENDIENTE']
     }, { validators: this.validarFechas });
+
+    this.formularioPractica.get('tutor2Id')?.valueChanges.subscribe((value) => {
+      const rolControl = this.formularioPractica.get('tutor2Rol');
+      if (value !== null && value !== undefined && value !== '') {
+        rolControl?.setValidators([Validators.required]);
+      } else {
+        rolControl?.clearValidators();
+        rolControl?.setValue('', { emitEvent: false });
+      }
+      rolControl?.updateValueAndValidity({ emitEvent: false });
+    });
+
+    this.formularioPractica.get('tutor2Rol')?.valueChanges.subscribe((value) => {
+      const tutorControl = this.formularioPractica.get('tutor2Id');
+      if (value && (value as string).trim()) {
+        tutorControl?.setValidators([Validators.required]);
+      } else {
+        tutorControl?.clearValidators();
+      }
+      tutorControl?.updateValueAndValidity({ emitEvent: false });
+    });
 
     // Suscribirse a cambios en fecha_inicio para actualizar fechaMinimaTermino
     this.formularioPractica.get('fecha_inicio')?.valueChanges.subscribe(fechaInicio => {
@@ -232,7 +248,7 @@ export class PracticasComponent {
         });
 
         // Cargar otros datos
-        this.cargarCentrosYColaboradores();
+        this.cargarCentrosColaboradoresYTutores();
       },
       error: (err) => {
         console.error('Error al cargar prácticas:', err);
@@ -251,7 +267,7 @@ export class PracticasComponent {
     });
   }
 
-  cargarCentrosYColaboradores() {
+  cargarCentrosColaboradoresYTutores() {
     // Cargar centros educativos
     this.http.get<any>('http://localhost:3000/centros?page=1&limit=100').subscribe({
       next: (response) => {
@@ -271,9 +287,16 @@ export class PracticasComponent {
     this.colaboradoresService.listar({ page: 1, limit: 100 }).subscribe({
       next: (response) => {
         this.colaboradores = response.items || [];
-        this.colaboradorFiltrado = this.colaboradores.slice(0, 5);
       },
       error: (err) => { console.error('Error al cargar colaboradores:', err); }
+    });
+
+    // Cargar tutores
+    this.tutoresService.listar({ page: 1, limit: 1000 }).subscribe({
+      next: (response) => {
+        this.tutores = response.items || [];
+      },
+      error: (err) => { console.error('Error al cargar tutores:', err); }
     });
 
     this.cargando = false;
@@ -318,6 +341,33 @@ export class PracticasComponent {
       return date.toLocaleDateString('es-ES', { year: 'numeric', month: '2-digit', day: '2-digit' });
     };
 
+    const colaboradores = Array.isArray(p.practicaColaboradores)
+      ? p.practicaColaboradores.map((pc: any) => ({
+          id: pc.colaborador?.id || 0,
+          nombre: pc.colaborador?.nombre || '',
+          correo: pc.colaborador?.correo,
+          tipo: pc.colaborador?.tipo,
+          cargo: pc.colaborador?.cargo,
+          telefono: pc.colaborador?.telefono,
+        }))
+      : [];
+
+    const tutores = Array.isArray(p.practicaTutores)
+      ? p.practicaTutores.map((pt: any) => ({
+          tutor: {
+            id: pt.tutor?.id || 0,
+            rut: pt.tutor?.rut || '',
+            nombre: pt.tutor?.nombre || '',
+            correo: pt.tutor?.correo,
+            telefono: pt.tutor?.telefono,
+            cargo: pt.tutor?.cargo,
+            universidad_egreso: pt.tutor?.universidad_egreso,
+            direccion: pt.tutor?.direccion,
+          } as Tutor,
+          rol: (pt.rol as TutorRol) || 'Supervisor',
+        }))
+      : [];
+
     return {
       id: p.id,
       estado: p.estado,
@@ -339,14 +389,8 @@ export class PracticasComponent {
         comuna: p.centro?.comuna,
         convenio: p.centro?.convenio
       },
-      colaborador: {
-        id: p.colaborador?.id || 0,
-        nombre: p.colaborador?.nombre || '',
-        correo: p.colaborador?.correo,
-        tipo: p.colaborador?.tipo,
-        cargo: p.colaborador?.cargo,
-        telefono: p.colaborador?.telefono
-      },
+      colaboradores,
+      tutores,
       actividades: []
     };
   }
@@ -359,13 +403,13 @@ export class PracticasComponent {
     const termino = this.terminoBusqueda.toLowerCase().trim();
 
     return this.practicas.filter(practica => {
-      if (!practica || !practica.estudiante || !practica.centro || !practica.colaborador) return false;
-
+      if (!practica || !practica.estudiante || !practica.centro) return false;
+      const nombresColaboradores = practica.colaboradores?.map(c => c.nombre?.toLowerCase() || '') ?? [];
       const coincideBusqueda = !termino ||
         practica.estudiante.nombre?.toLowerCase().includes(termino) ||
         practica.estudiante.rut?.toLowerCase().includes(termino) ||
         practica.centro.nombre?.toLowerCase().includes(termino) ||
-        practica.colaborador.nombre?.toLowerCase().includes(termino);
+        nombresColaboradores.some(nombre => nombre.includes(termino));
 
       const coincideColegio = this.colegioSeleccionado === 'all' ||
         (practica.centro.tipo || '').toLowerCase() === this.colegioSeleccionado.toLowerCase();
@@ -389,25 +433,34 @@ export class PracticasComponent {
   abrirNuevaAsignacion() {
     this.mostrarFormulario = true;
     this.formularioPractica.reset({
-      estado: 'PENDIENTE',
-      colaboradoresIds: [],
-      colaboradorId: ''
+      estado: 'EN_CURSO',
+      colaborador1Id: null,
+      colaborador2Id: null,
+      tutor1Id: null,
+      tutor1Rol: '',
+      tutor2Id: null,
+      tutor2Rol: '',
+      fecha_inicio: '',
+      fecha_termino: ''
     });
-    this.selectedColaboradores = [];
     this.fechaMinimaTermino = null;
     this.estudianteFiltrado = [...this.estudiantes];
     this.centroFiltrado = [...this.centros];
-    this.colaboradorFiltrado = [...this.colaboradores];
   }
 
   cerrarFormulario() {
     this.mostrarFormulario = false;
     this.formularioPractica.reset({
-      estado: 'PENDIENTE',
-      colaboradoresIds: [],
-      colaboradorId: ''
+      estado: 'EN_CURSO',
+      colaborador1Id: null,
+      colaborador2Id: null,
+      tutor1Id: null,
+      tutor1Rol: '',
+      tutor2Id: null,
+      tutor2Rol: '',
+      fecha_inicio: '',
+      fecha_termino: ''
     });
-    this.selectedColaboradores = [];
     this.fechaMinimaTermino = null;
   }
 
@@ -439,24 +492,9 @@ export class PracticasComponent {
     this.centroFiltrado = filtrados;
   }
 
-  filtrarColaboradores(event: any) {
-    const filtro = (event?.target?.value || '').toLowerCase();
-    let filtrados: Colaborador[];
-    if (!filtro) filtrados = this.colaboradores.slice(0, 5);
-    else {
-      filtrados = this.colaboradores.filter(c =>
-        c.nombre.toLowerCase().includes(filtro) ||
-        (c.tipo && c.tipo.toLowerCase().includes(filtro)) ||
-        (c.cargo && c.cargo.toLowerCase().includes(filtro))
-      ).slice(0, 5);
-    }
-    this.colaboradorFiltrado = filtrados;
-  }
-
   // Mostrar los primeros 5 elementos al enfocar
   mostrarTodosEstudiantes() { this.estudianteFiltrado = this.estudiantes.slice(0, 5); }
   mostrarTodosCentros() { this.centroFiltrado = this.centros.slice(0, 5); }
-  mostrarTodosColaboradores() { this.colaboradorFiltrado = this.colaboradores.slice(0, 5); }
 
   // displayWith helpers
   mostrarEstudiante(value: any): string {
@@ -467,6 +505,32 @@ export class PracticasComponent {
     }
     if (typeof value === 'object' && value.rut) return `${value.nombre} - ${value.rut}`;
     return '';
+  }
+
+  isColaboradorSeleccionado(colaboradorId: number | null, control: 'colaborador1Id' | 'colaborador2Id'): boolean {
+    if (colaboradorId === null || colaboradorId === undefined) return false;
+    const otroControl = control === 'colaborador1Id' ? 'colaborador2Id' : 'colaborador1Id';
+    return this.formularioPractica.get(otroControl)?.value === colaboradorId;
+  }
+
+  formatColaboradores(colaboradores?: Colaborador[]): string {
+    if (!colaboradores || colaboradores.length === 0) return 'Sin colaboradores';
+    return colaboradores
+      .map((c) => c.nombre)
+      .filter((nombre): nombre is string => !!nombre && nombre.trim().length > 0)
+      .join(', ') || 'Sin colaboradores';
+  }
+
+  formatTutores(tutores?: { tutor: Tutor; rol: TutorRol }[]): string {
+    if (!tutores || tutores.length === 0) return 'Sin tutores';
+    const etiquetas = tutores
+      .map((t) => {
+        const nombre = t.tutor?.nombre?.trim();
+        const rol = t.rol ?? 'Supervisor';
+        return nombre ? `${nombre} (${rol})` : null;
+      })
+      .filter((texto): texto is string => !!texto);
+    return etiquetas.length ? etiquetas.join(', ') : 'Sin tutores';
   }
 
   mostrarCentro(value: any): string {
@@ -497,65 +561,122 @@ export class PracticasComponent {
     this.formularioPractica.patchValue({ centroId: centro.id.toString() });
   }
 
-  // MULTI: seleccionar y quitar colaboradores
-  onColaboradorSeleccionadoMultiple(event: any) {
-    const colaborador: Colaborador = event.option.value;
-    if (this.selectedColaboradores.some(c => c.id === colaborador.id)) return;
-    if (this.selectedColaboradores.length >= 2) return;
-
-    this.selectedColaboradores = [...this.selectedColaboradores, colaborador];
-
-    const ids = this.selectedColaboradores.map(c => c.id);
-    this.formularioPractica.patchValue({
-      colaboradoresIds: ids,
-      colaboradorId: ids.length ? ids[0].toString() : ''
-    });
-    this.formularioPractica.get('colaboradoresIds')?.updateValueAndValidity();
-  }
-
-  removerColaborador(colaborador: Colaborador) {
-    this.selectedColaboradores = this.selectedColaboradores.filter(c => c.id !== colaborador.id);
-    const ids = this.selectedColaboradores.map(c => c.id);
-    this.formularioPractica.patchValue({
-      colaboradoresIds: ids,
-      colaboradorId: ids.length ? ids[0].toString() : ''
-    });
-    this.formularioPractica.get('colaboradoresIds')?.updateValueAndValidity();
-  }
-
-  isMaxColaboradoresSeleccionados(): boolean {
-    return this.selectedColaboradores.length >= 2;
-  }
-
   guardarPractica() {
-    if (this.formularioPractica.valid) {
-      const formData = this.formularioPractica.value;
+    if (this.formularioPractica.invalid) {
+      this.formularioPractica.markAllAsTouched();
+      this.snack.open('⚠️ Por favor completa todos los campos requeridos', 'Cerrar', {
+        duration: 3000,
+        horizontalPosition: 'center',
+        verticalPosition: 'bottom',
+        panelClass: ['warning-snackbar']
+      });
+      return;
+    }
 
-      const ids: number[] = (formData.colaboradoresIds || [])
-        .map((x: any) => Number(x))
-        .filter((n: any) => !isNaN(n));
+    const formData = this.formularioPractica.value;
+    const toNumber = (value: any): number | null => {
+      if (value === null || value === undefined || value === '') return null;
+      const num = Number(value);
+      return Number.isNaN(num) ? null : num;
+    };
 
-      const primerId = ids.length
-        ? ids[0]
-        : (formData.colaboradorId ? parseInt(formData.colaboradorId) : undefined);
+    const colaboradorIds = [toNumber(formData.colaborador1Id), toNumber(formData.colaborador2Id)]
+      .filter((id): id is number => id !== null);
 
-      const dto: any = {
-        estudianteRut: formData.estudianteRut,
-        centroId: parseInt(formData.centroId),
-        // Compatibilidad: primer colaborador
-        colaboradorId: primerId,
-        // Nuevo: arreglo 1..2
-        colaboradoresIds: ids.length ? ids : (primerId ? [primerId] : []),
-        fecha_inicio: this.formatearFecha(formData.fecha_inicio),
-        fecha_termino: formData.fecha_termino ? this.formatearFecha(formData.fecha_termino) : undefined,
-        tipo: formData.tipo || undefined,
-        estado: formData.estado || 'PENDIENTE'
-      };
+    if (!colaboradorIds.length) {
+      this.snack.open('Debes seleccionar al menos un colaborador.', 'Cerrar', {
+        duration: 3000,
+        horizontalPosition: 'center',
+        verticalPosition: 'bottom',
+        panelClass: ['warning-snackbar']
+      });
+      return;
+    }
+
+    if (new Set(colaboradorIds).size !== colaboradorIds.length) {
+      this.snack.open('Los colaboradores no pueden repetirse.', 'Cerrar', {
+        duration: 3000,
+        horizontalPosition: 'center',
+        verticalPosition: 'bottom',
+        panelClass: ['warning-snackbar']
+      });
+      return;
+    }
+
+    const tutorEntries = [
+      { id: toNumber(formData.tutor1Id), rol: (formData.tutor1Rol || '').trim() },
+      { id: toNumber(formData.tutor2Id), rol: (formData.tutor2Rol || '').trim() }
+    ].filter(entry => entry.id !== null);
+
+    if (!tutorEntries.length) {
+      this.snack.open('Debes seleccionar al menos un tutor.', 'Cerrar', {
+        duration: 3000,
+        horizontalPosition: 'center',
+        verticalPosition: 'bottom',
+        panelClass: ['warning-snackbar']
+      });
+      return;
+    }
+
+    if (tutorEntries.some(entry => !entry.rol)) {
+      this.snack.open('Debes asignar un rol a cada tutor seleccionado.', 'Cerrar', {
+        duration: 3000,
+        horizontalPosition: 'center',
+        verticalPosition: 'bottom',
+        panelClass: ['warning-snackbar']
+      });
+      return;
+    }
+
+    const tutorIds = tutorEntries.map((entry) => entry.id!) as number[];
+    if (new Set(tutorIds).size !== tutorIds.length) {
+      this.snack.open('Los tutores no pueden repetirse.', 'Cerrar', {
+        duration: 3000,
+        horizontalPosition: 'center',
+        verticalPosition: 'bottom',
+        panelClass: ['warning-snackbar']
+      });
+      return;
+    }
+
+    const centroId = toNumber(formData.centroId);
+    if (centroId === null) {
+      this.snack.open('Debes seleccionar un centro educativo válido.', 'Cerrar', {
+        duration: 3000,
+        horizontalPosition: 'center',
+        verticalPosition: 'bottom',
+        panelClass: ['warning-snackbar']
+      });
+      return;
+    }
+
+    const fechaInicio = this.formatearFecha(formData.fecha_inicio);
+    if (!fechaInicio) {
+      this.snack.open('La fecha de inicio es obligatoria.', 'Cerrar', {
+        duration: 3000,
+        horizontalPosition: 'center',
+        verticalPosition: 'bottom',
+        panelClass: ['warning-snackbar']
+      });
+      return;
+    }
+
+    const dto = {
+      estudianteRut: formData.estudianteRut,
+      centroId,
+      colaboradorIds,
+      tutorIds,
+      tutorRoles: tutorEntries.map((entry) => entry.rol as TutorRol),
+      fecha_inicio: fechaInicio,
+      fecha_termino: formData.fecha_termino ? this.formatearFecha(formData.fecha_termino) : undefined,
+      tipo: formData.tipo || undefined,
+      estado: formData.estado || 'EN_CURSO'
+    };
 
       this.practicasService.crear(dto).subscribe({
         next: () => {
           this.snack.open(
-            `✓ Práctica asignada exitosamente`, 
+          '✓ Práctica asignada exitosamente',
             'Cerrar', 
             { duration: 4000, horizontalPosition: 'center', verticalPosition: 'bottom', panelClass: ['success-snackbar'] }
           );
@@ -571,12 +692,6 @@ export class PracticasComponent {
           });
         }
       });
-    } else {
-      this.formularioPractica.markAllAsTouched();
-      this.snack.open('⚠️ Por favor completa todos los campos requeridos', 'Cerrar', {
-        duration: 3000, horizontalPosition: 'center', verticalPosition: 'bottom', panelClass: ['warning-snackbar']
-      });
-    }
   }
 
   verDetalles(practica: Practica) {
