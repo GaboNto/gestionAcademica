@@ -142,7 +142,6 @@ export class PracticasComponent {
   }
 
   // Propiedades para las fechas mínimas del datepicker
-  fechaMinimaInicio: Date = new Date();
   fechaMinimaTermino: Date | null = null;
 
   // Validador personalizado para verificar que fecha_termino no sea anterior a fecha_inicio
