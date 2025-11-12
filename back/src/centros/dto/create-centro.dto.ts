@@ -1,6 +1,6 @@
-import { IsEmail, IsIn, IsInt, IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
+import { IsDateString, IsEmail, IsIn, IsInt, IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
 
-export const TIPO_CENTRO_VALUES = ['PARTICULAR', 'PARTICULAR_SUBVENCIONADO', 'SLEP'] as const;
+export const TIPO_CENTRO_VALUES = ['PARTICULAR', 'PARTICULAR_SUBVENCIONADO', 'SLEP', 'NO_CONVENCIONAL'] as const;
 export type TipoCentroDTO = typeof TIPO_CENTRO_VALUES[number];
 
 export class CreateCentroDto {
@@ -9,7 +9,6 @@ export class CreateCentroDto {
   @IsNotEmpty()
   nombre!: string;
 
-  // Validamos contra los 3 valores válidos del enum de Prisma
   @IsString()
   @IsIn(TIPO_CENTRO_VALUES)
   tipo!: TipoCentroDTO;
@@ -28,13 +27,6 @@ export class CreateCentroDto {
   @IsOptional() @IsString()
   direccion?: string | null;
 
-  // nombre_calle / numero_calle en BD
-  @IsOptional() @IsString()
-  nombre_calle?: string | null;
-
-  @IsOptional()
-  numero_calle?: number | null;
-
   @IsOptional()
   telefono?: number | null;
 
@@ -43,4 +35,7 @@ export class CreateCentroDto {
 
   @IsOptional() @IsString()
   url_rrss?: string | null;
+
+  @IsOptional() @IsDateString()
+  fecha_inicio_asociacion?: string;
 }

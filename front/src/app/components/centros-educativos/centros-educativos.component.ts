@@ -10,13 +10,15 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule }  from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
 
 // APIs
-import { CentrosApiService, CentroEducativoDTO, TrabajadorDTO } from '../../services/centros-api.service';
+import { CentrosApiService, CentroEducativoDTO, TrabajadorDTO, CreateCentroPayload, UpdateCentroPayload } from '../../services/centros-api.service';
 import { TrabajadoresApiService } from '../../services/trabajadores-api.service';
 
 // === tipos compatibles con tu enum Prisma ===
-type TipoCentro = 'PARTICULAR' | 'PARTICULAR_SUBVENCIONADO' | 'SLEP';
+type TipoCentro = 'PARTICULAR' | 'PARTICULAR_SUBVENCIONADO' | 'SLEP' | 'NO_CONVENCIONAL';
 type Convenio   = 'Marco SLEP' | 'Solicitud directa' | 'ADEP' | string;
 
 interface CentroEducativo {
@@ -28,10 +30,9 @@ interface CentroEducativo {
   convenio?: Convenio;
   direccion?: string;
   url_rrss?: string;
-  calle?: string | null;
-  numero?: number | string | null;
   telefono?: number | string | null;
   correo?: string | null;
+  fecha_inicio_asociacion?: string | null; // YYYY-MM-DD
 }
 
 type CentroDetalle = CentroEducativo & {
@@ -47,7 +48,8 @@ type CentroDetalle = CentroEducativo & {
     CommonModule, FormsModule,
     MatButtonModule, MatIconModule, MatCardModule,
     MatFormFieldModule, MatInputModule, MatSelectModule,
-    MatSnackBarModule
+    MatSnackBarModule,
+    MatDatepickerModule, MatNativeDateModule, // <-- necesarios para el datepicker
   ]
 })
 export class CentrosEducativosComponent {
@@ -98,10 +100,9 @@ export class CentrosEducativosComponent {
     convenio: 'Marco SLEP',
     direccion: '',
     url_rrss: '',
-    calle: '',
-    numero: '',
     telefono: '',
     correo: '',
+    fecha_inicio_asociacion: null, // <-- inicia sin fecha
   };
 
   // ===== contactos (modal nuevo) =====
@@ -144,11 +145,31 @@ export class CentrosEducativosComponent {
     convenio: dto.convenio ?? undefined,
     direccion: dto.direccion ?? undefined,
     url_rrss: dto.url_rrss ?? undefined,
-    calle: dto.nombre_calle ?? undefined,
-    numero: (dto.numero_calle as any) ?? undefined,
     telefono: (dto.telefono as any) ?? undefined,
     correo: dto.correo ?? undefined,
+    // normaliza a YYYY-MM-DD (si llega ISO con hora)
+    fecha_inicio_asociacion: dto.fecha_inicio_asociacion
+      ? String(dto.fecha_inicio_asociacion).slice(0, 10)
+      : null,
   });
+
+  // ===== helpers de fecha =====
+  toDate(iso?: string | null): Date | null {
+    if (!iso) return null;
+    // evitar problemas de TZ creando la fecha local a partir de YYYY-MM-DD
+    const [y, m, d] = iso.split('-').map(Number);
+    return new Date(y, (m - 1), d);
+  }
+  private toISODateOnly(d?: Date | null): string | null {
+    if (!d) return null;
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
+  onFechaAsociacionChange(d: Date | null) {
+    this.newCentroEducativo.fecha_inicio_asociacion = this.toISODateOnly(d);
+  }
 
   // ===== helpers UI =====
   toggleForm() { this.showForm = !this.showForm; if (!this.showForm) this.resetForm(); }
@@ -173,10 +194,9 @@ export class CentrosEducativosComponent {
       convenio: 'Marco SLEP',
       direccion: '',
       url_rrss: '',
-      calle: '',
-      numero: '',
       telefono: '',
       correo: '',
+      fecha_inicio_asociacion: null, // <-- reset
     };
     this.comunasFiltradas = [];
     this.contactosForm = {
@@ -190,53 +210,45 @@ export class CentrosEducativosComponent {
 
   // ===== CRUD centro =====
   addOrUpdateCentro() {
-    const c = this.newCentroEducativo;
-    if (!c.nombre?.trim() || !c.tipo || !c.region || !c.comuna || !c.convenio) {
-      this.snack.open('Debe completar todos los campos requeridos.', 'Cerrar', { duration: 2500 });
-      return;
-    }
+  const c = this.newCentroEducativo;
 
-    const payloadCentro = {
-      nombre: c.nombre!.trim(),
-      tipo: c.tipo as TipoCentro,
-      region: c.region!,
-      comuna: c.comuna!,
-      convenio: c.convenio as string,
-      direccion: c.direccion?.trim(),
-      url_rrss: c.url_rrss?.trim(),
-      calle: c.calle?.toString().trim() ?? '',
-      numero: c.numero ?? '',
-      telefono: c.telefono ?? '',
-      correo: c.correo?.toString().trim() ?? '',
-    };
-
-    const req$ = (this.isEditing && this.editId != null)
-      ? this.centrosApi.update(this.editId, payloadCentro)
-      : this.centrosApi.create(payloadCentro);
-
-    req$.subscribe({
-      next: () => {
-        if (this.isEditing && this.editId != null) {
-          this.snack.open('✓ Centro actualizado correctamente', 'Cerrar', {
-            duration: 4000,
-            horizontalPosition: 'center',
-            verticalPosition: 'bottom',
-            panelClass: ['success-snackbar']
-          });
-          this.toggleForm(); this.resetForm(); this.load();
-        } else {
-          this.snack.open('✓ Centro agregado correctamente', 'Cerrar', {
-            duration: 4000,
-            horizontalPosition: 'center',
-            verticalPosition: 'bottom',
-            panelClass: ['success-snackbar']
-          });
-          this.toggleForm(); this.resetForm(); this.load();
-        }
-      },
-      error: () => this.snack.open('No se pudo guardar el centro.', 'Cerrar', { duration: 2500 })
-    });
+  if (!c.nombre?.trim() || !c.tipo || !c.region || !c.comuna || !c.convenio) {
+    this.snack.open('Debe completar todos los campos requeridos.', 'Cerrar', { duration: 2500 });
+    return;
   }
+
+  // Normalizar teléfono a string|number|null -> string|null para el payload (el servicio lo convierte a number|null)
+  const telefonoStr = (c.telefono ?? '').toString().trim();
+
+  // Usa el tipo del servicio para que calce con create/update
+  const payloadCentro: CreateCentroPayload = {
+    nombre: c.nombre!.trim(),
+    tipo: c.tipo as any,
+    region: c.region!,
+    comuna: c.comuna!,
+    convenio: c.convenio ? String(c.convenio) : undefined,             // undefined (no null) para opcionales
+    direccion: c.direccion?.trim() || undefined,
+    url_rrss: c.url_rrss?.trim() || undefined,
+    telefono: telefonoStr !== '' ? telefonoStr : null,                 // string | null (el service lo pasa a number|null)
+    correo: c.correo?.toString().trim() || undefined,
+    fecha_inicio_asociacion: c.fecha_inicio_asociacion ?? null,        // "YYYY-MM-DD" | null
+  };
+
+  const req$ = (this.isEditing && this.editId != null)
+    ? this.centrosApi.update(this.editId, payloadCentro as UpdateCentroPayload) // UpdateCentroPayload = Partial<CreateCentroPayload>
+    : this.centrosApi.create(payloadCentro);
+
+  req$.subscribe({
+    next: () => {
+      this.snack.open(this.isEditing ? '✓ Centro actualizado correctamente' : '✓ Centro agregado correctamente', 'Cerrar', {
+        duration: 4000, horizontalPosition: 'center', verticalPosition: 'bottom', panelClass: ['success-snackbar']
+      });
+      this.toggleForm(); this.resetForm(); this.load();
+    },
+    error: () => this.snack.open('No se pudo guardar el centro.', 'Cerrar', { duration: 2500 })
+  });
+}
+
 
   editCentro(c: CentroEducativo) {
     this.isEditing = true;
@@ -257,9 +269,7 @@ export class CentrosEducativosComponent {
     this.centrosApi.delete(id).subscribe({
       next: () => {
         this.snack.open('✓ Centro eliminado correctamente', 'Cerrar', {
-          duration: 4000,
-          horizontalPosition: 'center',
-          verticalPosition: 'bottom',
+          duration: 4000, horizontalPosition: 'center', verticalPosition: 'bottom',
           panelClass: ['success-snackbar']
         });
         this.pendingDelete = null;
@@ -375,9 +385,7 @@ export class CentrosEducativosComponent {
 
     Promise.all(ops).then(() => {
       this.snack.open('✓ Contactos guardados correctamente', 'Cerrar', {
-        duration: 4000,
-        horizontalPosition: 'center',
-        verticalPosition: 'bottom',
+        duration: 4000, horizontalPosition: 'center', verticalPosition: 'bottom',
         panelClass: ['success-snackbar']
       });
       this.closeContacts();
