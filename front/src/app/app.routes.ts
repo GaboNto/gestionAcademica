@@ -77,6 +77,14 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./components/carta/carta.component').then(m => m.CartaComponent),
   },
+
+  // Estudiantes en práctica (solo para jefatura de carrera)
+  {
+    path: 'estudiantes-en-practica',
+    loadComponent: () =>
+      import('./components/estudiantes-en-practica/estudiantes-en-practica.component').then(m => m.EstudiantesEnPracticaComponent),
+  },
+
   // Ruta por defecto → redirige a inicio
   { path: '**', redirectTo: '', pathMatch: 'full' },
 ];

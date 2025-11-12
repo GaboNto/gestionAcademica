@@ -128,5 +128,9 @@ export class PracticasService {
 
     return this.http.get<PracticasResponse>(`${API_URL}/jefatura`, { params: httpParams });
   }
+
+  actualizarEstado(id: number, estado: EstadoPractica): Observable<{ message: string; data: Practica }> {
+    return this.http.patch<{ message: string; data: Practica }>(`${API_URL}/${id}/estado`, { estado });
+  }
 }
 

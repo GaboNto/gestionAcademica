@@ -220,4 +220,32 @@ export class PracticasService {
     if (!p) throw new NotFoundException('Práctica no encontrada');
     return p;
   }
+
+  async updateEstado(id: number, estado: EstadoPractica) {
+    const practica = await this.prisma.practica.findUnique({
+      where: { id },
+    });
+    
+    if (!practica) {
+      throw new NotFoundException('Práctica no encontrada');
+    }
+
+    const updated = await this.prisma.practica.update({
+      where: { id },
+      data: { estado: estado as any },
+      include: {
+        estudiante: true,
+        centro: true,
+        practicaColaboradores: { include: { colaborador: true } },
+        practicaTutores: { include: { tutor: true } },
+      },
+    });
+
+    this.notifyChange('updated', updated);
+
+    return {
+      message: 'Estado de la práctica actualizado exitosamente.',
+      data: updated,
+    };
+  }
 }
