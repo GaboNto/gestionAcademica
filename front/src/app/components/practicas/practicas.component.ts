@@ -1,6 +1,5 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 
 // Angular Material
@@ -13,7 +12,6 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { MatDividerModule } from '@angular/material/divider';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 
 // Servicios
@@ -61,7 +59,6 @@ interface Practica {
   styleUrls: ['./practicas.component.scss'],
   imports: [
     CommonModule,
-    RouterModule,
     ReactiveFormsModule,
     FormsModule,
     MatButtonModule,
@@ -73,7 +70,6 @@ interface Practica {
     MatDatepickerModule,
     MatNativeDateModule,
     MatSnackBarModule,
-    MatDividerModule,
     MatAutocompleteModule
   ]
 })
@@ -97,7 +93,6 @@ export class PracticasComponent {
   // Estado para modal de formulario
   mostrarFormulario = false;
   formularioPractica: FormGroup;
-  cargando = false;
 
   // Propiedades para autocompletado
   estudianteFiltrado: Estudiante[] = [];
@@ -221,8 +216,6 @@ export class PracticasComponent {
 
   // Cargar datos iniciales desde las APIs
   cargarDatosIniciales() {
-    this.cargando = true;
-
     // Cargar prácticas primero para filtrar estudiantes
     this.practicasService.listar().subscribe({
       next: (practicas) => {
@@ -297,8 +290,6 @@ export class PracticasComponent {
       },
       error: (err) => { console.error('Error al cargar tutores:', err); }
     });
-
-    this.cargando = false;
   }
 
   // Cargar prácticas desde la API

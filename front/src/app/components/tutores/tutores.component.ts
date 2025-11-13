@@ -1,6 +1,5 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 
 import { MatButtonModule } from '@angular/material/button';
@@ -42,7 +41,6 @@ interface TutorForm {
 })
 export class TutoresComponent {
   private snack = inject(MatSnackBar);
-  private router = inject(Router);
   private tutoresService = inject(TutoresService);
   private fb = inject(FormBuilder);
 
@@ -58,7 +56,6 @@ export class TutoresComponent {
 
   formularioTutor!: FormGroup;
 
-  tutores: Tutor[] = [];
   todosLosTutores: Tutor[] = [];
 
   constructor() {
@@ -120,7 +117,6 @@ export class TutoresComponent {
     this.tutoresService.listar(params).subscribe({
       next: (response) => {
         this.todosLosTutores = response.items || [];
-        this.tutores = this.todosLosTutores;
         this.cargando = false;
       },
       error: (err) => {
@@ -133,10 +129,6 @@ export class TutoresComponent {
 
   cargarTutores() {
     this.cargarTodosLosTutores();
-  }
-
-  volverAtras() {
-    this.router.navigate(['/dashboard']);
   }
 
   verDetalles(tutor: Tutor) {
@@ -287,10 +279,6 @@ export class TutoresComponent {
     }
 
     return resultado;
-  }
-
-  aplicarFiltros() {
-    // Filtrado local; método reservado para futuros cambios.
   }
 
   editarTutor(tutor: Tutor) {
@@ -460,5 +448,3 @@ export class TutoresComponent {
     return '';
   }
 }
-
-

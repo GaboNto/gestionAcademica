@@ -36,7 +36,9 @@
           <mat-label>Nivel</mat-label>
           <mat-select [(ngModel)]="nivelSeleccionado">
             <mat-option value="all">Todos los niveles</mat-option>
-            <mat-option *ngFor="let n of niveles" [value]="n">{{ n }}</mat-option>
+            @for (n of niveles; track n) {
+              <mat-option [value]="n">{{ n }}</mat-option>
+            }
           </mat-select>
         </mat-form-field>
 
@@ -47,7 +49,9 @@
               {{ colegioSeleccionado === 'all' ? 'Todos los tipos' : (colegioSeleccionado | lowercase) }}
             </mat-select-trigger>
             <mat-option value="all">Todos los tipos</mat-option>
-            <mat-option *ngFor="let t of tiposCentro" [value]="t">{{ t | lowercase }}</mat-option>
+            @for (t of tiposCentro; track t) {
+              <mat-option [value]="t">{{ t | lowercase }}</mat-option>
+            }
           </mat-select>
         </mat-form-field>
       </div>
@@ -171,8 +175,8 @@
                   <mat-option [value]="null">Seleccionar tutor...</mat-option>
                   @for (tutor of tutores; track tutor.id) {
                     <mat-option [value]="tutor.id">
-                      {{ tutor.nombre }}{{ tutor.cargo ? ' (' + tutor.cargo + ')' : '' }}
-    </mat-option>
+                      {{ tutor.nombre }}
+                    </mat-option>
                   }
                 </mat-select>
                 @if (formularioPractica.get('tutor1Id')?.hasError('required')) {
@@ -201,7 +205,7 @@
                   <mat-option [value]="null">Sin asignar</mat-option>
                   @for (tutor of tutores; track tutor.id) {
                     <mat-option [value]="tutor.id">
-                      {{ tutor.nombre }}{{ tutor.cargo ? ' (' + tutor.cargo + ')' : '' }}
+                      {{ tutor.nombre }}
                     </mat-option>
                   }
                 </mat-select>
@@ -466,19 +470,18 @@
                 Colaboradores
               </h3>
               @if (practicaSeleccionada.colaboradores && practicaSeleccionada.colaboradores.length) {
-              <div class="DetailsGrid">
+                <div class="CollaboratorsList">
                   @for (colaborador of practicaSeleccionada.colaboradores; track colaborador.id) {
-                <div class="DetailItem">
-                  <label>Nombre:</label>
-                      <span>{{ colaborador.nombre }}</span>
-                </div>
-                <div class="DetailItem">
-                      <label>Cargo:</label>
-                      <span>{{ colaborador.cargo || 'Sin especificar' }}</span>
-                </div>
-                <div class="DetailItem">
-                      <label>Correo:</label>
-                      <span>{{ colaborador.correo || 'Sin especificar' }}</span>
+                    <div class="CollaboratorRow">
+                      <div class="CollaboratorInfo">
+                        <span class="CollaboratorName">{{ colaborador.nombre }}</span>
+                        @if (colaborador.cargo) {
+                          <span class="CollaboratorCargo">• {{ colaborador.cargo }}</span>
+                        }
+                        @if (colaborador.correo) {
+                          <span class="CollaboratorEmail">• {{ colaborador.correo }}</span>
+                        }
+                      </div>
                     </div>
                   }
                 </div>
@@ -494,19 +497,16 @@
                 Tutores
               </h3>
               @if (practicaSeleccionada.tutores && practicaSeleccionada.tutores.length) {
-                <div class="DetailsGrid">
+                <div class="TutorsList">
                   @for (tutor of practicaSeleccionada.tutores; track tutor.tutor.id) {
-                    <div class="DetailItem">
-                      <label>Nombre:</label>
-                      <span>{{ tutor.tutor.nombre }}</span>
-                    </div>
-                    <div class="DetailItem">
-                      <label>Rol:</label>
-                      <span>{{ tutor.rol }}</span>
-                </div>
-                <div class="DetailItem">
-                      <label>Correo:</label>
-                      <span>{{ tutor.tutor.correo || 'Sin especificar' }}</span>
+                    <div class="TutorRow">
+                      <div class="TutorInfo">
+                        <span class="TutorName">{{ tutor.tutor.nombre }}</span>
+                        <span class="TutorRole">• {{ tutor.rol }}</span>
+                        @if (tutor.tutor.correo) {
+                          <span class="TutorEmail">• {{ tutor.tutor.correo }}</span>
+                        }
+                      </div>
                     </div>
                   }
                 </div>

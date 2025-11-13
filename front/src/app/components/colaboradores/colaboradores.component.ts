@@ -1,7 +1,6 @@
-﻿import { Component, inject, PLATFORM_ID } from '@angular/core';
-import { CommonModule, isPlatformBrowser } from '@angular/common';
+﻿import { Component, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
-import { Router } from '@angular/router';
 
 // Angular Material
 import { MatButtonModule } from '@angular/material/button';
@@ -9,7 +8,6 @@ import { MatIconModule }   from '@angular/material/icon';
 import { MatCardModule }   from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule }  from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
 // Servicios y tipos
@@ -35,14 +33,12 @@ interface ColaboradorForm {
   imports: [
     CommonModule, FormsModule, ReactiveFormsModule,
     MatButtonModule, MatIconModule, MatCardModule,
-    MatFormFieldModule, MatInputModule, MatSelectModule,
+    MatFormFieldModule, MatInputModule,
     MatSnackBarModule
   ]
 })
 export class ColaboradoresComponent {
   private snack = inject(MatSnackBar);
-  private router = inject(Router);
-  private platformId = inject(PLATFORM_ID);
   private colaboradoresService = inject(ColaboradoresService);
   private fb = inject(FormBuilder);
 
@@ -62,7 +58,6 @@ export class ColaboradoresComponent {
   formularioColaborador!: FormGroup;
 
   // Datos - todos los colaboradores sin filtrar
-  colaboradores: Colaborador[] = [];
   todosLosColaboradores: Colaborador[] = []; // Lista completa para filtrado local
 
   constructor() {
@@ -133,7 +128,6 @@ export class ColaboradoresComponent {
     this.colaboradoresService.listar(params).subscribe({
       next: (response) => {
         this.todosLosColaboradores = response.items || [];
-        this.colaboradores = this.todosLosColaboradores;
         this.cargando = false;
       },
       error: (err) => {
@@ -148,9 +142,6 @@ export class ColaboradoresComponent {
   cargarColaboradores() {
     this.cargarTodosLosColaboradores();
   }
-
-  // NavegaciÃ³n
-  volverAtras() { this.router.navigate(['/dashboard']); }
 
   // Detalles
   verDetalles(colaborador: Colaborador) {
@@ -302,7 +293,8 @@ export class ColaboradoresComponent {
         const cargo = (colaborador.cargo || '').toLowerCase();
         const rut = (colaborador.rut || '').toLowerCase();
         const direccion = (colaborador.direccion || '').toLowerCase();
-        const universidad = (colaborador.universidad_egreso || '').toLowerCase();
+        const universidad = (colaborador.universidad_egreso || '').toLowerCase();
+
 
         return (
           nombre.includes(termino) ||
@@ -318,12 +310,6 @@ export class ColaboradoresComponent {
     // Sin filtro por rol
 
     return resultado;
-  }
-
-  // Aplicar filtros (filtrado local, no recarga desde API)
-  aplicarFiltros() {
-    // El filtrado se hace automÃ¡ticamente mediante el getter filtrados
-    // Este mÃ©todo se mantiene para compatibilidad con el evento selectionChange del select
   }
 
   // Funciones de ediciÃ³n
@@ -508,9 +494,5 @@ export class ColaboradoresComponent {
     if (control?.hasError('telefonoInvalido')) return control.errors?.['mensaje'] || 'TelÃ©fono invÃ¡lido';
     return '';
   }
-
 }
-
-
-
 

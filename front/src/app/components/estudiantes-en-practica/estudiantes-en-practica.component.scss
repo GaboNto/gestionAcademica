@@ -744,6 +744,80 @@
   font-weight: 500;
 }
 
+/* Colaboradores */
+.CollaboratorsList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.CollaboratorRow {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 12px 16px;
+}
+
+.CollaboratorInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.CollaboratorName {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.CollaboratorCargo {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.CollaboratorEmail {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+/* Tutores */
+.TutorsList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.TutorRow {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 12px 16px;
+}
+
+.TutorInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.TutorName {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.TutorRole {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.TutorEmail {
+  font-size: 14px;
+  color: #6b7280;
+}
+
 .DialogActions {
   padding: 24px;
   border-top: 1px solid #e5e7eb;

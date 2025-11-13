@@ -28,9 +28,11 @@
           <mat-label>Estado</mat-label>
           <mat-select [(ngModel)]="estadoSeleccionado">
             <mat-option value="all">Todos los estados</mat-option>
-            <mat-option *ngFor="let estado of estadosPractica" [value]="estado">
-              {{ formatearEstado(estado) }}
-            </mat-option>
+            @for (estado of estadosPractica; track estado) {
+              <mat-option [value]="estado">
+                {{ formatearEstado(estado) }}
+              </mat-option>
+            }
           </mat-select>
         </mat-form-field>
 
@@ -38,7 +40,9 @@
           <mat-label>Nivel</mat-label>
           <mat-select [(ngModel)]="nivelSeleccionado">
             <mat-option value="all">Todos los niveles</mat-option>
-            <mat-option *ngFor="let n of niveles" [value]="n">{{ n }}</mat-option>
+            @for (n of niveles; track n) {
+              <mat-option [value]="n">{{ n }}</mat-option>
+            }
           </mat-select>
         </mat-form-field>
       </div>
@@ -90,12 +94,6 @@
                     <div class="CenterMeta">
                       @if (practica.centro.tipo) {
                         <span class="CenterType">{{ practica.centro.tipo }}</span>
-                      }
-                      @if (practica.centro.comuna && practica.centro.region) {
-                        <span class="Location">
-                          <mat-icon class="LocationIcon">location_on</mat-icon>
-                          {{ practica.centro.comuna }}, {{ practica.centro.region }}
-                        </span>
                       }
                     </div>
                   </div>
@@ -326,24 +324,19 @@
                 Colaboradores
               </h3>
               @if (practicaSeleccionada.colaboradores && practicaSeleccionada.colaboradores.length) {
-                <div class="DetailsGrid">
+                <div class="CollaboratorsList">
                   @for (colaborador of practicaSeleccionada.colaboradores; track colaborador.id) {
-                    <div class="DetailItem">
-                      <label>Nombre:</label>
-                      <span>{{ colaborador.nombre }}</span>
+                    <div class="CollaboratorRow">
+                      <div class="CollaboratorInfo">
+                        <span class="CollaboratorName">{{ colaborador.nombre }}</span>
+                        @if (colaborador.cargo) {
+                          <span class="CollaboratorCargo">• {{ colaborador.cargo }}</span>
+                        }
+                        @if (colaborador.correo) {
+                          <span class="CollaboratorEmail">• {{ colaborador.correo }}</span>
+                        }
+                      </div>
                     </div>
-                    @if (colaborador.cargo) {
-                      <div class="DetailItem">
-                        <label>Cargo:</label>
-                        <span>{{ colaborador.cargo }}</span>
-                      </div>
-                    }
-                    @if (colaborador.correo) {
-                      <div class="DetailItem">
-                        <label>Correo:</label>
-                        <span>{{ colaborador.correo }}</span>
-                      </div>
-                    }
                   }
                 </div>
               } @else {
@@ -358,22 +351,17 @@
                 Tutores
               </h3>
               @if (practicaSeleccionada.tutores && practicaSeleccionada.tutores.length) {
-                <div class="DetailsGrid">
+                <div class="TutorsList">
                   @for (tutor of practicaSeleccionada.tutores; track tutor.tutor.id) {
-                    <div class="DetailItem">
-                      <label>Nombre:</label>
-                      <span>{{ tutor.tutor.nombre }}</span>
-                    </div>
-                    <div class="DetailItem">
-                      <label>Rol:</label>
-                      <span>{{ tutor.rol }}</span>
-                    </div>
-                    @if (tutor.tutor.correo) {
-                      <div class="DetailItem">
-                        <label>Correo:</label>
-                        <span>{{ tutor.tutor.correo }}</span>
+                    <div class="TutorRow">
+                      <div class="TutorInfo">
+                        <span class="TutorName">{{ tutor.tutor.nombre }}</span>
+                        <span class="TutorRole">• {{ tutor.rol }}</span>
+                        @if (tutor.tutor.correo) {
+                          <span class="TutorEmail">• {{ tutor.tutor.correo }}</span>
+                        }
                       </div>
-                    }
+                    </div>
                   }
                 </div>
               } @else {

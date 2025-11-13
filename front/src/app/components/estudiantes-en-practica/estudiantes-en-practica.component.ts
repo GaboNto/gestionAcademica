@@ -1,6 +1,5 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 
 // Angular Material
@@ -50,7 +49,6 @@ interface PracticaEstudiante {
   styleUrls: ['./estudiantes-en-practica.component.scss'],
   imports: [
     CommonModule,
-    RouterModule,
     FormsModule,
     MatButtonModule,
     MatIconModule,
@@ -285,25 +283,4 @@ export class EstudiantesEnPracticaComponent implements OnInit {
     this.practicaSeleccionada = null;
     this.mostrarModalDetalles = false;
   }
-
-  formatColaboradores(colaboradores?: Colaborador[]): string {
-    if (!colaboradores || colaboradores.length === 0) return 'Sin colaboradores';
-    return colaboradores
-      .map((c) => c.nombre)
-      .filter((nombre): nombre is string => !!nombre && nombre.trim().length > 0)
-      .join(', ') || 'Sin colaboradores';
-  }
-
-  formatTutores(tutores?: { tutor: Tutor; rol: string }[]): string {
-    if (!tutores || tutores.length === 0) return 'Sin tutores';
-    const etiquetas = tutores
-      .map((t) => {
-        const nombre = t.tutor?.nombre?.trim();
-        const rol = t.rol ?? 'Supervisor';
-        return nombre ? `${nombre} (${rol})` : null;
-      })
-      .filter((texto): texto is string => !!texto);
-    return etiquetas.length ? etiquetas.join(', ') : 'Sin tutores';
-  }
 }
-
