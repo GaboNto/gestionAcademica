@@ -85,6 +85,13 @@ export const routes: Routes = [
       import('./components/estudiantes-en-practica/estudiantes-en-practica.component').then(m => m.EstudiantesEnPracticaComponent),
   },
 
+  // Actividades de estudiantes
+  {
+    path: 'actividades-estudiantes',
+    loadComponent: () =>
+      import('./components/actividades-estudiantes/actividades-estudiantes.component').then(m => m.ActividadesEstudiantesComponent),
+  },
+
   // Ruta por defecto → redirige a inicio
   { path: '**', redirectTo: '', pathMatch: 'full' },
 ];

@@ -1,0 +1,81 @@
+/* Contenedor base */
+.Container { 
+  max-width: 1120px; 
+  margin: 16px auto; 
+  padding: 0 16px; 
+}
+
+.Section { 
+  margin-top: 8px; 
+}
+
+/* Header */
+.Header { 
+  display: flex; 
+  align-items: center; 
+  gap: 12px; 
+  margin-bottom: 20px; 
+}
+
+.Headline h1 { 
+  margin: 0; 
+  font-size: 28px; 
+  font-weight: 600; 
+  color: #1f2937; 
+}
+
+.Muted { 
+  color: #64748b; 
+  font-size: 14px; 
+  margin: 4px 0 0; 
+}
+
+.Spacer { 
+  flex: 1 1 auto; 
+}
+
+/* Card base */
+.Elev { 
+  border: 1px solid #e5e7eb; 
+  border-radius: 12px; 
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Mensaje de desarrollo futuro */
+.DevelopmentCard {
+  margin-top: 24px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.DevelopmentContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 40px;
+  text-align: center;
+}
+
+.DevelopmentIcon {
+  font-size: 80px;
+  width: 80px;
+  height: 80px;
+  color: #64748b;
+  margin-bottom: 24px;
+}
+
+.DevelopmentContent h2 {
+  font-size: 32px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 16px 0;
+}
+
+.DevelopmentContent p {
+  font-size: 16px;
+  color: #4b5563;
+  margin: 8px 0;
+  max-width: 600px;
+}
+
