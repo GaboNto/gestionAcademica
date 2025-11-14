@@ -23,17 +23,18 @@
     <div class="filters">
       <mat-form-field appearance="outline" class="flex1">
         <mat-label>Buscar</mat-label>
-        <input matInput [(ngModel)]="searchTerm" />
+        <input matInput [(ngModel)]="searchTerm" name="searchTerm" />
         <mat-icon matSuffix>search</mat-icon>
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="role-filter">
         <mat-label>Tipo (filtro)</mat-label>
-        <mat-select [(ngModel)]="selectedTipo">
+        <mat-select [(ngModel)]="selectedTipo" name="selectedTipo">
           <mat-option value="all">Todos</mat-option>
           <mat-option value="PARTICULAR">Particular</mat-option>
           <mat-option value="PARTICULAR_SUBVENCIONADO">Particular subvencionado</mat-option>
           <mat-option value="SLEP">SLEP</mat-option>
+          <mat-option value="NO_CONVENCIONAL">No Convencional</mat-option>
         </mat-select>
       </mat-form-field>
     </div>
@@ -50,7 +51,7 @@
             <p>Completa los datos obligatorios marcados con *</p>
           </div>
         </div>
-        <button mat-icon-button (click)="toggleForm()" class="close-form-btn">
+        <button mat-icon-button (click)="toggleForm()" class="close-form-btn" aria-label="Cerrar formulario">
           <mat-icon>close</mat-icon>
         </button>
       </mat-card-header>
@@ -69,7 +70,8 @@
               <mat-select [(ngModel)]="newCentroEducativo.tipo" name="tipo" required>
                 <mat-option value="PARTICULAR">Particular</mat-option>
                 <mat-option value="PARTICULAR_SUBVENCIONADO">Particular subvencionado</mat-option>
-                <mat-option value="SLEP">Slep</mat-option>
+                <mat-option value="SLEP">SLEP</mat-option>
+                <mat-option value="NO_CONVENCIONAL">No Convencional</mat-option>
               </mat-select>
             </mat-form-field>
           </div>
@@ -78,7 +80,12 @@
           <div class="form-row">
             <mat-form-field appearance="outline" class="form-field">
               <mat-label>Región *</mat-label>
-              <mat-select [(ngModel)]="newCentroEducativo.region" name="region" (selectionChange)="onRegionChange()" required>
+              <mat-select
+                [(ngModel)]="newCentroEducativo.region"
+                name="region"
+                (selectionChange)="onRegionChange()"
+                required
+              >
                 <mat-option *ngFor="let r of REGIONES" [value]="r.nombre">{{ r.nombre }}</mat-option>
               </mat-select>
             </mat-form-field>
@@ -91,21 +98,11 @@
             </mat-form-field>
           </div>
 
-          <!-- Dirección del colegio -->
+          <!-- Dirección (único campo) -->
           <div class="form-row">
-            <mat-form-field appearance="outline" class="form-field">
-              <mat-label>Dirección (referencia)</mat-label>
-              <input matInput [(ngModel)]="newCentroEducativo.direccion" name="direccion" />
-            </mat-form-field>
-
-            <mat-form-field appearance="outline" class="form-field">
-              <mat-label>Nombre de calle</mat-label>
-              <input matInput [(ngModel)]="newCentroEducativo.calle" name="calle" />
-            </mat-form-field>
-
-            <mat-form-field appearance="outline" class="form-field">
-              <mat-label>Número</mat-label>
-              <input matInput [(ngModel)]="newCentroEducativo.numero" name="numero" />
+            <mat-form-field appearance="outline" class="form-field full-width">
+              <mat-label>Dirección *</mat-label>
+              <input matInput [(ngModel)]="newCentroEducativo.direccion" name="direccion" required />
             </mat-form-field>
           </div>
 
@@ -138,6 +135,21 @@
               </mat-select>
             </mat-form-field>
           </div>
+
+          <!-- Fecha inicio de asociación -->
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Fecha inicio de asociación</mat-label>
+              <input
+                matInput
+                [matDatepicker]="pickerAsoc"
+                [value]="toDate(newCentroEducativo.fecha_inicio_asociacion)"
+                (dateChange)="onFechaAsociacionChange($event.value)"
+                placeholder="Selecciona fecha" />
+              <mat-datepicker-toggle matSuffix [for]="pickerAsoc"></mat-datepicker-toggle>
+              <mat-datepicker #pickerAsoc></mat-datepicker>
+            </mat-form-field>
+          </div>
         </form>
       </mat-card-content>
 
@@ -158,11 +170,18 @@
       <div class="list-item" *ngFor="let c of filteredCentros()">
         <div class="item-content">
           <!-- Col 1: Nombre + dirección -->
-          <div class="col col-name">
+          <div class="col col-main">
             <div class="title truncate">{{ c.nombre }}</div>
-            <div class="sub muted truncate">
-              {{ c.region }} · {{ c.comuna }}
-              <ng-container *ngIf="c.calle || c.numero"> · {{ c.calle }} {{ c.numero }}</ng-container>
+            <div class="muted truncate" *ngIf="c.direccion">
+       
+              <span>{{ c.direccion }}</span>
+            </div>
+            <div class="muted truncate">
+              {{ c.comuna }}<span *ngIf="c.comuna && c.region">, </span>{{ c.region }}
+            </div>
+            <div class="muted truncate" *ngIf="c.fecha_inicio_asociacion">
+              
+              <span>Asociado desde: {{ c.fecha_inicio_asociacion }}</span>
             </div>
           </div>
 
@@ -214,14 +233,13 @@
   </mat-card>
 
   <!-- DIALOG DETALLES -->
-  <!-- (sin cambios funcionales; lo dejo igual que tu versión) -->
   <div class="details-dialog" *ngIf="selectedCentroEducativo">
     <div class="dialog-overlay" (click)="closeDetails()"></div>
 
     <div class="dialog-content">
       <div class="dialog-header">
         <h2>Información del Centro</h2>
-        <button mat-icon-button (click)="closeDetails()" class="close-btn">
+        <button mat-icon-button (click)="closeDetails()" class="close-btn" aria-label="Cerrar detalles">
           <mat-icon>close</mat-icon>
         </button>
       </div>
@@ -233,10 +251,7 @@
           <div class="detail-item"><label>Región:</label><span>{{ selectedCentroEducativo.region }}</span></div>
           <div class="detail-item"><label>Comuna:</label><span>{{ selectedCentroEducativo.comuna }}</span></div>
           <div class="detail-item" *ngIf="selectedCentroEducativo.direccion">
-            <label>Dirección (ref):</label><span>{{ selectedCentroEducativo.direccion }}</span>
-          </div>
-          <div class="detail-item" *ngIf="selectedCentroEducativo.calle || selectedCentroEducativo.numero">
-            <label>Calle / Nº:</label><span>{{ selectedCentroEducativo.calle }} {{ selectedCentroEducativo.numero }}</span>
+            <label>Dirección:</label><span>{{ selectedCentroEducativo.direccion }}</span>
           </div>
           <div class="detail-item" *ngIf="selectedCentroEducativo.telefono">
             <label>Teléfono:</label><span>{{ selectedCentroEducativo.telefono }}</span>
@@ -249,6 +264,9 @@
           </div>
           <div class="detail-item" *ngIf="selectedCentroEducativo.convenio">
             <label>Convenio:</label><span>{{ selectedCentroEducativo.convenio }}</span>
+          </div>
+          <div class="detail-item" *ngIf="selectedCentroEducativo.fecha_inicio_asociacion">
+            <label>Inicio de asociación:</label><span>{{ selectedCentroEducativo.fecha_inicio_asociacion }}</span>
           </div>
 
           <div class="detail-item" *ngIf="selectedCentroEducativo?.trabajadores?.length">
@@ -273,7 +291,6 @@
   </div>
 
   <!-- DIALOG CONFIRMAR ELIMINACIÓN -->
-  <!-- (sin cambios) -->
   <div class="confirm-dialog" *ngIf="pendingDelete">
     <div class="dialog-overlay" (click)="cancelDelete()" tabindex="0"></div>
     <div class="dialog-content confirm-card" (keydown.escape)="cancelDelete()">
@@ -297,14 +314,13 @@
   </div>
 
   <!-- DIALOG AÑADIR/EDITAR CONTACTOS -->
-  <!-- (sin cambios funcionales) -->
   <div class="details-dialog" *ngIf="contactsForCentro">
     <div class="dialog-overlay" (click)="closeContacts()"></div>
 
     <div class="dialog-content">
       <div class="dialog-header">
         <h2>Añadir/Editar contactos</h2>
-        <button mat-icon-button (click)="closeContacts()" class="close-btn">
+        <button mat-icon-button (click)="closeContacts()" class="close-btn" aria-label="Cerrar contactos">
           <mat-icon>close</mat-icon>
         </button>
       </div>

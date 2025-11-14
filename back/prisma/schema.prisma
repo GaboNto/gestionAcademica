@@ -25,6 +25,7 @@ enum TipoCentro {
   PARTICULAR
   PARTICULAR_SUBVENCIONADO @map("PARTICULAR SUBVENCIONADO")
   SLEP
+  NO_CONVENCIONAL
 }
 
 // Rol contextual del tutor en la práctica (pivote)
