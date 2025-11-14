@@ -174,7 +174,9 @@
                 <mat-select formControlName="tutor1Id">
                   <mat-option [value]="null">Seleccionar tutor...</mat-option>
                   @for (tutor of tutores; track tutor.id) {
-                    <mat-option [value]="tutor.id">
+                    <mat-option
+                      [value]="tutor.id"
+                      [disabled]="isTutorSeleccionado(tutor.id, 'tutor1Id')">
                       {{ tutor.nombre }}
                     </mat-option>
                   }
@@ -182,7 +184,7 @@
                 @if (formularioPractica.get('tutor1Id')?.hasError('required')) {
                   <mat-error>Debes seleccionar al menos un tutor</mat-error>
                 }
-</mat-form-field>
+              </mat-form-field>
 
               <mat-form-field appearance="outline" class="FormField">
                 <mat-label>Rol Tutor 1 *</mat-label>
@@ -204,7 +206,9 @@
                 <mat-select formControlName="tutor2Id">
                   <mat-option [value]="null">Sin asignar</mat-option>
                   @for (tutor of tutores; track tutor.id) {
-                    <mat-option [value]="tutor.id">
+                    <mat-option
+                      [value]="tutor.id"
+                      [disabled]="isTutorSeleccionado(tutor.id, 'tutor2Id')">
                       {{ tutor.nombre }}
                     </mat-option>
                   }

@@ -178,7 +178,41 @@ export class PracticasComponent {
       estado: ['PENDIENTE']
     }, { validators: this.validarFechas });
 
+    // Validación para evitar que tutor2 sea igual a tutor1
+    this.formularioPractica.get('tutor1Id')?.valueChanges.subscribe((value) => {
+      const tutor2Id = this.formularioPractica.get('tutor2Id')?.value;
+      if (value && tutor2Id && value === tutor2Id) {
+        this.formularioPractica.patchValue({ 
+          tutor2Id: null,
+          tutor2Rol: ''
+        }, { emitEvent: false });
+        this.snack.open('El Tutor 2 no puede ser el mismo que el Tutor 1', 'Cerrar', {
+          duration: 3000,
+          horizontalPosition: 'center',
+          verticalPosition: 'bottom',
+          panelClass: ['warning-snackbar']
+        });
+      }
+    });
+
     this.formularioPractica.get('tutor2Id')?.valueChanges.subscribe((value) => {
+      const tutor1Id = this.formularioPractica.get('tutor1Id')?.value;
+      
+      // Validar que tutor2 no sea igual a tutor1
+      if (value && tutor1Id && value === tutor1Id) {
+        this.formularioPractica.patchValue({ 
+          tutor2Id: null,
+          tutor2Rol: ''
+        }, { emitEvent: false });
+        this.snack.open('El Tutor 2 no puede ser el mismo que el Tutor 1', 'Cerrar', {
+          duration: 3000,
+          horizontalPosition: 'center',
+          verticalPosition: 'bottom',
+          panelClass: ['warning-snackbar']
+        });
+        return;
+      }
+
       const rolControl = this.formularioPractica.get('tutor2Rol');
       if (value !== null && value !== undefined && value !== '') {
         rolControl?.setValidators([Validators.required]);
@@ -222,18 +256,18 @@ export class PracticasComponent {
         this.practicas = practicas.map((p: any) => this.transformarPractica(p));
         this.recalcularNivelesDesdeDatos();
         
-        // Extraer RUTs de estudiantes con prácticas activas
-        const rutConPracticas = new Set<string>();
+        // Extraer RUTs de estudiantes con prácticas EN_CURSO
+        const rutConPracticasEnCurso = new Set<string>();
         this.practicas.forEach((p: any) => {
-          if (p.estudiante?.rut) {
-            rutConPracticas.add(p.estudiante.rut);
+          if (p.estudiante?.rut && p.estado === 'EN_CURSO') {
+            rutConPracticasEnCurso.add(p.estudiante.rut);
           }
         });
 
-        // Cargar estudiantes y filtrar los que ya tienen prácticas
+        // Cargar estudiantes y filtrar solo los que tienen prácticas EN_CURSO
         this.http.get<any[]>('http://localhost:3000/estudiante').subscribe({
           next: (estudiantes) => {
-            this.estudiantes = estudiantes.filter(est => !rutConPracticas.has(est.rut));
+            this.estudiantes = estudiantes.filter(est => !rutConPracticasEnCurso.has(est.rut));
             this.estudianteFiltrado = this.estudiantes.slice(0, 5);
           },
           error: (err) => { console.error('Error al cargar estudiantes:', err); }
@@ -307,16 +341,18 @@ export class PracticasComponent {
     });
   }
 
-  // Actualizar lista de estudiantes disponibles (sin prácticas)
+  // Actualizar lista de estudiantes disponibles (solo excluir los que tienen prácticas EN_CURSO)
   actualizarEstudiantesDisponibles() {
-    const rutConPracticas = new Set<string>();
+    const rutConPracticasEnCurso = new Set<string>();
     this.practicas.forEach((p: any) => {
-      if (p.estudiante?.rut) rutConPracticas.add(p.estudiante.rut);
+      if (p.estudiante?.rut && p.estado === 'EN_CURSO') {
+        rutConPracticasEnCurso.add(p.estudiante.rut);
+      }
     });
 
     this.http.get<any[]>('http://localhost:3000/estudiante').subscribe({
       next: (estudiantes) => {
-        this.estudiantes = estudiantes.filter(est => !rutConPracticas.has(est.rut));
+        this.estudiantes = estudiantes.filter(est => !rutConPracticasEnCurso.has(est.rut));
         this.estudianteFiltrado = this.estudiantes.slice(0, 5);
       },
       error: (err) => { console.error('Error al actualizar estudiantes:', err); }
@@ -501,6 +537,12 @@ export class PracticasComponent {
     if (colaboradorId === null || colaboradorId === undefined) return false;
     const otroControl = control === 'colaborador1Id' ? 'colaborador2Id' : 'colaborador1Id';
     return this.formularioPractica.get(otroControl)?.value === colaboradorId;
+  }
+
+  isTutorSeleccionado(tutorId: number | null, control: 'tutor1Id' | 'tutor2Id'): boolean {
+    if (tutorId === null || tutorId === undefined) return false;
+    const otroControl = control === 'tutor1Id' ? 'tutor2Id' : 'tutor1Id';
+    return this.formularioPractica.get(otroControl)?.value === tutorId;
   }
 
   formatColaboradores(colaboradores?: Colaborador[]): string {
