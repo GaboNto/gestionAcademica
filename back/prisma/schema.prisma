@@ -25,7 +25,6 @@ enum TipoCentro {
   PARTICULAR
   PARTICULAR_SUBVENCIONADO @map("PARTICULAR SUBVENCIONADO")
   SLEP
-  NO_CONVENCIONAL
 }
 
 // Rol contextual del tutor en la práctica (pivote)
@@ -138,17 +137,21 @@ model Colaborador {
 }
 
 // ------------------------- Actividad -------------------------
+// Ahora con los campos de la tabla: Mes, Nombre actividad, Estudiantes, Fecha, Horario, Lugar
+// + archivo_adjunto
 model Actividad {
-  id             Int      @id @default(autoincrement())
-  titulo         String
-  descripcion    String?
-  estado         EstadoActividad
-  fecha_registro DateTime @default(now())
-  evidencia      String?
-  rut            String?
+  id               Int      @id @default(autoincrement())
 
-  practicaId Int
-  practica   Practica @relation(fields: [practicaId], references: [id])
+  mes              String           // EJ: "AGOSTO"
+  nombre_actividad String           // EJ: "Taller 2: Gestión emocional..."
+  estudiantes      String?          // EJ: "Tercero, cuarto y ..."
+  fecha            DateTime         // 26 de agosto
+  horario          String?          // "09:40 - 13:00 horas"
+  lugar            String?          // "auditorio de FACSAL..."
+  archivo_adjunto  String?          // ruta o URL del archivo (PDF, imagen, etc.)
+
+  practicaId       Int
+  practica         Practica @relation(fields: [practicaId], references: [id])
 
   @@map("actividad")
 }
