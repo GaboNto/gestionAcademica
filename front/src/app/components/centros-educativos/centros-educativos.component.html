@@ -145,7 +145,8 @@
                 [matDatepicker]="pickerAsoc"
                 [value]="toDate(newCentroEducativo.fecha_inicio_asociacion)"
                 (dateChange)="onFechaAsociacionChange($event.value)"
-                placeholder="Selecciona fecha" />
+                placeholder="Selecciona fecha"
+              />
               <mat-datepicker-toggle matSuffix [for]="pickerAsoc"></mat-datepicker-toggle>
               <mat-datepicker #pickerAsoc></mat-datepicker>
             </mat-form-field>
@@ -165,22 +166,22 @@
   </div>
 
   <!-- LISTADO -->
-  <mat-card class="elev">
+    <!-- LISTADO -->
+  <mat-card class="elev" *ngIf="totalItems > 0">
     <mat-card-content class="list-container">
-      <div class="list-item" *ngFor="let c of filteredCentros()">
+
+      <div class="list-item" *ngFor="let c of centrosEducativos">
         <div class="item-content">
           <!-- Col 1: Nombre + dirección -->
           <div class="col col-main">
             <div class="title truncate">{{ c.nombre }}</div>
             <div class="muted truncate" *ngIf="c.direccion">
-       
               <span>{{ c.direccion }}</span>
             </div>
             <div class="muted truncate">
               {{ c.comuna }}<span *ngIf="c.comuna && c.region">, </span>{{ c.region }}
             </div>
             <div class="muted truncate" *ngIf="c.fecha_inicio_asociacion">
-              
               <span>Asociado desde: {{ c.fecha_inicio_asociacion }}</span>
             </div>
           </div>
@@ -221,14 +222,28 @@
           </div>
         </div>
       </div>
+
     </mat-card-content>
+
+    <!-- PAGINADOR -->
+    <div class="list-paginator">
+      <mat-paginator
+        [length]="totalItems"
+        [pageIndex]="pageIndex"
+        [pageSize]="pageSize"
+        [pageSizeOptions]="pageSizeOptions"
+        (page)="onPageChange($event)">
+      </mat-paginator>
+    </div>
   </mat-card>
 
+
+
   <!-- EMPTY -->
-  <mat-card *ngIf="!filteredCentros().length" class="elev empty">
+  <mat-card *ngIf="!isLoading && totalItems === 0" class="elev empty">
     <mat-card-content class="muted empty__content">
-      <mat-icon>school</mat-icon>
-      <p>No hay centros que coincidan con el criterio.</p>
+     <mat-icon>school</mat-icon>
+     <p>No hay centros que coincidan con el criterio.</p>
     </mat-card-content>
   </mat-card>
 
@@ -269,7 +284,7 @@
             <label>Inicio de asociación:</label><span>{{ selectedCentroEducativo.fecha_inicio_asociacion }}</span>
           </div>
 
-          <div class="detail-item" *ngIf="selectedCentroEducativo?.trabajadores?.length">
+          <div class="detail-item" *ngIf="selectedCentroEducativo.trabajadores?.length">
             <label>Trabajadores:</label>
             <div *ngFor="let t of selectedCentroEducativo.trabajadores">
               • {{ t.rol || '—' }} — {{ t.nombre }}
