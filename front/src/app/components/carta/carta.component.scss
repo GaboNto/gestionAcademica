@@ -12,6 +12,11 @@
 .g1 { grid-template-columns: 1fr; }
 .g2 { grid-template-columns: 1fr 1fr; }
 .g3 { grid-template-columns: 1fr 2fr; }
+.note-grid { margin-bottom: 16px; }
+.grid mat-form-field { width: 100%; }
+.field-block { display: flex; flex-direction: column; width: 100%; gap: 4px; margin-bottom: 8px; }
+.field-block mat-form-field { flex: 1; margin: 0; }
+.field-note { display: block; font-size: 12px; color:#475569; margin-left: 2px; }
 
 .full { grid-column: 1 / -1; }
 .full-when-sm {}
