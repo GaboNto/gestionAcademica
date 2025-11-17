@@ -72,8 +72,8 @@ model Practica {
   centroId Int
   centro   CentroEducativo      @relation(fields: [centroId], references: [id])
 
-  // 1:N → Actividad
-  actividades Actividad[]
+  // ❌ Eliminado: relación con Actividad
+  // actividades Actividad[]
 
   // M:N explícitas
   practicaColaboradores PracticaColaborador[]
@@ -150,8 +150,7 @@ model Actividad {
   lugar            String?          // "auditorio de FACSAL..."
   archivo_adjunto  String?          // ruta o URL del archivo (PDF, imagen, etc.)
 
-  practicaId       Int
-  practica         Practica @relation(fields: [practicaId], references: [id])
+  // 🔓 Actividad queda independiente, sin FK a Práctica
 
   @@map("actividad")
 }
