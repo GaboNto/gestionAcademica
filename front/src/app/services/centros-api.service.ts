@@ -22,10 +22,10 @@ export interface CentroEducativoDTO {
   comuna: string;
   convenio?: string | null;
   direccion?: string | null;
-  telefono?: number | null;            // valor normalizado que devuelve el backend
+  telefono?: number | null;          
   correo?: string | null;
   url_rrss?: string | null;
-  fecha_inicio_asociacion?: string | null; // <-- NUEVO (YYYY-MM-DD o ISO)
+  fecha_inicio_asociacion?: string | null; 
   trabajadores?: TrabajadorDTO[];
 }
 
@@ -39,12 +39,12 @@ export interface CreateCentroPayload {
   tipo: 'PARTICULAR' | 'PARTICULAR_SUBVENCIONADO' | 'SLEP' | 'NO_CONVENCIONAL' | string;
   region: string;
   comuna: string;
-  convenio?: string;                     // undefined si no viene
+  convenio?: string;                   
   direccion?: string;
-  telefono?: number | string | null;     // aceptamos string/number/null de la UI
+  telefono?: number | string | null;     
   correo?: string;
   url_rrss?: string;
-  fecha_inicio_asociacion?: string | null; // YYYY-MM-DD o null
+  fecha_inicio_asociacion?: string | null; 
 }
 
 export type UpdateCentroPayload = Partial<CreateCentroPayload>;
@@ -84,12 +84,12 @@ export class CentrosApiService {
       tipo: body.tipo,
       region: body.region,
       comuna: body.comuna,
-      convenio: body.convenio ?? undefined, // el backend puede aceptar undefined
+      convenio: body.convenio ?? undefined, 
       direccion: body.direccion ?? undefined,
-      telefono: toNumberOrNull(body.telefono), // normaliza a number|null
+      telefono: toNumberOrNull(body.telefono), 
       correo: isValidEmail(body.correo) ? body.correo!.trim() : undefined,
       url_rrss: body.url_rrss ?? undefined,
-      fecha_inicio_asociacion: body.fecha_inicio_asociacion ?? null, // YYYY-MM-DD o null
+      fecha_inicio_asociacion: body.fecha_inicio_asociacion ?? null, 
     };
 
     return this.http.post<CentroEducativoDTO>(`${API}/centros`, payload);

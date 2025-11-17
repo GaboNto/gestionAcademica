@@ -81,7 +81,7 @@ export class CentrosEducativosComponent {
   isLoading = false;
 
   // ===== paginación (back) =====
-  pageIndex = 0;                 // MatPaginator: 0-based
+  pageIndex = 0;        
   pageSize = 5;
   totalItems = 0;
   readonly pageSizeOptions = [5, 10, 20, 50];
@@ -154,14 +154,14 @@ export class CentrosEducativosComponent {
   contactsForCentro: CentroEducativo | null = null;
 
   constructor() {
-    this.load(); // carga inicial (pageIndex=0 -> página 1)
+    this.load(); 
   }
 
   // ===== carga lista desde backend con paginación =====
   load(page?: number) {
     this.isLoading = true;
 
-    const currentPage = page ?? this.pageIndex + 1; // backend 1-based
+    const currentPage = page ?? this.pageIndex + 1; 
     const search = this.searchTerm.trim() || undefined;
     const tipo = this.selectedTipo === 'all' ? undefined : this.selectedTipo;
     const orderBy = 'nombre';
@@ -321,7 +321,6 @@ export class CentrosEducativosComponent {
         );
         this.toggleForm();
         this.resetForm();
-        // recarga manteniendo página actual
         this.load();
       },
       error: () =>
@@ -361,7 +360,6 @@ export class CentrosEducativosComponent {
           panelClass: ['success-snackbar'],
         });
         this.pendingDelete = null;
-        // si borro el último de la página, opcionalmente me puedo ir a la anterior
         if (this.centrosEducativos.length === 1 && this.pageIndex > 0) {
           this.pageIndex--;
         }
