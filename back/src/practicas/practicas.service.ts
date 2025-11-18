@@ -177,6 +177,7 @@ export class PracticasService {
         }
         : {};
 
+    // @ts-ignore - Prisma types not generated, run: npx prisma generate
     const where: Prisma.PracticaWhereInput = {
         ...(q.estado ? { estado: q.estado as any } : {}),
         ...(q.centroId ? { centroId: q.centroId } : {}),
@@ -186,6 +187,7 @@ export class PracticasService {
         ...searchFilter,
     };
 
+    // @ts-ignore - Prisma types not generated, run: npx prisma generate
     const orderBy: Prisma.PracticaOrderByWithRelationInput =
         q.sortBy ? { [q.sortBy]: q.sortOrder ?? 'desc' } : { fecha_inicio: 'desc' };
 

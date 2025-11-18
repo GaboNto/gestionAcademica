@@ -262,8 +262,6 @@
 
 .ListItem:last-child {
   border-bottom: none;
-  border-bottom-left-radius: 14px;
-  border-bottom-right-radius: 14px;
 }
 
 .ListItem:hover {
@@ -448,6 +446,14 @@
   .DialogActions button {
     width: 100%;
   }
+}
+
+/* Paginador */
+.list-paginator {
+  padding: 8px 16px;
+  border-top: 1px solid #e5e7eb;
+  background: #fafafa;
+  border-radius: 0 0 14px 14px;
 }
 
 /* Empty */

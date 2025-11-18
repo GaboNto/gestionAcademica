@@ -9,6 +9,7 @@ import { MatCardModule }   from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule }  from '@angular/material/input';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 
 // Servicios y tipos
 import { ColaboradoresService, Colaborador } from '../../services/colaboradores.service';
@@ -34,7 +35,7 @@ interface ColaboradorForm {
     CommonModule, FormsModule, ReactiveFormsModule,
     MatButtonModule, MatIconModule, MatCardModule,
     MatFormFieldModule, MatInputModule,
-    MatSnackBarModule
+    MatSnackBarModule, MatPaginatorModule
   ]
 })
 export class ColaboradoresComponent {
@@ -57,12 +58,18 @@ export class ColaboradoresComponent {
   // Formulario reactivo
   formularioColaborador!: FormGroup;
 
-  // Datos - todos los colaboradores sin filtrar
-  todosLosColaboradores: Colaborador[] = []; // Lista completa para filtrado local
+  // ===== paginación (back) =====
+  pageIndex = 0;
+  pageSize = 5;
+  totalItems = 0;
+  readonly pageSizeOptions = [5, 10, 20, 50];
+
+  // Datos - todos los colaboradores cargados del backend
+  todosLosColaboradores: Colaborador[] = [];
 
   constructor() {
     this.inicializarFormulario();
-    this.cargarTodosLosColaboradores();
+    this.load();
   }
 
   // Validador personalizado para RUT chileno (bÃ¡sico)
@@ -119,16 +126,19 @@ export class ColaboradoresComponent {
     });
   }
 
-  // Cargar todos los colaboradores desde la API (sin filtros para bÃºsqueda local)
-  cargarTodosLosColaboradores() {
+  // ===== carga lista desde backend (todos los items para filtrado local) =====
+  load() {
     this.cargando = true;
-    // Cargar un nÃºmero grande de colaboradores para filtrar localmente
-    const params: any = { page: 1, limit: 1000 };
+    
+    // Cargar un número grande de colaboradores para filtrar localmente
+    const params: any = { page: 1, limit: 1000, orderBy: 'nombre', orderDir: 'asc' };
 
     this.colaboradoresService.listar(params).subscribe({
       next: (response) => {
         this.todosLosColaboradores = response.items || [];
         this.cargando = false;
+        // Actualizar totalItems basado en los filtrados
+        this.actualizarPaginacion();
       },
       error: (err) => {
         console.error('Error al cargar colaboradores:', err);
@@ -138,9 +148,19 @@ export class ColaboradoresComponent {
     });
   }
 
+  // Actualizar paginación cuando cambian los filtros o datos
+  actualizarPaginacion() {
+    this.totalItems = this.filtrados.length;
+    // Asegurar que pageIndex no exceda el número de páginas disponibles
+    const maxPage = Math.max(0, Math.ceil(this.totalItems / this.pageSize) - 1);
+    if (this.pageIndex > maxPage) {
+      this.pageIndex = maxPage;
+    }
+  }
+
   // Cargar colaboradores (para cuando se agrega/edita/elimina)
   cargarColaboradores() {
-    this.cargarTodosLosColaboradores();
+    this.load();
   }
 
   // Detalles
@@ -223,7 +243,7 @@ export class ColaboradoresComponent {
         );
         this.resetearFormulario();
         this.mostrarFormulario = false;
-        this.cargarColaboradores();
+        this.load();
       },
       error: (err) => {
         console.error('Error al crear colaborador:', err);
@@ -264,7 +284,14 @@ export class ColaboradoresComponent {
             }
           );
           this.cerrarConfirmarEliminar();
-          this.cargarColaboradores();
+          this.load();
+          // Ajustar página si es necesario después de eliminar
+          setTimeout(() => {
+            if (this.colaboradores.length === 0 && this.pageIndex > 0) {
+              this.pageIndex--;
+              this.actualizarPaginacion();
+            }
+          }, 100);
         },
         error: (err) => {
           console.error('Error al eliminar colaborador:', err);
@@ -279,22 +306,21 @@ export class ColaboradoresComponent {
     this.colaboradorAEliminar = null;
   }
 
-  // Filtros - aplicados localmente en el frontend
+  // ===== filtros - aplicados localmente en el frontend =====
   get filtrados(): Colaborador[] {
     let resultado = [...this.todosLosColaboradores];
 
-    // Filtrar por tÃ©rmino de bÃºsqueda (bÃºsqueda inteligente)
+    // Filtrar por término de búsqueda (búsqueda inteligente)
     if (this.terminoBusqueda.trim()) {
       const termino = this.terminoBusqueda.trim().toLowerCase();
       resultado = resultado.filter(colaborador => {
-        // Buscar en mÃºltiples campos de forma inteligente
+        // Buscar en múltiples campos de forma inteligente
         const nombre = (colaborador.nombre || '').toLowerCase();
         const correo = (colaborador.correo || '').toLowerCase();
         const cargo = (colaborador.cargo || '').toLowerCase();
         const rut = (colaborador.rut || '').toLowerCase();
         const direccion = (colaborador.direccion || '').toLowerCase();
         const universidad = (colaborador.universidad_egreso || '').toLowerCase();
-
 
         return (
           nombre.includes(termino) ||
@@ -307,9 +333,28 @@ export class ColaboradoresComponent {
       });
     }
 
-    // Sin filtro por rol
-
     return resultado;
+  }
+
+  // ===== items paginados de los filtrados =====
+  get colaboradores(): Colaborador[] {
+    const filtrados = this.filtrados;
+    const startIndex = this.pageIndex * this.pageSize;
+    const endIndex = startIndex + this.pageSize;
+    return filtrados.slice(startIndex, endIndex);
+  }
+
+  // ===== orden, filtros y paginador =====
+  onFiltersChange() {
+    this.pageIndex = 0;
+    this.actualizarPaginacion();
+  }
+
+  onPageChange(event: PageEvent) {
+    this.pageIndex = event.pageIndex;
+    this.pageSize = event.pageSize;
+    // No necesitamos recargar, solo actualizar la paginación
+    this.actualizarPaginacion();
   }
 
   // Funciones de ediciÃ³n
@@ -401,7 +446,7 @@ export class ColaboradoresComponent {
         this.estaEditando = false;
         this.colaboradorEditando = null;
         this.mostrarFormulario = false;
-        this.cargarColaboradores();
+        this.load();
       },
       error: (err) => {
         console.error('Error al actualizar colaborador:', err);

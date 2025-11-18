@@ -8,6 +8,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 
 import { TutoresService, Tutor } from '../../services/tutores.service';
 
@@ -37,6 +38,7 @@ interface TutorForm {
     MatFormFieldModule,
     MatInputModule,
     MatSnackBarModule,
+    MatPaginatorModule,
   ],
 })
 export class TutoresComponent {
@@ -56,11 +58,18 @@ export class TutoresComponent {
 
   formularioTutor!: FormGroup;
 
+  // ===== paginación (back) =====
+  pageIndex = 0;
+  pageSize = 5;
+  totalItems = 0;
+  readonly pageSizeOptions = [5, 10, 20, 50];
+
+  // Datos - todos los tutores cargados del backend
   todosLosTutores: Tutor[] = [];
 
   constructor() {
     this.inicializarFormulario();
-    this.cargarTodosLosTutores();
+    this.load();
   }
 
   validarRut(control: AbstractControl): ValidationErrors | null {
@@ -110,25 +119,41 @@ export class TutoresComponent {
     });
   }
 
-  cargarTodosLosTutores() {
+  // ===== carga lista desde backend (todos los items para filtrado local) =====
+  load() {
     this.cargando = true;
-    const params: any = { page: 1, limit: 1000 };
+    
+    // Cargar un número grande de tutores para filtrar localmente
+    const params: any = { page: 1, limit: 1000, orderBy: 'nombre', orderDir: 'asc' };
 
     this.tutoresService.listar(params).subscribe({
       next: (response) => {
         this.todosLosTutores = response.items || [];
         this.cargando = false;
+        // Actualizar totalItems basado en los filtrados
+        this.actualizarPaginacion();
       },
       error: (err) => {
         console.error('Error al cargar tutores:', err);
         this.snack.open('Error al cargar tutores', 'Cerrar', { duration: 3000 });
         this.cargando = false;
-      },
+      }
     });
   }
 
+  // Actualizar paginación cuando cambian los filtros o datos
+  actualizarPaginacion() {
+    this.totalItems = this.filtrados.length;
+    // Asegurar que pageIndex no exceda el número de páginas disponibles
+    const maxPage = Math.max(0, Math.ceil(this.totalItems / this.pageSize) - 1);
+    if (this.pageIndex > maxPage) {
+      this.pageIndex = maxPage;
+    }
+  }
+
+  // Cargar tutores (para cuando se agrega/edita/elimina)
   cargarTutores() {
-    this.cargarTodosLosTutores();
+    this.load();
   }
 
   verDetalles(tutor: Tutor) {
@@ -200,7 +225,7 @@ export class TutoresComponent {
         );
         this.resetearFormulario();
         this.mostrarFormulario = false;
-        this.cargarTutores();
+        this.load();
       },
       error: (err) => {
         console.error('Error al crear tutor:', err);
@@ -239,7 +264,14 @@ export class TutoresComponent {
             },
           );
           this.cerrarConfirmarEliminar();
-          this.cargarTutores();
+          this.load();
+          // Ajustar página si es necesario después de eliminar
+          setTimeout(() => {
+            if (this.tutores.length === 0 && this.pageIndex > 0) {
+              this.pageIndex--;
+              this.actualizarPaginacion();
+            }
+          }, 100);
         },
         error: (err) => {
           console.error('Error al eliminar tutor:', err);
@@ -254,9 +286,11 @@ export class TutoresComponent {
     this.tutorAEliminar = null;
   }
 
+  // ===== filtros - aplicados localmente en el frontend =====
   get filtrados(): Tutor[] {
     let resultado = [...this.todosLosTutores];
 
+    // Filtrar por término de búsqueda (búsqueda inteligente)
     if (this.terminoBusqueda.trim()) {
       const termino = this.terminoBusqueda.trim().toLowerCase();
       resultado = resultado.filter((tutor) => {
@@ -279,6 +313,27 @@ export class TutoresComponent {
     }
 
     return resultado;
+  }
+
+  // ===== items paginados de los filtrados =====
+  get tutores(): Tutor[] {
+    const filtrados = this.filtrados;
+    const startIndex = this.pageIndex * this.pageSize;
+    const endIndex = startIndex + this.pageSize;
+    return filtrados.slice(startIndex, endIndex);
+  }
+
+  // ===== orden, filtros y paginador =====
+  onFiltersChange() {
+    this.pageIndex = 0;
+    this.actualizarPaginacion();
+  }
+
+  onPageChange(event: PageEvent) {
+    this.pageIndex = event.pageIndex;
+    this.pageSize = event.pageSize;
+    // No necesitamos recargar, solo actualizar la paginación
+    this.actualizarPaginacion();
   }
 
   editarTutor(tutor: Tutor) {
@@ -363,7 +418,7 @@ export class TutoresComponent {
         this.estaEditando = false;
         this.tutorEditando = null;
         this.mostrarFormulario = false;
-        this.cargarTutores();
+        this.load();
       },
       error: (err) => {
         console.error('Error al actualizar tutor:', err);

@@ -28,7 +28,7 @@
       <div class="FiltersGrid">
         <mat-form-field appearance="outline" class="SearchField">
           <mat-label>Buscar</mat-label>
-          <input matInput [(ngModel)]="terminoBusqueda" placeholder="Nombre, email, cargo, RUT..." />
+          <input matInput [(ngModel)]="terminoBusqueda" (ngModelChange)="onFiltersChange()" placeholder="Nombre, email, cargo, RUT..." />
           <mat-icon matSuffix>search</mat-icon>
         </mat-form-field>
 
@@ -135,14 +135,14 @@
   </div>
 
   <!-- LISTADO DE COLABORADORES -->
-  <mat-card class="Elev">
+  <mat-card class="Elev" *ngIf="totalItems > 0">
     <mat-card-content class="ListContainer">
       @if (cargando) {
         <div style="text-align: center; padding: 2rem;">
           <p class="Muted">Cargando colaboradores...</p>
         </div>
       } @else {
-        @for (c of filtrados; track c.id) {
+        @for (c of colaboradores; track c.id) {
         <div class="ListItem">
           <div class="ItemContent">
             <!-- Avatar y nombre -->
@@ -175,10 +175,21 @@
         }
       }
     </mat-card-content>
+
+    <!-- PAGINADOR -->
+    <div class="list-paginator">
+      <mat-paginator
+        [length]="totalItems"
+        [pageIndex]="pageIndex"
+        [pageSize]="pageSize"
+        [pageSizeOptions]="pageSizeOptions"
+        (page)="onPageChange($event)">
+      </mat-paginator>
+    </div>
   </mat-card>
 
   <!-- EMPTY -->
-  @if (!filtrados.length) {
+  @if (!cargando && totalItems === 0) {
     <mat-card class="Elev Empty">
       <mat-card-content class="Muted EmptyContent">
         <mat-icon>group_off</mat-icon>
