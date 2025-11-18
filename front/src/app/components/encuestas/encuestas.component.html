@@ -1,15 +1,322 @@
-<div style="max-width:1120px;margin:16px auto;padding:0 16px;">
-  <!-- ====== BOTÓN DE REGRESO ====== -->
-  <button mat-button routerLink="/dashboard">
-    <mat-icon>arrow_back</mat-icon> Volver
-  </button>
+<div class="container section">
+  <!-- HEADER -->
+  <div class="header">
+    <div class="headline">
+      <h1>Gestión de Encuestas</h1>
+      <p class="muted">
+        Importar resultados de encuestas y consultar el historial registrado
+      </p>
+    </div>
+    <div class="spacer"></div>
+  </div>
 
-  <!-- ====== TÍTULO ====== -->
-  <h2>Registro de Encuestas</h2>
+  <!-- IMPORTAR ENCUESTAS -->
+  <mat-card class="elev form-card" [formGroup]="uploadForm">
+    <mat-card-header>
+      <mat-card-title> Importar resultados desde Excel </mat-card-title>
+      <mat-card-subtitle>
+        Cargar resultados de un semestre completo desde un archivo Excel
+      </mat-card-subtitle>
+    </mat-card-header>
 
-  <!-- ====== DESCRIPCIÓN / PLACEHOLDER ====== -->
-  <p>
-    Aquí podrás gestionar las encuestas relacionadas con las prácticas profesionales.
-    Pronto estará disponible la funcionalidad completa.
-  </p>
+    <mat-card-content>
+      <div class="form-grid">
+        <!-- Tipo de encuesta -->
+        <mat-form-field appearance="outline" class="field">
+          <mat-label>Tipo de encuesta</mat-label>
+          <mat-select formControlName="tipoEncuesta">
+            <mat-option *ngFor="let t of tiposEncuesta" [value]="t.value">
+              {{ t.label }}
+            </mat-option>
+          </mat-select>
+          <mat-error *ngIf="uploadForm.get('tipoEncuesta')?.hasError('required')">
+            Debe seleccionar un tipo de encuesta
+          </mat-error>
+        </mat-form-field>
+
+        <!-- Archivo Excel -->
+        <div class="field file-field">
+          <label class="file-label">Archivo Excel (.xlsx / .xls)</label>
+          <div class="file-input-wrapper">
+            <button mat-stroked-button color="primary" type="button">
+              <mat-icon>upload_file</mat-icon>
+              Seleccionar archivo
+              <input
+                id="fileInputEncuestas"
+                type="file"
+                (change)="onFileSelected($event)"
+                accept=".xlsx,.xls"
+              />
+            </button>
+            <span class="file-name">
+              {{
+                uploadForm.value.archivo
+                  ? uploadForm.value.archivo.name
+                  : 'Ningún archivo seleccionado'
+              }}
+            </span>
+          </div>
+          <mat-error *ngIf="uploadForm.get('archivo')?.hasError('required')">
+            Debe seleccionar un archivo Excel
+          </mat-error>
+        </div>
+      </div>
+    </mat-card-content>
+
+    <mat-card-actions align="end">
+      <button
+        mat-flat-button
+        color="primary"
+        (click)="onSubmitUpload()"
+        [disabled]="isLoading"
+      >
+        <mat-icon *ngIf="!isLoading">save_alt</mat-icon>
+        <mat-spinner
+          *ngIf="isLoading"
+          diameter="20"
+          strokeWidth="3"
+        ></mat-spinner>
+        <span *ngIf="!isLoading"> Importar encuestas </span>
+        <span *ngIf="isLoading"> Procesando... </span>
+      </button>
+    </mat-card-actions>
+  </mat-card>
+
+  <!-- FILTROS (solo tipo + fechas) -->
+  <mat-card class="elev filters-card" [formGroup]="filtroForm">
+    <mat-card-header>
+      <mat-card-title>Filtros de búsqueda</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="filters-grid">
+        <!-- Filtro tipo encuesta -->
+        <mat-form-field appearance="outline" class="field">
+          <mat-label>Tipo de encuesta</mat-label>
+          <mat-select formControlName="tipo">
+            <mat-option value="">Todas</mat-option>
+            <mat-option *ngFor="let t of tiposEncuesta" [value]="t.value">
+              {{ t.label }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <!-- Rango de fechas -->
+        <mat-form-field appearance="outline" class="field">
+          <mat-label>Rango de fechas (importación)</mat-label>
+          <mat-date-range-input
+            [rangePicker]="picker"
+            [formGroup]="filtroForm"
+          >
+            <input
+              matStartDate
+              placeholder="Desde"
+              formControlName="fechaDesde"
+            />
+            <input
+              matEndDate
+              placeholder="Hasta"
+              formControlName="fechaHasta"
+            />
+          </mat-date-range-input>
+          <mat-datepicker-toggle
+            matSuffix
+            [for]="picker"
+          ></mat-datepicker-toggle>
+          <mat-date-range-picker #picker></mat-date-range-picker>
+        </mat-form-field>
+
+        <div class="field buttons-col">
+          <button
+            mat-stroked-button
+            color="primary"
+            type="button"
+            (click)="aplicarFiltros()"
+          >
+            <mat-icon>filter_list</mat-icon>
+            Aplicar filtros
+          </button>
+
+          <button
+            mat-button
+            type="button"
+            (click)="limpiarFiltros()"
+          >
+            <mat-icon>clear</mat-icon>
+            Limpiar
+          </button>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- ACCIONES DE EXPORTACIÓN -->
+  <div class="export-actions">
+    <button
+      mat-stroked-button
+      color="primary"
+      (click)="exportarExcel()"
+    >
+      <mat-icon>table_view</mat-icon>
+      Exportar Excel (filtros aplicados)
+    </button>
+
+    <button
+      mat-stroked-button
+      color="accent"
+      (click)="exportarPDF()"
+    >
+      <mat-icon>picture_as_pdf</mat-icon>
+      Exportar PDF (filtros aplicados)
+    </button>
+  </div>
+
+  <!-- TABLA DE ENCUESTAS -->
+  <mat-card class="elev table-card">
+    <mat-card-header>
+      <mat-card-title>Listado de encuestas registradas</mat-card-title>
+      <mat-card-subtitle>
+        Se muestran solo las encuestas que cumplen los filtros aplicados
+      </mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <div class="table-wrapper" *ngIf="dataSource.data.length; else noData">
+        <table
+          mat-table
+          [dataSource]="dataSource"
+          matSort
+          matSortDisableClear
+          class="encuestas-table"
+        >
+          <!-- Tipo -->
+          <ng-container matColumnDef="tipo">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>
+              Tipo
+            </th>
+            <td mat-cell *matCellDef="let e">
+              {{ mapTipoLabel(e.tipo) }}
+            </td>
+          </ng-container>
+
+          <!-- Fecha -->
+          <ng-container matColumnDef="fecha">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>
+              Fecha importación
+            </th>
+            <td mat-cell *matCellDef="let e">
+              {{ e.fecha | date : 'dd/MM/yyyy' }}
+            </td>
+          </ng-container>
+
+          <!-- Origen archivo -->
+          <ng-container matColumnDef="origenArchivo">
+            <th mat-header-cell *matHeaderCellDef>
+              Archivo
+            </th>
+            <td mat-cell *matCellDef="let e">
+              <span class="file-chip">{{ e.origenArchivo }}</span>
+            </td>
+          </ng-container>
+
+          <!-- Acciones -->
+          <ng-container matColumnDef="acciones">
+            <th mat-header-cell *matHeaderCellDef>
+              Acciones
+            </th>
+            <td mat-cell *matCellDef="let e">
+              <button
+                mat-button
+                color="primary"
+                (click)="verDetalles(e)"
+              >
+                <mat-icon>visibility</mat-icon>
+                Ver detalles
+              </button>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr
+            mat-row
+            *matRowDef="let row; columns: displayedColumns"
+            class="data-row"
+          ></tr>
+        </table>
+
+        <mat-paginator
+          [pageSize]="10"
+          [pageSizeOptions]="[5, 10, 20, 50]"
+          showFirstLastButtons
+        ></mat-paginator>
+      </div>
+
+      <ng-template #noData>
+        <div class="empty-state">
+          <mat-icon>info</mat-icon>
+          <p>No hay encuestas registradas con los filtros actuales.</p>
+        </div>
+      </ng-template>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- DETALLES ENCUESTA SELECCIONADA -->
+  <mat-card
+    class="elev detail-card"
+    *ngIf="selectedEncuesta as det"
+  >
+    <mat-card-header>
+      <mat-card-title>Resultados del archivo</mat-card-title>
+      <mat-card-subtitle>
+        {{ mapTipoLabel(det.tipo) }} |
+        Importado el {{ det.fecha | date : 'dd/MM/yyyy' }}
+      </mat-card-subtitle>
+      <button
+        mat-icon-button
+        class="close-btn"
+        (click)="cerrarDetalles()"
+      >
+        <mat-icon>close</mat-icon>
+      </button>
+    </mat-card-header>
+
+    <mat-card-content>
+      <div class="detail-header">
+        <div>
+          <strong>Archivo origen: </strong> {{ det.origenArchivo }}
+        </div>
+        <div>
+          <strong>Cantidad de filas del Excel: </strong>
+          {{ det.respuestas.length }}
+        </div>
+      </div>
+
+      <h3>Vista de resultados (igual que en el Excel)</h3>
+
+      <div
+        class="table-wrapper"
+        *ngIf="getDetailColumns(det).length; else noDetail"
+      >
+        <table class="detail-plain-table">
+          <thead>
+            <tr>
+              <th *ngFor="let col of getDetailColumns(det)">
+                {{ col }}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of det.respuestas">
+              <td *ngFor="let col of getDetailColumns(det)">
+                {{ row[col] }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <ng-template #noDetail>
+        <p>No se encontraron filas en este archivo.</p>
+      </ng-template>
+    </mat-card-content>
+  </mat-card>
 </div>
