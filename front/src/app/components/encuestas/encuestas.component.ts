@@ -1,9 +1,4 @@
-import {
-  AfterViewInit,
-  Component,
-  OnInit,
-  ViewChild,
-} from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   FormBuilder,
@@ -12,49 +7,28 @@ import {
   Validators,
 } from '@angular/forms';
 import { FormsModule } from '@angular/forms';
-import {
-  MatTableDataSource,
-  MatTableModule,
-} from '@angular/material/table';
-import {
-  MatSnackBar,
-  MatSnackBarModule,
-} from '@angular/material/snack-bar';
-import {
-  MatSort,
-  MatSortModule,
-} from '@angular/material/sort';
-import {
-  MatPaginator,
-  MatPaginatorModule,
-} from '@angular/material/paginator';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
-// Angular Material básicos
+// Angular Material
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { RouterLink } from '@angular/router';
+import { MatExpansionModule } from '@angular/material/expansion';
 
-// Librerías para Excel y PDF
-import * as XLSX from 'xlsx';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
-
+// Definiciones de tipos
 export type TipoEncuesta = 'ESTUDIANTIL' | 'COLABORADORES_JEFES';
 
-/**
- * Cada archivo Excel importado se guarda como UNA encuesta agregada.
- * - respuestas: array de filas del Excel (cada fila = objeto con columnas).
- */
 export interface EncuestaRegistro {
   id: string;
   tipo: TipoEncuesta;
-  fecha: Date; // fecha de importación
+  fecha: Date;
   origenArchivo: string;
   respuestas: { [key: string]: any }[];
 }
@@ -68,289 +42,283 @@ export interface EncuestaRegistro {
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
-
+    RouterLink,
+    
     MatCardModule,
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
     MatButtonModule,
     MatIconModule,
-    MatTableModule,
-    MatPaginatorModule,
-    MatSortModule,
     MatSnackBarModule,
+    MatProgressSpinnerModule,
     MatDatepickerModule,
     MatNativeDateModule,
-    MatProgressSpinnerModule,
+    MatExpansionModule,
   ],
 })
-export class EncuestasComponent implements OnInit, AfterViewInit {
-  // Formulario para importar encuestas
-  uploadForm!: FormGroup;
-
-  // Formulario de filtros (tipo + rango de fechas)
-  filtroForm!: FormGroup;
-
-  // Datos
-  encuestas: EncuestaRegistro[] = [];
-  dataSource = new MatTableDataSource<EncuestaRegistro>([]);
-
-  // Tabla principal
-  displayedColumns: string[] = ['tipo', 'fecha', 'origenArchivo', 'acciones'];
-
-  tiposEncuesta = [
-    { value: 'ESTUDIANTIL' as TipoEncuesta, label: 'Percepción estudiantil' },
-    {
-      value: 'COLABORADORES_JEFES' as TipoEncuesta,
-      label: 'Colaboradores / Jefes UTP',
-    },
-  ];
-
-  // Detalle de encuesta seleccionada
-  selectedEncuesta: EncuestaRegistro | null = null;
-
+export class EncuestasComponent implements OnInit {
+  // --- ESTADOS Y DATOS PRINCIPALES ---
+  public tipoRegistroActivo: TipoEncuesta | null = null;
+  public selectedEncuesta: EncuestaRegistro | null = null;
   public isLoading: boolean = false;
 
-  @ViewChild(MatSort) sort!: MatSort;
-  @ViewChild(MatPaginator) paginator!: MatPaginator;
+  registroForm!: FormGroup;
 
-  constructor(
-    private fb: FormBuilder,
-    private snackBar: MatSnackBar
-  ) {}
+  // Opciones comunes para Selects (escala de 5 puntos)
+  opcionesEscala5 = [
+    { value: 1, label: '1 (Muy insatisfecho / Totalmente en desacuerdo)' },
+    { value: 2, label: '2' },
+    { value: 3, label: '3 (Ni en acuerdo, ni en desacuerdo)' },
+    { value: 4, label: '4' },
+    { value: 5, label: '5 (Muy satisfecho / Totalmente de acuerdo)' },
+    { value: 'NA', label: 'No aplica / N/O' },
+  ];
+  opcionesSiNo = [
+    { value: 'SI', label: 'Sí' },
+    { value: 'NO', label: 'No' },
+  ];
+  opcionesNormativas = [
+    { value: 'SI', label: 'Sí' },
+    { value: 'NO', label: 'No' },
+    { value: 'NS', label: 'No existe/no sabe' },
+  ];
+  opcionesParticipacion = [
+    { value: 'A_P', label: 'Asistí y pude participar' },
+    { value: 'A_N', label: 'Asistí, pero no intervine' },
+    { value: 'R_NA', label: 'Se realizó, pero no asistí' },
+    { value: 'R_NI', label: 'Se realizó, pero no fui invitado' },
+    { value: 'NR', label: 'No se realizó' },
+  ];
+  
+  // Datos de encuestas simuladas para el listado inferior
+  encuestas: EncuestaRegistro[] = [
+    { id: '1', tipo: 'ESTUDIANTIL', fecha: new Date('2024-03-15'), origenArchivo: 'MariaGonzalez.xlsx', respuestas: [{ 'Estudiante': 'Maria González', 'Colegio': 'San Patricio' }] },
+    { id: '2', tipo: 'COLABORADORES_JEFES', fecha: new Date('2024-03-14'), origenArchivo: 'AnaMartinez.xlsx', respuestas: [{ 'Colaborador': 'Prof. Ana Martínez', 'Establecimiento': 'Los Aromos' }] },
+  ];
+  
+  tiposEncuesta = [
+    { value: 'ESTUDIANTIL' as TipoEncuesta, label: 'Percepción estudiantil' },
+    { value: 'COLABORADORES_JEFES' as TipoEncuesta, label: 'Colaboradores / Jefes UTP' },
+  ];
 
-  // ----------------- Ciclo de vida -----------------
+  constructor(private fb: FormBuilder, private snackBar: MatSnackBar) {}
 
   ngOnInit(): void {
-    this.buildForms();
+    this.registroForm = this.fb.group({});
   }
 
-  ngAfterViewInit(): void {
-    this.dataSource.sort = this.sort;
-    this.dataSource.paginator = this.paginator;
-  }
+  // ----------------- CONTROL DE UI Y FORMULARIO -----------------
 
-  // ----------------- Formularios -----------------
+  iniciarRegistro(tipo: TipoEncuesta): void {
+    this.tipoRegistroActivo = tipo;
+    this.selectedEncuesta = null; // Cierra detalles si está abierto
 
-  private buildForms(): void {
-    this.uploadForm = this.fb.group({
-      tipoEncuesta: [null, Validators.required],
-      archivo: [null, Validators.required],
-    });
-
-    this.filtroForm = this.fb.group({
-      tipo: [''],
-      fechaDesde: [null],
-      fechaHasta: [null],
-    });
-
-    this.filtroForm.valueChanges.subscribe(() => this.aplicarFiltros());
-  }
-
-  // ----------------- Manejo de archivos -----------------
-
-  onFileSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const file = input.files && input.files[0];
-
-    this.uploadForm.get('archivo')?.setValue(file || null);
-
-    if (!file) return;
-
-    const fileName = file.name.toLowerCase();
-    if (!fileName.endsWith('.xlsx') && !fileName.endsWith('.xls')) {
-      this.mostrarError('El archivo debe ser un Excel (.xlsx o .xls).');
-      this.uploadForm.get('archivo')?.setValue(null);
-      input.value = '';
-      return;
+    if (tipo === 'ESTUDIANTIL') {
+      this.registroForm = this.buildEstudiantilForm();
+    } else {
+      this.registroForm = this.buildColaboradoresForm();
     }
   }
 
-  onSubmitUpload(): void {
-    if (this.uploadForm.invalid) {
-      this.uploadForm.markAllAsTouched();
-      this.mostrarError('Debe seleccionar tipo de encuesta y un archivo Excel.');
-      return;
-    }
-
-    const tipoEncuesta: TipoEncuesta = this.uploadForm.value.tipoEncuesta;
-    const file: File = this.uploadForm.value.archivo;
-
-    if (!file) {
-      this.mostrarError('No se ha seleccionado un archivo.');
-      return;
-    }
-
-    this.isLoading = true;
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      try {
-        const data = reader.result as string | ArrayBuffer | null;
-        if (!data) {
-          this.mostrarError('No se pudo leer el archivo.');
-          this.isLoading = false;
-          return;
-        }
-
-        const workbook = XLSX.read(data as string, { type: 'binary' });
-        const firstSheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[firstSheetName];
-
-        const rows: any[] = XLSX.utils.sheet_to_json(worksheet, {
-          defval: null,
-        });
-
-        if (!rows.length) {
-          this.mostrarError('El archivo Excel no contiene registros.');
-          this.isLoading = false;
-          return;
-        }
-
-        const nuevaEncuesta: EncuestaRegistro = {
-          id: `${Date.now()}-${Math.random().toString(36).substring(2, 8)}`,
-          tipo: tipoEncuesta,
-          fecha: new Date(), // fecha de importación
-          origenArchivo: file.name,
-          respuestas: rows, // TODAS las filas del Excel
-        };
-
-        this.encuestas = [...this.encuestas, nuevaEncuesta];
-        this.aplicarFiltros();
-
-        this.mostrarOk('Encuesta registrada exitosamente');
-
-        // limpiar form
-        this.uploadForm.reset();
-        const inputFile = document.getElementById(
-          'fileInputEncuestas'
-        ) as HTMLInputElement | null;
-        if (inputFile) inputFile.value = '';
-      } catch (error) {
-        console.error(error);
-        this.mostrarError(
-          'Ocurrió un error al procesar el archivo Excel. Verifique el formato.'
-        );
-      } finally {
-        this.isLoading = false;
-      }
-    };
-
-    reader.readAsBinaryString(file);
+  cerrarRegistro(): void {
+    this.tipoRegistroActivo = null;
+    this.registroForm.reset();
   }
-
-  // ----------------- Filtros y tabla principal -----------------
-
-  aplicarFiltros(): void {
-    const { tipo, fechaDesde, fechaHasta } = this.filtroForm.value;
-
-    const tipoFiltro: TipoEncuesta | '' = tipo;
-    const desde = fechaDesde ? this.sinHora(fechaDesde) : null;
-    const hasta = fechaHasta ? this.sinHora(fechaHasta) : null;
-
-    const filtradas = this.encuestas.filter((e) => {
-      if (tipoFiltro && e.tipo !== tipoFiltro) return false;
-
-      const fecha = this.sinHora(e.fecha);
-      if (desde && fecha < desde) return false;
-      if (hasta && fecha > hasta) return false;
-
-      return true;
-    });
-
-    this.dataSource.data = filtradas;
-  }
-
-  private sinHora(date: Date): Date {
-    const d = new Date(date);
-    d.setHours(0, 0, 0, 0);
-    return d;
-  }
-
-  limpiarFiltros(): void {
-    this.filtroForm.reset({
-      tipo: '',
-      fechaDesde: null,
-      fechaHasta: null,
-    });
-    this.aplicarFiltros();
-  }
-
+  
   mapTipoLabel(tipo: TipoEncuesta): string {
     const found = this.tiposEncuesta.find((t) => t.value === tipo);
     return found ? found.label : tipo;
   }
 
-  // ----------------- Detalles: ver resultados de la encuesta -----------------
+  // ----------------- CONSTRUCCIÓN DE FORMULARIOS DINÁMICOS -----------------
+
+  private buildEstudiantilForm(): FormGroup {
+    return this.fb.group({
+      // IDENTIFICACIÓN
+      nombreEstudiante: ['', Validators.required],
+      establecimiento: [''],
+      fechaEvaluacion: [null],
+      nivelCursado: [''],
+      anio: [''],
+      nombreTalleristaSupervisor: [''],
+      nombreDocenteColaborador: [''],
+
+      // SECCIÓN I: DESARROLLO GENERAL DE LA PRÁCTICA (4 preguntas)
+      secI: this.fb.group({
+        objetivos: ['', Validators.required],
+        accionesEstablecimiento: [''],
+        accionesTaller: [''],
+        satisfaccionGeneral: [''],
+      }),
+      
+      // SECCIÓN II.A: PERCEPCIÓN SOBRE LOS COLABORADORES/AS (5 preguntas)
+      secII_A: this.fb.group({
+        apoyoInsercion: [''],
+        apoyoGestion: [''],
+        orientacionComportamiento: [''],
+        comunicacionConstante: [''],
+        retroalimentacionProceso: [''],
+      }),
+
+      // SECCIÓN II.B: EXPERIENCIA CON COLABORADOR (2 preguntas SI/NO + Comentarios)
+      secII_B: this.fb.group({
+        interesRol: [''],
+        recomendarColaborador: [''],
+        comentariosColaborador: [''],
+      }),
+      
+      // SECCIÓN III.A: PERCEPCIÓN SOBRE CENTRO EDUCATIVO - NORMATIVAS (4 preguntas)
+      secIII_A: this.fb.group({
+        planEvacuacion: [''],
+        proyectoEducativo: [''],
+        reglamentoConvivencia: [''],
+        planMejoramiento: [''],
+      }),
+      
+      // SECCIÓN III.B: PERCEPCIÓN SOBRE CENTRO EDUCATIVO - PARTICIPACIÓN (7 actividades)
+      secIII_B: this.fb.group({
+        reunionesDepartamento: [''],
+        reunionesApoderados: [''],
+        fiestasPatrias: [''],
+        diaLibro: [''],
+        aniversarios: [''],
+        diaFamilia: [''],
+        graduaciones: [''],
+      }),
+      
+      // SECCIÓN III.C: CENTRO EDUCATIVO - AMBIENTE (2 preguntas SI/NO + Comentarios)
+      secIII_C: this.fb.group({
+        gratoAmbiente: [''],
+        recomendarCentro: [''],
+        comentariosCentro: [''],
+      }),
+
+      // SECCIÓN IV.A: PERCEPCIÓN SOBRE EL TALLERISTA (7 preguntas)
+      secIV_T: this.fb.group({
+        presentacionCentro: [''],
+        facilitaComprension: [''],
+        planificaVisitas: [''],
+        sesionesSemanales: [''],
+        evaluaPermanente: [''],
+        orientaDesempeno: [''],
+        organizaActividades: [''],
+      }),
+      
+      // SECCIÓN IV.B: PERCEPCIÓN SOBRE EL SUPERVISOR/A (8 preguntas)
+      secIV_S: this.fb.group({
+        presentacionCentro: [''],
+        orientaGestion: [''],
+        comunicacionConstante: [''],
+        orientaComportamiento: [''],
+        sesionesRetro: [''],
+        evaluaGlobal: [''],
+        resuelveProblemas: [''],
+        orientaGestionDos: [''],
+      }),
+      
+      // RESPUESTA ABIERTA (Mejoras Tallerista/Supervisor)
+      mejoraRolTallerista: [''],
+      
+      // SECCIÓN V: SOBRE LA COORDINACIÓN DE PRÁCTICA (5 preguntas)
+      secV: this.fb.group({
+        induccionesAcordes: [''],
+        informacionClara: [''],
+        respuestaDudas: [''],
+        infoAcordeCentros: [''],
+        gestionesMejora: [''],
+      }),
+      
+      // RESPUESTA ABIERTA (Mejoras Coordinación)
+      mejoraCoordinacion: [''],
+    });
+  }
+
+  private buildColaboradoresForm(): FormGroup {
+    return this.fb.group({
+      // IDENTIFICACIÓN
+      nombreColaborador: ['', Validators.required],
+      nombreEstudiantePractica: [''],
+      centroEducativo: [''],
+      tipoPractica: [''], 
+      fechaEvaluacion: [null],
+
+      // SECCIÓN I: EVALUACIÓN AL DOCENTE EN PRÁCTICA (8 preguntas)
+      secI: this.fb.group({
+        e1_planificacion: [''],
+        e2_estructuraClase: [''],
+        e3_secuenciaActividades: [''],
+        e4_preguntasAplicacion: [''],
+        e5_estrategiasAtencion: [''],
+        e6_retroalimentacion: [''],
+        e7_normasClase: [''],
+        e8_usoTecnologia: [''],
+      }),
+
+      // SECCIÓN II: INTEGRACIÓN A LA COMUNIDAD EDUCATIVA (5 preguntas)
+      secII: this.fb.group({
+        i1_vinculacionPares: [''],
+        i2_capacidadGrupoTrabajo: [''],
+        i3_presentacionPersonal: [''],
+        i4_autoaprendizaje: [''],
+        i5_formacionSuficiente: [''],
+      }),
+
+      // SECCIÓN III: VINCULACIÓN CON LA COORDINACIÓN DE LAS PRÁCTICAS (4 preguntas)
+      secIII: this.fb.group({
+        v1_flujoInformacionSupervisor: [''],
+        v2_claridadRoles: [''],
+        v3_verificacionAvance: [''],
+        v4_satisfaccionGeneral: [''],
+      }),
+
+      // RESPUESTAS ABIERTAS
+      sugerencias: [''], 
+      cumplePerfilEgreso: [''], 
+    });
+  }
+
+  // ----------------- ENVÍO DE FORMULARIO -----------------
+
+  onSubmitRegistro(): void {
+    if (this.registroForm.invalid) {
+      this.registroForm.markAllAsTouched();
+      this.mostrarError('Por favor, completa los campos requeridos y verifica las secciones.');
+      return;
+    }
+
+    const data = this.registroForm.value;
+
+    const nuevaEncuesta: EncuestaRegistro = {
+      id: `${Date.now()}-${Math.random().toString(36).substring(2, 8)}`,
+      tipo: this.tipoRegistroActivo!,
+      fecha: new Date(),
+      origenArchivo: 'Formulario Web',
+      respuestas: [data],
+    };
+    
+    this.encuestas = [nuevaEncuesta, ...this.encuestas]; // Simulación local
+    this.mostrarOk('Encuesta registrada exitosamente mediante formulario.');
+    this.cerrarRegistro();
+  }
+
+  // ----------------- DETALLES Y UTILIDADES -----------------
 
   verDetalles(encuesta: EncuestaRegistro): void {
     this.selectedEncuesta = encuesta;
+    this.tipoRegistroActivo = null;
   }
 
   cerrarDetalles(): void {
     this.selectedEncuesta = null;
   }
 
-  /**
-   * Columnas para la tabla de detalle (toma los encabezados del Excel).
-   */
   getDetailColumns(encuesta: EncuestaRegistro | null): string[] {
     if (!encuesta || !encuesta.respuestas || !encuesta.respuestas.length) {
       return [];
     }
     return Object.keys(encuesta.respuestas[0]);
   }
-
-  // ----------------- Exportar (respetando filtros) -----------------
-
-  exportarExcel(): void {
-    if (!this.dataSource.data.length) {
-      this.mostrarError('No hay encuestas para exportar.');
-      return;
-    }
-
-    const data = this.dataSource.data.map((e) => ({
-      Tipo: this.mapTipoLabel(e.tipo),
-      FechaImportacion: e.fecha.toISOString().split('T')[0],
-      OrigenArchivo: e.origenArchivo,
-      CantidadFilasExcel: e.respuestas.length,
-    }));
-
-    const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(data);
-    const wb: XLSX.WorkBook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Encuestas');
-
-    const fecha = new Date().toISOString().split('T')[0];
-    XLSX.writeFile(wb, `encuestas_filtradas_${fecha}.xlsx`);
-  }
-
-  exportarPDF(): void {
-    if (!this.dataSource.data.length) {
-      this.mostrarError('No hay encuestas para exportar.');
-      return;
-    }
-
-    const doc = new jsPDF('l', 'mm', 'a4');
-
-    const rows = this.dataSource.data.map((e) => [
-      this.mapTipoLabel(e.tipo),
-      e.fecha.toISOString().split('T')[0],
-      e.origenArchivo,
-      e.respuestas.length.toString(),
-    ]);
-
-    autoTable(doc, {
-      head: [['Tipo', 'Fecha importación', 'Archivo', 'Filas Excel']],
-      body: rows,
-      styles: { fontSize: 8 },
-      headStyles: { fillColor: [33, 150, 243] },
-    });
-
-    const fecha = new Date().toISOString().split('T')[0];
-    doc.save(`encuestas_filtradas_${fecha}.pdf`);
-  }
-
-  // ----------------- Utilidades UI -----------------
 
   private mostrarOk(mensaje: string): void {
     this.snackBar.open(mensaje, 'Cerrar', {
