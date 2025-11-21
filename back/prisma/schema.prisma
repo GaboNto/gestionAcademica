@@ -210,7 +210,8 @@ model EncuestaColaborador {
   nombre_colaborador String
   nombre_colegio     String?
   observacion        String?
-
+  fecha              DateTime?
+  
   semestreId Int?
   semestre   EncuestaSemestre? @relation(fields: [semestreId], references: [id], onDelete: Cascade)
 
