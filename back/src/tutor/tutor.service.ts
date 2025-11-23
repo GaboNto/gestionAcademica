@@ -3,6 +3,7 @@ import { PrismaService } from 'prisma/prisma.service';
 import { CreateTutorDto } from './dto/create-tutor.dto';
 import { UpdateTutorDto } from './dto/update-tutor.dto';
 import { QueryTutorDto } from './dto/query-tutor.dto';
+import { normalizeRut } from 'src/validador/rut.util';
 
 @Injectable()
 export class TutorService {
@@ -29,6 +30,7 @@ export class TutorService {
     return this.prisma.tutor.create({
       data: {
         ...rest,
+        rut: normalizeRut(dto.rut),
         ...(cargosList.length ? { cargos: { create: cargosList } } : {}),
         // No hay relación roles en el esquema actual
       },
@@ -111,6 +113,10 @@ export class TutorService {
     const cargosList = this.normalizeCargos(dto as any);
     const { cargo, cargos, ...rest } = dto as any;
 
+    if (rest.rut !== undefined) {
+      rest.rut = normalizeRut(rest.rut);
+    }
+
     try {
       return await this.prisma.tutor.update({
         where: { id },
@@ -144,3 +150,4 @@ export class TutorService {
   }
 }
 
+ 

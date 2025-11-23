@@ -1,8 +1,11 @@
 import { IsArray, IsEmail, IsNumber, IsOptional, IsString, Length } from 'class-validator';
+import { IsRut } from 'src/validador/rut.validador';
+
 
 export class CreateTutorDto {
   @IsString()
   @Length(3, 20)
+  @IsRut({ message: 'El RUT no es válido' })
   rut: string;
 
   @IsString()
