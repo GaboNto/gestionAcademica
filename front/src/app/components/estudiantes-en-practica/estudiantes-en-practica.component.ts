@@ -10,6 +10,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 
 // Servicios
 import {
@@ -56,7 +57,8 @@ interface PracticaEstudiante {
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
-    MatSnackBarModule
+    MatSnackBarModule,
+    MatPaginatorModule
   ]
 })
 export class EstudiantesEnPracticaComponent implements OnInit {
@@ -67,6 +69,12 @@ export class EstudiantesEnPracticaComponent implements OnInit {
   terminoBusqueda = '';
   estadoSeleccionado: 'all' | EstadoPractica = 'all';
   nivelSeleccionado: 'all' | string = 'all';
+  
+  // ===== paginación =====
+  pageIndex = 0;
+  pageSize = 5;
+  totalItems = 0;
+  readonly pageSizeOptions = [5, 10, 20, 50];
 
   // Datos
   practicas: PracticaEstudiante[] = [];
@@ -100,6 +108,7 @@ export class EstudiantesEnPracticaComponent implements OnInit {
       next: (practicas) => {
         this.practicas = practicas.map((p: any) => this.transformarPractica(p));
         this.recalcularNivelesDesdeDatos();
+        this.actualizarPaginacion();
         this.cargando = false;
       },
       error: (err) => {
@@ -189,7 +198,7 @@ export class EstudiantesEnPracticaComponent implements OnInit {
     return formato[estado] || estado;
   }
 
-  estudiantesFiltrados(): PracticaEstudiante[] {
+  get estudiantesFiltrados(): PracticaEstudiante[] {
     const termino = this.terminoBusqueda.toLowerCase().trim();
 
     return this.practicas.filter(practica => {
@@ -208,6 +217,35 @@ export class EstudiantesEnPracticaComponent implements OnInit {
 
       return coincideBusqueda && coincideEstado && coincideNivel;
     });
+  }
+
+  // ===== items paginados de los filtrados =====
+  get estudiantesPaginados(): PracticaEstudiante[] {
+    const filtradas = this.estudiantesFiltrados;
+    const startIndex = this.pageIndex * this.pageSize;
+    const endIndex = startIndex + this.pageSize;
+    return filtradas.slice(startIndex, endIndex);
+  }
+
+  // Actualizar paginación cuando cambian los filtros o datos
+  actualizarPaginacion(): void {
+    this.totalItems = this.estudiantesFiltrados.length;
+    // Asegurar que pageIndex no exceda el número de páginas disponibles
+    const maxPage = Math.max(0, Math.ceil(this.totalItems / this.pageSize) - 1);
+    if (this.pageIndex > maxPage) {
+      this.pageIndex = maxPage;
+    }
+  }
+
+  onPageChange(event: PageEvent): void {
+    this.pageIndex = event.pageIndex;
+    this.pageSize = event.pageSize;
+    this.actualizarPaginacion();
+  }
+
+  onFiltersChange(): void {
+    this.pageIndex = 0;
+    this.actualizarPaginacion();
   }
 
   abrirDialogoCambioEstado(practica: PracticaEstudiante) {
@@ -244,6 +282,8 @@ export class EstudiantesEnPracticaComponent implements OnInit {
         if (index !== -1) {
           this.practicas[index].estado = this.nuevoEstadoSeleccionado!;
         }
+        
+        this.actualizarPaginacion();
         
         this.snack.open(
           `✓ Estado actualizado a: ${this.formatearEstado(this.nuevoEstadoSeleccionado!)}`,

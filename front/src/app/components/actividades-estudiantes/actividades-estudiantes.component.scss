@@ -14,20 +14,25 @@
   display: flex; 
   align-items: center; 
   gap: 12px; 
-  margin-bottom: 20px; 
+  margin-bottom: 12px; 
+}
+
+.BtnAdd { 
+  border-radius: 10px; 
+  white-space: nowrap; 
 }
 
 .Headline h1 { 
   margin: 0; 
-  font-size: 28px; 
+  font-size: 22px; 
   font-weight: 600; 
   color: #1f2937; 
 }
 
 .Muted { 
   color: #64748b; 
-  font-size: 14px; 
-  margin: 4px 0 0; 
+  font-size: 13px; 
+  margin: 2px 0 0; 
 }
 
 .Spacer { 
@@ -37,45 +42,639 @@
 /* Card base */
 .Elev { 
   border: 1px solid #e5e7eb; 
-  border-radius: 12px; 
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border-radius: 14px; 
 }
 
-/* Mensaje de desarrollo futuro */
-.DevelopmentCard {
-  margin-top: 24px;
+/* Filtros de búsqueda */
+.FiltersCard {
+  margin-bottom: 24px;
   background: #f8fafc;
   border: 1px solid #e2e8f0;
 }
 
-.DevelopmentContent {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 60px 40px;
-  text-align: center;
+.FiltersCard mat-card-header {
+  padding: 20px 20px 0;
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 20px;
 }
 
-.DevelopmentIcon {
-  font-size: 80px;
-  width: 80px;
-  height: 80px;
-  color: #64748b;
+.FiltersCard mat-card-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+}
+
+.FiltersCard mat-card-content {
+  padding: 0 20px 20px;
+}
+
+.FiltersGrid {
+  display: grid;
+  grid-template-columns: 1fr 240px;
+  gap: 16px;
+  align-items: end;
+}
+
+.SearchField {
+  width: 100%;
+}
+
+.FilterField {
+  min-width: 200px;
+}
+
+@media (max-width: 768px) {
+  .FiltersGrid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  .FilterField {
+    min-width: auto;
+  }
+}
+
+/* Formulario */
+.FormContainer {
+  margin-bottom: 20px;
+  transition: all 0.3s ease;
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+}
+
+.FormContainer.FormOpen {
+  max-height: 1000px;
+  opacity: 1;
+}
+
+.FormCard { 
+  margin: 0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e2e8f0;
+}
+
+.FormHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 24px 0;
+  border-bottom: 1px solid #f1f5f9;
   margin-bottom: 24px;
 }
 
-.DevelopmentContent h2 {
-  font-size: 32px;
-  font-weight: 600;
-  color: #1f2937;
-  margin: 0 0 16px 0;
+.FormTitleSection {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
 }
 
-.DevelopmentContent p {
-  font-size: 16px;
-  color: #4b5563;
-  margin: 8px 0;
+.FormIcon {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
+}
+
+.FormTitles h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.FormTitles p {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: #64748b;
+}
+
+.CloseFormBtn {
+  color: #64748b;
+  transition: color 0.2s ease;
+}
+
+.CloseFormBtn:hover {
+  color: #ef4444;
+}
+
+.FormContent {
+  padding: 0 24px 24px;
+}
+
+.FormGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.FormRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.FormField.FullWidth {
+  grid-column: 1 / -1;
+}
+
+.FormActions { 
+  display: flex; 
+  justify-content: flex-end; 
+  gap: 12px;
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.CancelBtn {
+  color: #64748b;
+  border-color: #d1d5db;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-weight: 500;
+  font-size: 14px;
+  text-transform: none;
+  transition: all 0.2s ease;
+  min-width: 100px;
+}
+
+.CancelBtn:hover {
+  background-color: #f8fafc;
+  border-color: #9ca3af;
+  color: #374151;
+}
+
+.SubmitBtn {
+  background: white;
+  color: #374151;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-weight: 600;
+  font-size: 14px;
+  text-transform: none;
+  letter-spacing: 0.025em;
+  transition: all 0.2s ease;
+  min-width: 120px;
+}
+
+.SubmitBtn:hover {
+  background: #f9fafb;
+  box-shadow: 0 6px 8px -1px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
+  border-color: #9ca3af;
+}
+
+.SubmitBtn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+}
+
+.SubmitBtn mat-icon {
+  margin-right: 8px;
+  font-size: 18px;
+  color: #374151;
+}
+
+@media (max-width: 768px) { 
+  .FormRow { 
+    grid-template-columns: 1fr; 
+    gap: 12px;
+  }
+  .FormHeader {
+    padding: 20px 20px 0;
+  }
+  .FormContent {
+    padding: 0 20px 20px;
+  }
+  .FormActions {
+    flex-direction: column;
+  }
+  .FormActions button {
+    width: 100%;
+  }
+}
+
+/* Tabla */
+.TableCard {
+  margin-top: 0;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  border-top: none;
+}
+
+.Elev:has(.TableContent) {
+  border-radius: 0 0 14px 14px;
+}
+
+.TableContent {
+  padding: 0 !important;
+}
+
+.TableWrapper {
+  overflow-x: auto;
+}
+
+.TableHeader {
+  display: grid;
+  grid-template-columns: 2fr 0.8fr 0.8fr 1fr 1.5fr 0.8fr 1fr;
+  gap: 16px;
+  padding: 16px 24px;
+  background: #f8fafc;
+  border-bottom: 2px solid #e5e7eb;
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #64748b;
+  align-items: center;
+}
+
+.HeaderCell {
+  min-width: 0;
+}
+
+.TableRow {
+  display: grid;
+  grid-template-columns: 2fr 0.8fr 0.8fr 1fr 1.5fr 0.8fr 1fr;
+  gap: 16px;
+  padding: 16px 24px;
+  border-bottom: 1px solid #e5e7eb;
+  align-items: center;
+  transition: background-color 0.2s ease;
+}
+
+.TableRow:hover {
+  background-color: #f8fafc;
+}
+
+.TableRow:last-child {
+  border-bottom: none;
+}
+
+.TableCell {
+  min-width: 0;
+  font-size: 14px;
+  color: #374151;
+}
+
+.ActivityName {
+  font-weight: 500;
+  color: #1f2937;
+  line-height: 1.4;
+}
+
+.DateText,
+.TimeText {
+  color: #374151;
+}
+
+.LocationText,
+.StudentsText {
+  color: #6b7280;
+  line-height: 1.4;
+}
+
+.StudentsText {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.EvidenceText {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+}
+
+.EvidenceText mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  color: #6b7280;
+}
+
+.ActionButtons {
+  display: flex;
+  gap: 4px;
+  justify-content: flex-start;
+}
+
+.ActionButtons button {
+  border-radius: 8px;
+}
+
+/* Paginador */
+.list-paginator {
+  padding: 8px 16px;
+  border-top: 1px solid #e5e7eb;
+  background: #fafafa;
+  border-radius: 0 0 14px 14px;
+}
+
+/* Mensaje vacío */
+.EmptyCard {
+  margin-top: 20px;
+  text-align: center;
+  background: #f8fafc;
+}
+
+.EmptyContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 60px 40px;
+}
+
+.EmptyContent mat-icon {
+  font-size: 64px;
+  width: 64px;
+  height: 64px;
+  color: #9ca3af;
+}
+
+.EmptyContent h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.EmptyContent p {
+  margin: 0;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .TableHeader,
+  .TableRow {
+    grid-template-columns: 2fr 0.9fr 0.9fr 1.1fr 1.8fr 0.9fr 1.2fr;
+  }
+}
+
+@media (max-width: 960px) {
+  .TableWrapper {
+    overflow-x: scroll;
+  }
+  
+  .TableHeader,
+  .TableRow {
+    min-width: 1000px;
+  }
+}
+
+@media (max-width: 640px) {
+  .Container {
+    padding: 0 12px;
+  }
+  
+  .Headline h1 {
+    font-size: 20px;
+  }
+}
+
+/* Modal de detalles */
+.DetailsDialog {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.DialogOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+}
+
+.DialogContent {
+  position: relative;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
   max-width: 600px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.DialogHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 24px 0;
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 24px;
+}
+
+.DialogHeader h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.CloseBtn {
+  color: #6b7280;
+}
+
+.DialogBody {
+  padding: 0 24px;
+}
+
+.DetailsGrid {
+  display: grid;
+  gap: 16px;
+}
+
+.DetailItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.DetailItem label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.DetailItem span {
+  font-size: 16px;
+  color: #1f2937;
+}
+
+.DetailItem a {
+  color: #3b82f6;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.DetailItem a:hover {
+  text-decoration: underline;
+}
+
+.DialogActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 24px;
+  border-top: 1px solid #e5e7eb;
+  margin-top: 24px;
+}
+
+.DialogActions button mat-icon {
+  margin-right: 6px;
+}
+
+@media (max-width: 640px) {
+  .DialogContent {
+    width: 95%;
+    margin: 16px;
+  }
+  
+  .DialogHeader {
+    padding: 16px 16px 0;
+  }
+  
+  .DialogHeader h2 {
+    font-size: 18px;
+  }
+  
+  .DialogBody {
+    padding: 0 16px;
+  }
+  
+  .DialogActions {
+    padding: 16px;
+    flex-direction: column;
+  }
+  
+  .DialogActions button {
+    width: 100%;
+  }
+}
+
+/* Confirm Dialog */
+.confirm-dialog { 
+  position: fixed; 
+  inset: 0; 
+  z-index: 1100; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+}
+
+.confirm-dialog .dialog-overlay { 
+  position: absolute; 
+  inset: 0; 
+  background: rgba(0,0,0,.45); 
+}
+
+.confirm-card {
+  position: relative; 
+  background: #fff; 
+  width: 560px; 
+  max-width: 92%;
+  border-radius: 16px; 
+  box-shadow: 0 20px 25px -5px rgba(0,0,0,.1), 0 10px 10px -5px rgba(0,0,0,.04);
+  display: flex; 
+  flex-direction: column;
+}
+
+.confirm-header { 
+  display: flex; 
+  align-items: center; 
+  gap: 12px; 
+  padding: 20px 24px 8px; 
+  border-bottom: 1px solid #e5e7eb; 
+}
+
+.confirm-header h2 { 
+  margin: 0; 
+  font-size: 20px; 
+  font-weight: 600; 
+  color: #1f2937; 
+}
+
+.warn-icon { 
+  width: 40px; 
+  height: 40px; 
+  border-radius: 50%; 
+  background: #fef3c7; 
+  color: #b45309; 
+  display: grid; 
+  place-items: center; 
+}
+
+.confirm-body { 
+  padding: 12px 24px 0; 
+}
+
+.confirm-body p { 
+  margin: 0 0 6px; 
+  font-size: 15px; 
+  color: #111827; 
+}
+
+.confirm-body .Muted { 
+  margin-top: 2px; 
+}
+
+.confirm-actions { 
+  display: flex; 
+  justify-content: flex-end; 
+  gap: 12px; 
+  padding: 16px 16px 20px; 
+  border-top: 1px solid #e5e7eb; 
+  margin-top: 12px; 
+}
+
+.btn-danger mat-icon { 
+  margin-right: 6px; 
+}
+
+@media (max-width: 640px) {
+  .confirm-card { 
+    width: 95%; 
+    margin: 16px; 
+  }
+  
+  .confirm-actions { 
+    flex-direction: column; 
+  }
+  
+  .confirm-actions button { 
+    width: 100%; 
+  }
 }
 

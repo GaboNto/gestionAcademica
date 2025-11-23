@@ -20,13 +20,13 @@
       <div class="FiltersGrid">
         <mat-form-field appearance="outline" class="SearchField">
           <mat-label>Buscar</mat-label>
-          <input matInput [(ngModel)]="terminoBusqueda" placeholder="Nombre, RUT o centro educativo..." />
+          <input matInput [(ngModel)]="terminoBusqueda" (ngModelChange)="onFiltersChange()" placeholder="Nombre, RUT o centro educativo..." />
           <mat-icon matSuffix>search</mat-icon>
         </mat-form-field>
         
         <mat-form-field appearance="outline" class="FilterField">
           <mat-label>Estado</mat-label>
-          <mat-select [(ngModel)]="estadoSeleccionado">
+          <mat-select [(ngModel)]="estadoSeleccionado" (ngModelChange)="onFiltersChange()">
             <mat-option value="all">Todos los estados</mat-option>
             @for (estado of estadosPractica; track estado) {
               <mat-option [value]="estado">
@@ -38,7 +38,7 @@
 
         <mat-form-field appearance="outline" class="FilterField">
           <mat-label>Nivel</mat-label>
-          <mat-select [(ngModel)]="nivelSeleccionado">
+          <mat-select [(ngModel)]="nivelSeleccionado" (ngModelChange)="onFiltersChange()">
             <mat-option value="all">Todos los niveles</mat-option>
             @for (n of niveles; track n) {
               <mat-option [value]="n">{{ n }}</mat-option>
@@ -58,8 +58,8 @@
       </mat-card-content>
     </mat-card>
   } @else {
-    <div class="StudentsList">
-      @for (practica of estudiantesFiltrados(); track practica.id) {
+    <div class="StudentsList" *ngIf="totalItems > 0">
+      @for (practica of estudiantesPaginados; track practica.id) {
         <mat-card class="StudentCard Elev">
           <mat-card-content>
             <div class="StudentContent">
@@ -150,8 +150,19 @@
       }
     </div>
 
+    <!-- PAGINADOR -->
+    <div class="list-paginator" *ngIf="totalItems > 0">
+      <mat-paginator
+        [length]="totalItems"
+        [pageIndex]="pageIndex"
+        [pageSize]="pageSize"
+        [pageSizeOptions]="pageSizeOptions"
+        (page)="onPageChange($event)">
+      </mat-paginator>
+    </div>
+
     <!-- MENSAJE VACÍO -->
-    @if (!estudiantesFiltrados().length) {
+    @if (totalItems === 0) {
       <mat-card class="EmptyCard Elev">
         <mat-card-content class="EmptyContent">
           <mat-icon>school</mat-icon>
