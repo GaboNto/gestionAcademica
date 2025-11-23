@@ -1,14 +1,7 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  ParseIntPipe,
-  Patch,
-  Post,
-  Query,
-} from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query, UseInterceptors, UploadedFile, BadRequestException} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
 import { ActividadPracticaService } from './actividad-practica.service';
 import { CreateActividadPracticaDto } from './dto/crear-act-practica.dto';
 import { UpdateActividadPracticaDto } from './dto/actualizar-act-practica.dto';
@@ -19,10 +12,50 @@ export class ActividadPracticaController {
   constructor(private readonly service: ActividadPracticaService) {}
 
   @Post()
-  create(@Body() dto: CreateActividadPracticaDto) {
-    // Si falta campo obligatorio, el ValidationPipe lanza 400.
-    // En el front puedes mostrar: "Debe completar todos los campos requeridos."
-    return this.service.create(dto);
+  @UseInterceptors(
+    FileInterceptor('archivo', {
+      storage: diskStorage({
+        destination: './uploads/actividades',
+        filename: (req, file, cb) => {
+          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+          const ext = extname(file.originalname); // .pdf o .png
+          cb(null, `actividad-${uniqueSuffix}${ext}`);
+        },
+      }),
+      fileFilter: (req, file, cb) => {
+        // Solo PDF o PNG
+        if (
+          file.mimetype === 'application/pdf' ||
+          file.mimetype === 'image/png'
+        ) {
+          cb(null, true);
+        } else {
+          cb(
+            new BadRequestException(
+              'Solo se permiten archivos PDF o PNG como evidencia',
+            ) as any,
+            false,
+          );
+        }
+      },
+      limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
+    }),
+  )
+  create(
+    @UploadedFile() archivo: Express.Multer.File,
+    @Body() dto: CreateActividadPracticaDto,
+  ) {
+    // Si vino archivo, construimos la URL/ruta
+    const evidenciaUrl = archivo
+      ? `uploads/actividades/${archivo.filename}`
+      : dto.evidenciaUrl;
+
+    const dtoConArchivo: CreateActividadPracticaDto = {
+      ...dto,
+      evidenciaUrl,
+    };
+
+    return this.service.create(dtoConArchivo);
   }
 
   @Get()
@@ -36,8 +69,49 @@ export class ActividadPracticaController {
   }
 
   @Patch(':id')
-  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateActividadPracticaDto) {
-    return this.service.update(id, dto);
+  @UseInterceptors(
+    FileInterceptor('archivo', {
+      storage: diskStorage({
+        destination: './uploads/actividades',
+        filename: (req, file, cb) => {
+          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+          const ext = extname(file.originalname);
+          cb(null, `actividad-${uniqueSuffix}${ext}`);
+        },
+      }),
+      fileFilter: (req, file, cb) => {
+        if (
+          file.mimetype === 'application/pdf' ||
+          file.mimetype === 'image/png'
+        ) {
+          cb(null, true);
+        } else {
+          cb(
+            new BadRequestException(
+              'Solo se permiten archivos PDF o PNG como evidencia',
+            ) as any,
+            false,
+          );
+        }
+      },
+      limits: { fileSize: 5 * 1024 * 1024 },
+    }),
+  )
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @UploadedFile() archivo: Express.Multer.File,
+    @Body() dto: UpdateActividadPracticaDto,
+  ) {
+    const evidenciaUrl = archivo
+      ? `uploads/actividades/${archivo.filename}`
+      : dto.evidenciaUrl;
+
+    const dtoConArchivo: UpdateActividadPracticaDto = {
+      ...dto,
+      evidenciaUrl,
+    };
+
+    return this.service.update(id, dtoConArchivo);
   }
 
   @Delete(':id')

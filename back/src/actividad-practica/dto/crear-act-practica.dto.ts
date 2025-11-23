@@ -1,10 +1,4 @@
-import {
-  IsDateString,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-  MaxLength,
-} from 'class-validator';
+import { IsDateString, IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
 
 export class CreateActividadPracticaDto {
   @IsString()
@@ -18,21 +12,17 @@ export class CreateActividadPracticaDto {
 
   @IsString()
   @IsNotEmpty({ message: 'Debe indicar el tallerista asociado' })
-  tallerista: string; // se guarda como string en "horario"
+  tallerista: string;
 
   @IsString()
   @IsNotEmpty({ message: 'Debe indicar el estudiante asociado' })
-  estudiante: string; // se guarda como string en "estudiantes"
-  
+  estudiante: string;
+
   @IsOptional()
   @IsDateString({}, { message: 'La fecha debe tener un formato válido (YYYY-MM-DD)' })
   fechaRegistro?: string;
 
-  @IsString()
-  @IsNotEmpty({ message: 'Debe indicar el estado de la actividad' })
-  estado: string; // "PENDIENTE" | "APROBADA" | "OBSERVADA"
-
   @IsOptional()
   @IsString()
-  evidenciaUrl?: string; // ruta/URL del archivo (PDF/PNG)
+  evidenciaUrl?: string; // PDF o PNG
 }

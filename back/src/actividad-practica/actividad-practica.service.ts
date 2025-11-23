@@ -8,52 +8,48 @@ import { QueryActividadPracticaDto } from './dto/consulta-act-practica.dto';
 export class ActividadPracticaService {
   constructor(private prisma: PrismaService) {}
 
-  // CREATE
+  private obtenerMesDesdeFecha(fecha: Date): string {
+    const meses = [
+      'ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO',
+      'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'
+    ];
+    return meses[fecha.getMonth()];
+  }
+
   async create(dto: CreateActividadPracticaDto) {
     const fecha = dto.fechaRegistro ? new Date(dto.fechaRegistro) : new Date();
+    const mes = this.obtenerMesDesdeFecha(fecha); 
 
     const actividad = await this.prisma.actividad.create({
       data: {
-        // mapeo de campos
         nombre_actividad: dto.titulo,
         lugar: dto.descripcion,
         horario: dto.tallerista,
         estudiantes: dto.estudiante,
         fecha,
-        mes: dto.estado, // "PENDIENTE" | "APROBADA" | "OBSERVADA"
+        mes, 
         archivo_adjunto: dto.evidenciaUrl ?? null,
       },
     });
 
-    // El front, al recibir 201/200 OK, muestra:
-    // "Actividad registrada exitosamente."
     return actividad;
   }
 
-  // LISTAR + búsqueda + filtros
   async findAll(q: QueryActividadPracticaDto) {
     const page = q.page ?? 1;
     const limit = q.limit ?? 10;
 
     const where: any = {};
 
-    if (q.estado) {
-      where.mes = q.estado;
+    // Filtrar por mes 
+    if (q.mes) {
+      where.mes = q.mes.toUpperCase();
     }
 
-    if (q.fechaDesde || q.fechaHasta) {
-      where.fecha = {};
-      if (q.fechaDesde) where.fecha.gte = new Date(q.fechaDesde);
-      if (q.fechaHasta) where.fecha.lte = new Date(q.fechaHasta);
-    }
-
+    // Búsqueda por título
     const s = q.search?.trim();
     if (s) {
-      where.OR = [
-        { nombre_actividad: { contains: s, mode: 'insensitive' } }, // título
-        { horario: { contains: s, mode: 'insensitive' } },          // tallerista
-        { estudiantes: { contains: s, mode: 'insensitive' } },      // estudiante
-      ];
+      where.nombre_actividad = { contains: s, mode: 'insensitive' };
     }
 
     const [items, total] = await this.prisma.$transaction([
@@ -72,11 +68,9 @@ export class ActividadPracticaService {
       limit,
       total,
       pages: Math.ceil(total / limit),
-      // si total === 0 -> el front muestra "No hay actividades registradas."
     };
   }
 
-  // READ ONE
   async findOne(id: number) {
     const actividad = await this.prisma.actividad.findUnique({
       where: { id },
@@ -85,7 +79,6 @@ export class ActividadPracticaService {
     return actividad;
   }
 
-  // UPDATE
   async update(id: number, dto: UpdateActividadPracticaDto) {
     const data: any = {};
 
@@ -93,9 +86,13 @@ export class ActividadPracticaService {
     if (dto.descripcion !== undefined) data.lugar = dto.descripcion;
     if (dto.tallerista !== undefined) data.horario = dto.tallerista;
     if (dto.estudiante !== undefined) data.estudiantes = dto.estudiante;
-    if (dto.estado !== undefined) data.mes = dto.estado;
     if (dto.evidenciaUrl !== undefined) data.archivo_adjunto = dto.evidenciaUrl;
-    if (dto.fechaRegistro !== undefined) data.fecha = new Date(dto.fechaRegistro);
+
+    if (dto.fechaRegistro !== undefined) {
+      const fecha = new Date(dto.fechaRegistro);
+      data.fecha = fecha;
+      data.mes = this.obtenerMesDesdeFecha(fecha);
+    }
 
     try {
       return await this.prisma.actividad.update({
@@ -107,7 +104,6 @@ export class ActividadPracticaService {
     }
   }
 
-  // DELETE
   async remove(id: number) {
     try {
       return await this.prisma.actividad.delete({ where: { id } });

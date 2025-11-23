@@ -1,27 +1,16 @@
 import { Transform } from 'class-transformer';
-import {
-  IsDateString,
-  IsInt,
-  IsOptional,
-  IsString,
-  Min,
-} from 'class-validator';
+import { IsInt, IsOptional, IsString, Min } from 'class-validator';
 
 export class QueryActividadPracticaDto {
-  // búsqueda por título, tallerista o estudiante
-  @IsOptional() @IsString()
+  // búsqueda por título
+  @IsOptional()
+  @IsString()
   search?: string;
 
-  // filtro por estado (se guarda en "mes")
-  @IsOptional() @IsString()
-  estado?: string; // "PENDIENTE" | "APROBADA" | "OBSERVADA"
-
-  // filtro por rango de fechas (sobre "fecha")
-  @IsOptional() @IsDateString()
-  fechaDesde?: string;
-
-  @IsOptional() @IsDateString()
-  fechaHasta?: string;
+  // filtro por mes 
+  @IsOptional()
+  @IsString()
+  mes?: string;
 
   @IsOptional()
   @Transform(({ value }) => parseInt(value, 10))
