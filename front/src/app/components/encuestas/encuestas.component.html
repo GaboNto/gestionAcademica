@@ -1319,19 +1319,81 @@
 
             </mat-accordion>
 
-            <!-- Preguntas abiertas -->
-            <mat-form-field appearance="outline" class="full-width">
-              <mat-label>
-                ¿Tiene sugerencias o recomendaciones respecto a las prácticas, practicantes y coordinación de ellas
-                que puedan generar mejoras en el futuro?
-              </mat-label>
-              <textarea matInput rows="3" formControlName="sugerencias"></textarea>
-            </mat-form-field>
+          <!-- BLOQUE FINAL COLABORADORES / JEFES UTP -->
 
-            <mat-form-field appearance="outline" class="full-width">
-              <mat-label>¿Cree que se cumple el perfil de egreso declarado?</mat-label>
-              <textarea matInput rows="3" formControlName="cumplePerfilEgreso"></textarea>
-            </mat-form-field>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>
+              ¿Tiene sugerencias o recomendaciones respecto a las prácticas, practicantes y coordinación de ellas 
+              que puedan generar mejoras en el futuro?
+            </mat-label>
+            <textarea matInput rows="3" formControlName="sugerencias"></textarea>
+          </mat-form-field>
+
+          <!-- TEXTO PERFIL DE EGRESO ANTES DE LA PREGUNTA -->
+
+          <div class="perfil-egreso">
+            <h3>Perfil de egreso</h3>
+
+            <p>
+              La Carrera de Historia y Geografía establece un perfil de egreso ideal que representa
+              los conocimientos habilidades fundamentales que adquieren nuestros futuros profesores,
+              en su formación académica dentro del departamento, siendo algunas de las principales:
+            </p>
+
+            <ul>
+              <li>
+                El Profesor de Historia y Geografía de la Universidad de Tarapacá es un profesional de la Educación
+                que se caracteriza por desarrollar en sus estudiantes habilidades de razonamiento crítico en las
+                dimensiones temporales y espaciales, con una visión holística de la realidad social desde distintas
+                perspectivas y dentro de su contexto histórico espacial.
+              </li>
+              <li>
+                Este profesional de la educación es capaz de respaldar y fundamentar teóricamente hechos históricos
+                a través de evidencias documentales, desmembrando la realidad que explicaría a sus estudiantes con
+                un énfasis humanista, facilitando en ellos el desarrollo del pensamiento analítico, con una mirada
+                integradora de lo social, político, económico y cultural en la dimensión global y local.
+              </li>
+              <li>
+                Comprende las características generales de los principales procesos que ha vivido la humanidad desde
+                sus orígenes hasta nuestros días y su aplicación al conocimiento, funcionamiento y construcción de la
+                sociedad a través de la Historia, Geografía y Ciencias Sociales y las preguntas propias de estas
+                disciplinas.
+              </li>
+              <li>
+                Al mismo tiempo, este profesor estudia las temáticas culturales, geográficas y socio-históricas de la
+                zona centro sur andina, vinculándose con los lineamientos institucionales a través de la valoración de
+                la interculturalidad, potenciando esta característica en el aula, y liderando procesos de integración
+                social y profesional, convirtiéndose así en un agente motivador.
+              </li>
+              <li>
+                Este profesor está preparado para enfrentar entornos cambiantes, es autónomo en su quehacer
+                pedagógico, flexible, proactivo y propositivo. Se alinea a los objetivos estratégicos de la institución
+                en la cual se desempeña, colaborando y trabajando en equipo para alcanzar las metas establecidas.
+              </li>
+              <li>
+                El egresado de Pedagogía en Historia y Geografía maneja técnicas en didáctica, de dinámicas de grupo y
+                disciplinarias, que le permiten, al mismo tiempo, conectar la teoría con la práctica, ejemplificar su
+                disciplina y crear un adecuado ambiente en el aula, generando significatividad en el aprendizaje de sus
+                estudiantes.
+              </li>
+            </ul>
+          </div>
+
+          <!-- PREGUNTA FINAL: PERFIL DE EGRESO -->
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>¿Cree que se cumple el perfil de egreso declarado?</mat-label>
+            <textarea matInput rows="3" formControlName="cumplePerfilEgreso"></textarea>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Comentarios adicionales sobre la práctica</mat-label>
+            <textarea
+              matInput
+              rows="3"
+              formControlName="comentariosAdicionales">
+            </textarea>
+          </mat-form-field>
 
           </div>
 

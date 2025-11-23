@@ -314,6 +314,7 @@ export class EncuestasComponent implements OnInit {
 
       sugerencias: [''],
       cumplePerfilEgreso: [''],
+      comentariosAdicionales: [''],
     });
   }
 
@@ -493,6 +494,7 @@ export class EncuestasComponent implements OnInit {
         secIII: data.secIII,
         sugerencias: data.sugerencias,
         cumplePerfilEgreso: data.cumplePerfilEgreso,
+        comentariosAdicionales: data.comentariosAdicionales ?? null,
       };
     }
 

@@ -108,7 +108,7 @@ export class EncuestasService {
         const createData: any = {
           nombre_colaborador: data.nombreColaborador ?? null,
           nombre_colegio: data.centroEducativo ?? null,
-          observacion: data.sugerencias ?? null,
+          observacion: data.comentariosAdicionales ?? null,
           semestreId: data.semestreId ?? undefined,
         };
 
