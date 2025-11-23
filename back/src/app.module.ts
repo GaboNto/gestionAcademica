@@ -11,6 +11,7 @@ import { EstudianteModule } from './estudiante/estudiante.module';
 import { CartaModule } from './carta/carta.module';
 import { TutorModule } from './tutor/tutor.module';
 import { PracticasModule } from './practicas/practicas.module';
+import { EncuestasModule } from './encuestas/encuestas.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { PracticasModule } from './practicas/practicas.module';
     CartaModule,                 // Nuevo
     TutorModule,                 // Tutores (Supervisor / Tallerista)
     PracticasModule,             // Gestión de prácticas
+    EncuestasModule,
   ],
   controllers: [AppController],
   providers: [AppService],

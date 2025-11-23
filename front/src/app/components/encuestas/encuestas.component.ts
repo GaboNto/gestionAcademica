@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   FormBuilder,
@@ -8,6 +8,11 @@ import {
 } from '@angular/forms';
 import { FormsModule } from '@angular/forms';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { HttpClientModule, HttpErrorResponse } from '@angular/common/http';
+import {
+  EncuestasApiService,
+  ApiEncuesta,
+} from '../../services/encuestas-api.service';
 
 // Angular Material
 import { MatCardModule } from '@angular/material/card';
@@ -15,14 +20,15 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
+import { MatRadioModule } from '@angular/material/radio';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { RouterLink } from '@angular/router';
 import { MatExpansionModule } from '@angular/material/expansion';
+import { forkJoin } from 'rxjs';
 
-// Definiciones de tipos
 export type TipoEncuesta = 'ESTUDIANTIL' | 'COLABORADORES_JEFES';
 
 export interface EncuestaRegistro {
@@ -43,7 +49,8 @@ export interface EncuestaRegistro {
     FormsModule,
     ReactiveFormsModule,
     RouterLink,
-    
+    HttpClientModule,
+    MatRadioModule, 
     MatCardModule,
     MatFormFieldModule,
     MatInputModule,
@@ -56,23 +63,44 @@ export interface EncuestaRegistro {
     MatNativeDateModule,
     MatExpansionModule,
   ],
+  providers: [EncuestasApiService],
 })
 export class EncuestasComponent implements OnInit {
-  // --- ESTADOS Y DATOS PRINCIPALES ---
+  // Inyección moderna (evita el error del FormBuilder)
+  private fb = inject(FormBuilder);
+
+  constructor(
+    private snackBar: MatSnackBar,
+    private encuestasApi: EncuestasApiService
+  ) {}
+
+  // UI / estado
   public tipoRegistroActivo: TipoEncuesta | null = null;
   public selectedEncuesta: EncuestaRegistro | null = null;
   public isLoading: boolean = false;
 
   registroForm!: FormGroup;
+  encuestas: EncuestaRegistro[] = [];
 
-  // Opciones comunes para Selects (escala de 5 puntos)
+  // Catálogos (para selects)
+  estudiantes: { rut: string; nombre: string }[] = [];
+  centros: { id: number; nombre: string; comuna?: string; region?: string }[] =
+    [];
+  colaboradores: { id: number; nombre: string }[] = [];
+  tutores: { id: number; nombre: string }[] = [];
+
+  // Si quieres forzar selects como solo lectura (no editables)
+  public readOnlySelects = false;
+
+  // Opciones para selects de encuesta (escalas etc.)
   opcionesEscala5 = [
-    { value: 1, label: '1 (Muy insatisfecho / Totalmente en desacuerdo)' },
-    { value: 2, label: '2' },
-    { value: 3, label: '3 (Ni en acuerdo, ni en desacuerdo)' },
-    { value: 4, label: '4' },
-    { value: 5, label: '5 (Muy satisfecho / Totalmente de acuerdo)' },
     { value: 'NA', label: 'No aplica / N/O' },
+    { value: 1, label: '1' },
+    { value: 2, label: '2' },
+    { value: 3, label: '3' },
+    { value: 4, label: '4' },
+    { value: 5, label: '5' },
+    
   ];
   opcionesSiNo = [
     { value: 'SI', label: 'Sí' },
@@ -90,69 +118,90 @@ export class EncuestasComponent implements OnInit {
     { value: 'R_NI', label: 'Se realizó, pero no fui invitado' },
     { value: 'NR', label: 'No se realizó' },
   ];
-  
-  // Datos de encuestas simuladas para el listado inferior
-  encuestas: EncuestaRegistro[] = [
-    { id: '1', tipo: 'ESTUDIANTIL', fecha: new Date('2024-03-15'), origenArchivo: 'MariaGonzalez.xlsx', respuestas: [{ 'Estudiante': 'Maria González', 'Colegio': 'San Patricio' }] },
-    { id: '2', tipo: 'COLABORADORES_JEFES', fecha: new Date('2024-03-14'), origenArchivo: 'AnaMartinez.xlsx', respuestas: [{ 'Colaborador': 'Prof. Ana Martínez', 'Establecimiento': 'Los Aromos' }] },
-  ];
-  
+
   tiposEncuesta = [
     { value: 'ESTUDIANTIL' as TipoEncuesta, label: 'Percepción estudiantil' },
-    { value: 'COLABORADORES_JEFES' as TipoEncuesta, label: 'Colaboradores / Jefes UTP' },
+    {
+      value: 'COLABORADORES_JEFES' as TipoEncuesta,
+      label: 'Colaboradores / Jefes UTP',
+    },
   ];
-
-  constructor(private fb: FormBuilder, private snackBar: MatSnackBar) {}
 
   ngOnInit(): void {
     this.registroForm = this.fb.group({});
+    this.loadEncuestas();
+    this.loadCatalogos();
   }
 
-  // ----------------- CONTROL DE UI Y FORMULARIO -----------------
-
-  iniciarRegistro(tipo: TipoEncuesta): void {
-    this.tipoRegistroActivo = tipo;
-    this.selectedEncuesta = null; // Cierra detalles si está abierto
-
-    if (tipo === 'ESTUDIANTIL') {
-      this.registroForm = this.buildEstudiantilForm();
-    } else {
-      this.registroForm = this.buildColaboradoresForm();
-    }
+  // ---------- CARGA INICIAL ----------
+  loadEncuestas(): void {
+    this.isLoading = true;
+    this.encuestasApi.getEncuestasRegistradas().subscribe({
+      next: (data: ApiEncuesta[]) => {
+        this.encuestas = data.map((item) => ({
+          id: (item.id ?? Math.random()).toString(),
+          // IMPORTANTE: acceso con ['nombre_estudiante'] para evitar error TS
+          tipo: (item.tipo ??
+            (item['nombre_estudiante']
+              ? 'ESTUDIANTIL'
+              : 'COLABORADORES_JEFES')) as TipoEncuesta,
+          fecha: item.fecha ? new Date(item.fecha) : new Date(),
+          origenArchivo: item.origenArchivo ?? 'API (BD)',
+          // Para el detalle usamos toda la fila como "respuesta"
+          respuestas: [item as any],
+        }));
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error('Error al cargar encuestas', err);
+        this.mostrarError('No fue posible cargar las encuestas.');
+        this.isLoading = false;
+      },
+    });
   }
 
-  cerrarRegistro(): void {
-    this.tipoRegistroActivo = null;
-    this.registroForm.reset();
-  }
-  
-  mapTipoLabel(tipo: TipoEncuesta): string {
-    const found = this.tiposEncuesta.find((t) => t.value === tipo);
-    return found ? found.label : tipo;
+  loadCatalogos(): void {
+    this.isLoading = true;
+    forkJoin({
+      estudiantes: this.encuestasApi.getEstudiantes(),
+      centros: this.encuestasApi.getCentros(),
+      colaboradores: this.encuestasApi.getColaboradores(),
+      tutores: this.encuestasApi.getTutores(),
+    }).subscribe({
+      next: ({ estudiantes, centros, colaboradores, tutores }) => {
+        this.estudiantes = estudiantes || [];
+        this.centros = centros || [];
+        this.colaboradores = colaboradores || [];
+        this.tutores = tutores || [];
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error('Error cargando catálogos', err);
+        this.mostrarError(
+          'No fue posible cargar catálogos (estudiantes/centros).'
+        );
+        this.isLoading = false;
+      },
+    });
   }
 
-  // ----------------- CONSTRUCCIÓN DE FORMULARIOS DINÁMICOS -----------------
-
+  // ---------- FORM BUILDERS ----------
   private buildEstudiantilForm(): FormGroup {
     return this.fb.group({
-      // IDENTIFICACIÓN
-      nombreEstudiante: ['', Validators.required],
-      establecimiento: [''],
+      nombreEstudiante: ['', Validators.required], // guardamos rut (string)
+      establecimiento: [''], // guardamos centro.id (number)
       fechaEvaluacion: [null],
       nivelCursado: [''],
       anio: [''],
-      nombreTalleristaSupervisor: [''],
-      nombreDocenteColaborador: [''],
+      nombreTalleristaSupervisor: [''], // guardamos tutor.id (number)
+      nombreDocenteColaborador: [''], // guardamos colaborador.id (number)
 
-      // SECCIÓN I: DESARROLLO GENERAL DE LA PRÁCTICA (4 preguntas)
       secI: this.fb.group({
         objetivos: ['', Validators.required],
         accionesEstablecimiento: [''],
         accionesTaller: [''],
         satisfaccionGeneral: [''],
       }),
-      
-      // SECCIÓN II.A: PERCEPCIÓN SOBRE LOS COLABORADORES/AS (5 preguntas)
       secII_A: this.fb.group({
         apoyoInsercion: [''],
         apoyoGestion: [''],
@@ -160,23 +209,17 @@ export class EncuestasComponent implements OnInit {
         comunicacionConstante: [''],
         retroalimentacionProceso: [''],
       }),
-
-      // SECCIÓN II.B: EXPERIENCIA CON COLABORADOR (2 preguntas SI/NO + Comentarios)
       secII_B: this.fb.group({
         interesRol: [''],
         recomendarColaborador: [''],
         comentariosColaborador: [''],
       }),
-      
-      // SECCIÓN III.A: PERCEPCIÓN SOBRE CENTRO EDUCATIVO - NORMATIVAS (4 preguntas)
       secIII_A: this.fb.group({
         planEvacuacion: [''],
         proyectoEducativo: [''],
         reglamentoConvivencia: [''],
         planMejoramiento: [''],
       }),
-      
-      // SECCIÓN III.B: PERCEPCIÓN SOBRE CENTRO EDUCATIVO - PARTICIPACIÓN (7 actividades)
       secIII_B: this.fb.group({
         reunionesDepartamento: [''],
         reunionesApoderados: [''],
@@ -186,15 +229,11 @@ export class EncuestasComponent implements OnInit {
         diaFamilia: [''],
         graduaciones: [''],
       }),
-      
-      // SECCIÓN III.C: CENTRO EDUCATIVO - AMBIENTE (2 preguntas SI/NO + Comentarios)
       secIII_C: this.fb.group({
         gratoAmbiente: [''],
         recomendarCentro: [''],
         comentariosCentro: [''],
       }),
-
-      // SECCIÓN IV.A: PERCEPCIÓN SOBRE EL TALLERISTA (7 preguntas)
       secIV_T: this.fb.group({
         presentacionCentro: [''],
         facilitaComprension: [''],
@@ -204,8 +243,6 @@ export class EncuestasComponent implements OnInit {
         orientaDesempeno: [''],
         organizaActividades: [''],
       }),
-      
-      // SECCIÓN IV.B: PERCEPCIÓN SOBRE EL SUPERVISOR/A (8 preguntas)
       secIV_S: this.fb.group({
         presentacionCentro: [''],
         orientaGestion: [''],
@@ -216,11 +253,7 @@ export class EncuestasComponent implements OnInit {
         resuelveProblemas: [''],
         orientaGestionDos: [''],
       }),
-      
-      // RESPUESTA ABIERTA (Mejoras Tallerista/Supervisor)
       mejoraRolTallerista: [''],
-      
-      // SECCIÓN V: SOBRE LA COORDINACIÓN DE PRÁCTICA (5 preguntas)
       secV: this.fb.group({
         induccionesAcordes: [''],
         informacionClara: [''],
@@ -228,22 +261,17 @@ export class EncuestasComponent implements OnInit {
         infoAcordeCentros: [''],
         gestionesMejora: [''],
       }),
-      
-      // RESPUESTA ABIERTA (Mejoras Coordinación)
       mejoraCoordinacion: [''],
     });
   }
 
   private buildColaboradoresForm(): FormGroup {
     return this.fb.group({
-      // IDENTIFICACIÓN
-      nombreColaborador: ['', Validators.required],
-      nombreEstudiantePractica: [''],
-      centroEducativo: [''],
-      tipoPractica: [''], 
+      nombreColaborador: ['', Validators.required], // colaborador.id
+      nombreEstudiantePractica: [''], // estudiante.rut
+      centroEducativo: [''], // centro.id
+      tipoPractica: [''],
       fechaEvaluacion: [null],
-
-      // SECCIÓN I: EVALUACIÓN AL DOCENTE EN PRÁCTICA (8 preguntas)
       secI: this.fb.group({
         e1_planificacion: [''],
         e2_estructuraClase: [''],
@@ -254,8 +282,6 @@ export class EncuestasComponent implements OnInit {
         e7_normasClase: [''],
         e8_usoTecnologia: [''],
       }),
-
-      // SECCIÓN II: INTEGRACIÓN A LA COMUNIDAD EDUCATIVA (5 preguntas)
       secII: this.fb.group({
         i1_vinculacionPares: [''],
         i2_capacidadGrupoTrabajo: [''],
@@ -263,46 +289,72 @@ export class EncuestasComponent implements OnInit {
         i4_autoaprendizaje: [''],
         i5_formacionSuficiente: [''],
       }),
-
-      // SECCIÓN III: VINCULACIÓN CON LA COORDINACIÓN DE LAS PRÁCTICAS (4 preguntas)
       secIII: this.fb.group({
         v1_flujoInformacionSupervisor: [''],
         v2_claridadRoles: [''],
         v3_verificacionAvance: [''],
         v4_satisfaccionGeneral: [''],
       }),
-
-      // RESPUESTAS ABIERTAS
-      sugerencias: [''], 
-      cumplePerfilEgreso: [''], 
+      sugerencias: [''],
+      cumplePerfilEgreso: [''],
     });
   }
 
-  // ----------------- ENVÍO DE FORMULARIO -----------------
+  // ---------- UI / FORM CONTROL ----------
+  iniciarRegistro(tipo: TipoEncuesta): void {
+    this.tipoRegistroActivo = tipo;
+    this.selectedEncuesta = null;
 
-  onSubmitRegistro(): void {
-    if (this.registroForm.invalid) {
-      this.registroForm.markAllAsTouched();
-      this.mostrarError('Por favor, completa los campos requeridos y verifica las secciones.');
-      return;
+    if (tipo === 'ESTUDIANTIL') {
+      this.registroForm = this.buildEstudiantilForm();
+      // valores por defecto (si existen catálogos)
+      if (this.estudiantes.length) {
+        this.registroForm.patchValue({
+          nombreEstudiante: this.estudiantes[0].rut,
+        });
+      }
+      if (this.centros.length) {
+        this.registroForm.patchValue({ establecimiento: this.centros[0].id });
+      }
+    } else {
+      this.registroForm = this.buildColaboradoresForm();
+      if (this.colaboradores.length) {
+        this.registroForm.patchValue({
+          nombreColaborador: this.colaboradores[0].id,
+        });
+      }
+      if (this.centros.length) {
+        this.registroForm.patchValue({
+          centroEducativo: this.centros[0].id,
+        });
+      }
     }
 
-    const data = this.registroForm.value;
-
-    const nuevaEncuesta: EncuestaRegistro = {
-      id: `${Date.now()}-${Math.random().toString(36).substring(2, 8)}`,
-      tipo: this.tipoRegistroActivo!,
-      fecha: new Date(),
-      origenArchivo: 'Formulario Web',
-      respuestas: [data],
-    };
-    
-    this.encuestas = [nuevaEncuesta, ...this.encuestas]; // Simulación local
-    this.mostrarOk('Encuesta registrada exitosamente mediante formulario.');
-    this.cerrarRegistro();
+    if (this.readOnlySelects) {
+      this.disableSelectControls();
+    }
   }
 
-  // ----------------- DETALLES Y UTILIDADES -----------------
+  private disableSelectControls(): void {
+    const controls = [
+      'nombreEstudiante',
+      'establecimiento',
+      'nombreTalleristaSupervisor',
+      'nombreDocenteColaborador',
+      'nombreColaborador',
+      'nombreEstudiantePractica',
+      'centroEducativo',
+    ];
+    controls.forEach((c) => {
+      const ctrl = this.registroForm.get(c);
+      if (ctrl) ctrl.disable();
+    });
+  }
+
+  cerrarRegistro(): void {
+    this.tipoRegistroActivo = null;
+    if (this.registroForm) this.registroForm.reset();
+  }
 
   verDetalles(encuesta: EncuestaRegistro): void {
     this.selectedEncuesta = encuesta;
@@ -313,13 +365,161 @@ export class EncuestasComponent implements OnInit {
     this.selectedEncuesta = null;
   }
 
+  mapTipoLabel(tipo: TipoEncuesta | string): string {
+    const found = this.tiposEncuesta.find((t) => t.value === tipo);
+    return found ? found.label : (tipo as string);
+  }
+
   getDetailColumns(encuesta: EncuestaRegistro | null): string[] {
-    if (!encuesta || !encuesta.respuestas || !encuesta.respuestas.length) {
+    if (!encuesta || !encuesta.respuestas || !encuesta.respuestas.length)
       return [];
-    }
     return Object.keys(encuesta.respuestas[0]);
   }
 
+  // ---------- ENVÍO / TRANSFORMACIÓN ----------
+  onSubmitRegistro(): void {
+    if (!this.registroForm) return;
+    if (!this.tipoRegistroActivo) {
+      this.mostrarError('No hay tipo de encuesta activo.');
+      return;
+    }
+
+    const form = this.registroForm;
+
+    // Si hay controles deshabilitados y quieres enviar sus valores, usa getRawValue()
+    const raw = form.getRawValue ? form.getRawValue() : form.value;
+
+    if (form.invalid) {
+      form.markAllAsTouched();
+      this.mostrarError('Por favor completa los campos requeridos.');
+      return;
+    }
+
+    this.isLoading = true;
+
+    // Mapeo común: convertir ids/rut a nombres según lo que espera el backend
+    let payload: any = { tipo: this.tipoRegistroActivo, data: {} };
+
+    if (this.tipoRegistroActivo === 'ESTUDIANTIL') {
+      const data = raw;
+      const estudianteRut: string = data.nombreEstudiante;
+      const estudianteNombre =
+        this.estudiantes.find((s) => s.rut === estudianteRut)?.nombre ?? null;
+      const centroId = data.establecimiento;
+      const centroNombre =
+        this.centros.find((c) => c.id === centroId)?.nombre ?? null;
+      const tutorId = data.nombreTalleristaSupervisor;
+      const tutorNombre =
+        this.tutores.find((t) => t.id === tutorId)?.nombre ?? null;
+      const colaboradorId = data.nombreDocenteColaborador;
+      const colaboradorNombre =
+        this.colaboradores.find((c) => c.id === colaboradorId)?.nombre ?? null;
+
+      payload.data = {
+        // Conserva claves que tu backend espera; ajusta si tu backend quiere otras claves
+        nombreEstudiante: estudianteRut, // rut para relación
+        nombreEstudianteLabel: estudianteNombre, // opcional
+        establecimiento: centroNombre,
+        establecimientoId: centroId,
+        fechaEvaluacion: data.fechaEvaluacion
+          ? new Date(data.fechaEvaluacion).toISOString()
+          : new Date().toISOString(),
+        nivelCursado: data.nivelCursado,
+        anio: data.anio,
+        nombreTalleristaSupervisor: tutorNombre,
+        nombreTalleristaSupervisorId: tutorId,
+        nombreDocenteColaborador: colaboradorNombre,
+        nombreDocenteColaboradorId: colaboradorId,
+
+        // Secciones (se pasan tal cual)
+        secI: data.secI,
+        secII_A: data.secII_A,
+        secII_B: data.secII_B,
+        secIII_A: data.secIII_A,
+        secIII_B: data.secIII_B,
+        secIII_C: data.secIII_C,
+        secIV_T: data.secIV_T,
+        secIV_S: data.secIV_S,
+        mejoraRolTallerista: data.mejoraRolTallerista,
+        secV: data.secV,
+        mejoraCoordinacion: data.mejoraCoordinacion,
+      };
+    } else {
+      // COLABORADORES_JEFES
+      const data = raw;
+      const colaboradorId = data.nombreColaborador;
+      const colaboradorNombre =
+        this.colaboradores.find((c) => c.id === colaboradorId)?.nombre ?? null;
+      const estudianteRut = data.nombreEstudiantePractica;
+      const estudianteNombre =
+        this.estudiantes.find((s) => s.rut === estudianteRut)?.nombre ?? null;
+      const centroId = data.centroEducativo;
+      const centroNombre =
+        this.centros.find((c) => c.id === centroId)?.nombre ?? null;
+
+      payload.data = {
+        nombreColaborador: colaboradorNombre,
+        nombreColaboradorId: colaboradorId,
+        nombreEstudiantePractica: estudianteRut,
+        nombreEstudiantePracticaLabel: estudianteNombre,
+        centroEducativo: centroNombre,
+        centroEducativoId: centroId,
+        tipoPractica: data.tipoPractica,
+        fechaEvaluacion: data.fechaEvaluacion
+          ? new Date(data.fechaEvaluacion).toISOString()
+          : new Date().toISOString(),
+        secI: data.secI,
+        secII: data.secII,
+        secIII: data.secIII,
+        sugerencias: data.sugerencias,
+        cumplePerfilEgreso: data.cumplePerfilEgreso,
+      };
+    }
+
+    this.encuestasApi.createEncuesta(payload).subscribe({
+      next: (resp) => {
+        this.mostrarOk('Encuesta registrada exitosamente.');
+        this.loadEncuestas();
+        this.cerrarRegistro();
+      },
+      error: (err: HttpErrorResponse) => {
+        console.error('Error al crear encuesta', err);
+        const msg =
+          err?.error?.message ??
+          `Error ${err.status} al guardar la encuesta.`;
+        this.mostrarError(msg);
+        this.isLoading = false;
+      },
+      complete: () => {
+        this.isLoading = false;
+      },
+    });
+  }
+
+  // ---------- EXPORT / DESCARGA ----------
+  downloadExcel() {
+    this.isLoading = true;
+    this.encuestasApi.exportEncuestasExcel().subscribe({
+      next: (blob: Blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'encuestas_estudiantes.xlsx';
+        a.click();
+        window.URL.revokeObjectURL(url);
+      },
+      error: (err) => {
+        console.error('Error al descargar Excel', err);
+        this.mostrarError('Error al descargar Excel');
+        this.isLoading = false;
+      },
+      complete: () => {
+        this.isLoading = false;
+      },
+    });
+  }
+
+  // ---------- SNACKBARS ----------
   private mostrarOk(mensaje: string): void {
     this.snackBar.open(mensaje, 'Cerrar', {
       duration: 3000,
