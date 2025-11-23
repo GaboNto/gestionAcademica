@@ -50,7 +50,7 @@ export interface EncuestaRegistro {
     ReactiveFormsModule,
     RouterLink,
     HttpClientModule,
-    MatRadioModule, 
+    MatRadioModule,
     MatCardModule,
     MatFormFieldModule,
     MatInputModule,
@@ -66,7 +66,7 @@ export interface EncuestaRegistro {
   providers: [EncuestasApiService],
 })
 export class EncuestasComponent implements OnInit {
-  // Inyección moderna (evita el error del FormBuilder)
+  // Inyección moderna
   private fb = inject(FormBuilder);
 
   constructor(
@@ -89,28 +89,30 @@ export class EncuestasComponent implements OnInit {
   colaboradores: { id: number; nombre: string }[] = [];
   tutores: { id: number; nombre: string }[] = [];
 
-  // Si quieres forzar selects como solo lectura (no editables)
+  // Por si quieres bloquear selects
   public readOnlySelects = false;
 
-  // Opciones para selects de encuesta (escalas etc.)
+  // Opciones para escalas
   opcionesEscala5 = [
-    { value: 'NA', label: 'No aplica / N/O' },
+    { value: 'NA', label: 'NA' },
     { value: 1, label: '1' },
     { value: 2, label: '2' },
     { value: 3, label: '3' },
     { value: 4, label: '4' },
     { value: 5, label: '5' },
-    
   ];
+
   opcionesSiNo = [
     { value: 'SI', label: 'Sí' },
     { value: 'NO', label: 'No' },
   ];
+
   opcionesNormativas = [
     { value: 'SI', label: 'Sí' },
     { value: 'NO', label: 'No' },
     { value: 'NS', label: 'No existe/no sabe' },
   ];
+
   opcionesParticipacion = [
     { value: 'A_P', label: 'Asistí y pude participar' },
     { value: 'A_N', label: 'Asistí, pero no intervine' },
@@ -133,21 +135,21 @@ export class EncuestasComponent implements OnInit {
     this.loadCatalogos();
   }
 
-  // ---------- CARGA INICIAL ----------
+  // ---------- CARGA ENCUESTAS ----------
   loadEncuestas(): void {
     this.isLoading = true;
     this.encuestasApi.getEncuestasRegistradas().subscribe({
       next: (data: ApiEncuesta[]) => {
         this.encuestas = data.map((item) => ({
           id: (item.id ?? Math.random()).toString(),
-          // IMPORTANTE: acceso con ['nombre_estudiante'] para evitar error TS
+          // acceso con ['nombre_estudiante'] para evitar error TS
           tipo: (item.tipo ??
             (item['nombre_estudiante']
               ? 'ESTUDIANTIL'
               : 'COLABORADORES_JEFES')) as TipoEncuesta,
           fecha: item.fecha ? new Date(item.fecha) : new Date(),
           origenArchivo: item.origenArchivo ?? 'API (BD)',
-          // Para el detalle usamos toda la fila como "respuesta"
+          // guardamos la fila completa dentro de respuestas[0]
           respuestas: [item as any],
         }));
         this.isLoading = false;
@@ -160,6 +162,7 @@ export class EncuestasComponent implements OnInit {
     });
   }
 
+  // ---------- CARGA CATÁLOGOS ----------
   loadCatalogos(): void {
     this.isLoading = true;
     forkJoin({
@@ -188,13 +191,13 @@ export class EncuestasComponent implements OnInit {
   // ---------- FORM BUILDERS ----------
   private buildEstudiantilForm(): FormGroup {
     return this.fb.group({
-      nombreEstudiante: ['', Validators.required], // guardamos rut (string)
-      establecimiento: [''], // guardamos centro.id (number)
+      nombreEstudiante: ['', Validators.required],
+      establecimiento: [''],
       fechaEvaluacion: [null],
       nivelCursado: [''],
       anio: [''],
-      nombreTalleristaSupervisor: [''], // guardamos tutor.id (number)
-      nombreDocenteColaborador: [''], // guardamos colaborador.id (number)
+      nombreTalleristaSupervisor: [''],
+      nombreDocenteColaborador: [''],
 
       secI: this.fb.group({
         objetivos: ['', Validators.required],
@@ -202,6 +205,7 @@ export class EncuestasComponent implements OnInit {
         accionesTaller: [''],
         satisfaccionGeneral: [''],
       }),
+
       secII_A: this.fb.group({
         apoyoInsercion: [''],
         apoyoGestion: [''],
@@ -209,17 +213,20 @@ export class EncuestasComponent implements OnInit {
         comunicacionConstante: [''],
         retroalimentacionProceso: [''],
       }),
+
       secII_B: this.fb.group({
         interesRol: [''],
         recomendarColaborador: [''],
         comentariosColaborador: [''],
       }),
+
       secIII_A: this.fb.group({
         planEvacuacion: [''],
         proyectoEducativo: [''],
         reglamentoConvivencia: [''],
         planMejoramiento: [''],
       }),
+
       secIII_B: this.fb.group({
         reunionesDepartamento: [''],
         reunionesApoderados: [''],
@@ -229,11 +236,13 @@ export class EncuestasComponent implements OnInit {
         diaFamilia: [''],
         graduaciones: [''],
       }),
+
       secIII_C: this.fb.group({
         gratoAmbiente: [''],
         recomendarCentro: [''],
         comentariosCentro: [''],
       }),
+
       secIV_T: this.fb.group({
         presentacionCentro: [''],
         facilitaComprension: [''],
@@ -243,6 +252,7 @@ export class EncuestasComponent implements OnInit {
         orientaDesempeno: [''],
         organizaActividades: [''],
       }),
+
       secIV_S: this.fb.group({
         presentacionCentro: [''],
         orientaGestion: [''],
@@ -252,26 +262,30 @@ export class EncuestasComponent implements OnInit {
         evaluaGlobal: [''],
         resuelveProblemas: [''],
         orientaGestionDos: [''],
+        mejoraRolTallerista: [''], // aquí dentro del grupo
       }),
-      mejoraRolTallerista: [''],
+
       secV: this.fb.group({
         induccionesAcordes: [''],
         informacionClara: [''],
         respuestaDudas: [''],
         infoAcordeCentros: [''],
         gestionesMejora: [''],
+        mejoraCoordinacion: [''],
       }),
-      mejoraCoordinacion: [''],
+
+      comentariosAdicionales: [''],
     });
   }
 
   private buildColaboradoresForm(): FormGroup {
     return this.fb.group({
-      nombreColaborador: ['', Validators.required], // colaborador.id
-      nombreEstudiantePractica: [''], // estudiante.rut
-      centroEducativo: [''], // centro.id
+      nombreColaborador: ['', Validators.required],
+      nombreEstudiantePractica: [''],
+      centroEducativo: [''],
       tipoPractica: [''],
       fechaEvaluacion: [null],
+
       secI: this.fb.group({
         e1_planificacion: [''],
         e2_estructuraClase: [''],
@@ -282,6 +296,7 @@ export class EncuestasComponent implements OnInit {
         e7_normasClase: [''],
         e8_usoTecnologia: [''],
       }),
+
       secII: this.fb.group({
         i1_vinculacionPares: [''],
         i2_capacidadGrupoTrabajo: [''],
@@ -289,12 +304,14 @@ export class EncuestasComponent implements OnInit {
         i4_autoaprendizaje: [''],
         i5_formacionSuficiente: [''],
       }),
+
       secIII: this.fb.group({
         v1_flujoInformacionSupervisor: [''],
         v2_claridadRoles: [''],
         v3_verificacionAvance: [''],
         v4_satisfaccionGeneral: [''],
       }),
+
       sugerencias: [''],
       cumplePerfilEgreso: [''],
     });
@@ -307,7 +324,7 @@ export class EncuestasComponent implements OnInit {
 
     if (tipo === 'ESTUDIANTIL') {
       this.registroForm = this.buildEstudiantilForm();
-      // valores por defecto (si existen catálogos)
+
       if (this.estudiantes.length) {
         this.registroForm.patchValue({
           nombreEstudiante: this.estudiantes[0].rut,
@@ -376,7 +393,7 @@ export class EncuestasComponent implements OnInit {
     return Object.keys(encuesta.respuestas[0]);
   }
 
-  // ---------- ENVÍO / TRANSFORMACIÓN ----------
+  // ---------- ENVÍO ----------
   onSubmitRegistro(): void {
     if (!this.registroForm) return;
     if (!this.tipoRegistroActivo) {
@@ -385,8 +402,6 @@ export class EncuestasComponent implements OnInit {
     }
 
     const form = this.registroForm;
-
-    // Si hay controles deshabilitados y quieres enviar sus valores, usa getRawValue()
     const raw = form.getRawValue ? form.getRawValue() : form.value;
 
     if (form.invalid) {
@@ -397,11 +412,11 @@ export class EncuestasComponent implements OnInit {
 
     this.isLoading = true;
 
-    // Mapeo común: convertir ids/rut a nombres según lo que espera el backend
     let payload: any = { tipo: this.tipoRegistroActivo, data: {} };
 
     if (this.tipoRegistroActivo === 'ESTUDIANTIL') {
       const data = raw;
+
       const estudianteRut: string = data.nombreEstudiante;
       const estudianteNombre =
         this.estudiantes.find((s) => s.rut === estudianteRut)?.nombre ?? null;
@@ -416,22 +431,22 @@ export class EncuestasComponent implements OnInit {
         this.colaboradores.find((c) => c.id === colaboradorId)?.nombre ?? null;
 
       payload.data = {
-        // Conserva claves que tu backend espera; ajusta si tu backend quiere otras claves
-        nombreEstudiante: estudianteRut, // rut para relación
-        nombreEstudianteLabel: estudianteNombre, // opcional
+        nombreEstudiante: estudianteRut,
+        nombreEstudianteLabel: estudianteNombre,
         establecimiento: centroNombre,
         establecimientoId: centroId,
         fechaEvaluacion: data.fechaEvaluacion
           ? new Date(data.fechaEvaluacion).toISOString()
           : new Date().toISOString(),
-        nivelCursado: data.nivelCursado,
+         nivelCursado: data.nivelCursado,
         anio: data.anio,
+
         nombreTalleristaSupervisor: tutorNombre,
         nombreTalleristaSupervisorId: tutorId,
+
         nombreDocenteColaborador: colaboradorNombre,
         nombreDocenteColaboradorId: colaboradorId,
 
-        // Secciones (se pasan tal cual)
         secI: data.secI,
         secII_A: data.secII_A,
         secII_B: data.secII_B,
@@ -440,13 +455,18 @@ export class EncuestasComponent implements OnInit {
         secIII_C: data.secIII_C,
         secIV_T: data.secIV_T,
         secIV_S: data.secIV_S,
-        mejoraRolTallerista: data.mejoraRolTallerista,
         secV: data.secV,
-        mejoraCoordinacion: data.mejoraCoordinacion,
+
+        mejoraRolTallerista: data.secIV_S.mejoraRolTallerista,
+        mejoraCoordinacion: data.comentariosAdicionales,
+
+        comentariosAdicionales: data.comentariosAdicionales,
+        observacion: data.comentariosAdicionales,
       };
     } else {
       // COLABORADORES_JEFES
       const data = raw;
+
       const colaboradorId = data.nombreColaborador;
       const colaboradorNombre =
         this.colaboradores.find((c) => c.id === colaboradorId)?.nombre ?? null;
@@ -477,7 +497,7 @@ export class EncuestasComponent implements OnInit {
     }
 
     this.encuestasApi.createEncuesta(payload).subscribe({
-      next: (resp) => {
+      next: () => {
         this.mostrarOk('Encuesta registrada exitosamente.');
         this.loadEncuestas();
         this.cerrarRegistro();
@@ -496,7 +516,7 @@ export class EncuestasComponent implements OnInit {
     });
   }
 
-  // ---------- EXPORT / DESCARGA ----------
+  // ---------- EXPORT ----------
   downloadExcel() {
     this.isLoading = true;
     this.encuestasApi.exportEncuestasExcel().subscribe({

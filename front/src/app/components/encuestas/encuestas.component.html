@@ -66,41 +66,39 @@
             {{ e.tipo === 'ESTUDIANTIL' ? 'school' : 'groups' }}
           </mat-icon>
 
-        <div class="item-info">
-          <span class="item-title">{{ mapTipoLabel(e.tipo) }}</span>
-          <span class="item-metadata">
-            Origen: {{ e.origenArchivo }} — Registros: {{ e.respuestas.length }}
-          </span>
+          <div class="item-info">
+            <span class="item-title">{{ mapTipoLabel(e.tipo) }}</span>
+            <span class="item-metadata">
+              Origen: {{ e.origenArchivo }} — Registros: {{ e.respuestas.length }}
+            </span>
+          </div>
+        </div>
+
+        <div class="item-actions">
+          <button mat-stroked-button color="primary" (click)="verDetalles(e)">
+            <mat-icon>visibility</mat-icon>
+            Ver
+          </button>
+        </div>
+
+        <div class="item-date">
+          <mat-icon>calendar_today</mat-icon>
+          <span>{{ e.fecha | date: 'yyyy-MM-dd' }}</span>
         </div>
       </div>
-
-      <div class="item-actions">
-        <button mat-stroked-button color="primary" (click)="verDetalles(e)">
-          <mat-icon>visibility</mat-icon>
-          Ver
-        </button>
-      </div>
-
-      <div class="item-date">
-        <mat-icon>calendar_today</mat-icon>
-        <span>{{ e.fecha | date:'yyyy-MM-dd' }}</span>
-      </div>
     </div>
-  </div>
 
-  <ng-template #noEncuestas>
-    <div class="empty-state">
-      <mat-icon>info</mat-icon>
-      <p>No hay encuestas registradas.</p>
-    </div>
-  </ng-template>
+    <ng-template #noEncuestas>
+      <div class="empty-state">
+        <mat-icon>info</mat-icon>
+        <p>No hay encuestas registradas.</p>
+      </div>
+    </ng-template>
   </mat-card>
 
   <!-- ================== MODAL DE REGISTRO ================== -->
-
   <mat-card class="elev detail-card custom-modal" *ngIf="tipoRegistroActivo">
     <form [formGroup]="registroForm" (ngSubmit)="onSubmitRegistro()">
-
       <mat-card-header>
         <mat-card-title>Registro de {{ mapTipoLabel(tipoRegistroActivo) }}</mat-card-title>
         <mat-card-subtitle>Complete el formulario para registrar la evaluación.</mat-card-subtitle>
@@ -111,15 +109,11 @@
       </mat-card-header>
 
       <mat-card-content class="modal-content">
-
         <!-- ======================= ESTUDIANTIL ======================= -->
-
         <div *ngIf="tipoRegistroActivo === 'ESTUDIANTIL'">
-
           <h2 class="form-title">Datos de Identificación</h2>
 
           <div class="form-grid">
-
             <mat-form-field appearance="outline" class="field">
               <mat-label>Nombre del Estudiante</mat-label>
               <mat-select formControlName="nombreEstudiante" required>
@@ -173,48 +167,41 @@
               <mat-label>Año</mat-label>
               <input matInput formControlName="anio" type="number" />
             </mat-form-field>
-
           </div>
 
           <!-- ======================= SECCIONES ======================= -->
-
           <h2 class="form-title">Evaluación Detallada</h2>
 
           <mat-accordion class="survey-accordion">
-
             <!-- SECCIÓN I - RADIO BUTTONS -->
             <mat-expansion-panel formGroupName="secI" [expanded]="true">
               <mat-expansion-panel-header>
-                <mat-panel-title>
-                  I. Desarrollo de la Práctica
-                </mat-panel-title>
-
+                <mat-panel-title>I. Desarrollo de la Práctica</mat-panel-title>
                 <mat-panel-description>
                   En una escala de 1 a 5, donde 1 es muy insatisfecho y 5 muy satisfecho.
                 </mat-panel-description>
               </mat-expansion-panel-header>
 
               <div class="question-list-group">
-
                 <div class="question-row">
                   <p class="question-label">
                     Los objetivos planteados para el nivel de práctica desempeñado
                   </p>
-
                   <div class="answer-scale">
                     <mat-radio-group formControlName="objetivos" class="scale-group">
                       <mat-radio-button
                         *ngFor="let op of opcionesEscala5"
                         [value]="op.value"
-                        class="scale-option"
-                      >
+                        class="scale-option">
                         {{ op.value }}
                       </mat-radio-button>
                     </mat-radio-group>
 
                     <mat-error
-                      *ngIf="registroForm.get('secI.objetivos')?.hasError('required') && registroForm.get('secI.objetivos')?.touched"
-                    >
+                      *ngIf="
+                        registroForm.get('secI.objetivos')?.hasError('required') &&
+                        registroForm.get('secI.objetivos')?.touched
+                      ">
                       Requerido
                     </mat-error>
                   </div>
@@ -224,14 +211,12 @@
                   <p class="question-label">
                     Las acciones realizadas en el desarrollo de esta práctica en el ejercicio en los establecimientos educacionales
                   </p>
-
                   <div class="answer-scale">
                     <mat-radio-group formControlName="accionesEstablecimiento" class="scale-group">
                       <mat-radio-button
                         *ngFor="let op of opcionesEscala5"
                         [value]="op.value"
-                        class="scale-option"
-                      >
+                        class="scale-option">
                         {{ op.value }}
                       </mat-radio-button>
                     </mat-radio-group>
@@ -242,14 +227,12 @@
                   <p class="question-label">
                     Las acciones desarrolladas en las sesiones de taller en la universidad
                   </p>
-
                   <div class="answer-scale">
                     <mat-radio-group formControlName="accionesTaller" class="scale-group">
                       <mat-radio-button
                         *ngFor="let op of opcionesEscala5"
                         [value]="op.value"
-                        class="scale-option"
-                      >
+                        class="scale-option">
                         {{ op.value }}
                       </mat-radio-button>
                     </mat-radio-group>
@@ -260,49 +243,41 @@
                   <p class="question-label">
                     El grado de satisfacción general del proceso
                   </p>
-
                   <div class="answer-scale">
                     <mat-radio-group formControlName="satisfaccionGeneral" class="scale-group">
                       <mat-radio-button
                         *ngFor="let op of opcionesEscala5"
                         [value]="op.value"
-                        class="scale-option"
-                      >
+                        class="scale-option">
                         {{ op.value }}
                       </mat-radio-button>
                     </mat-radio-group>
                   </div>
                 </div>
-
               </div>
             </mat-expansion-panel>
 
-            <!-- SECCIÓN II A - RADIO BUTTONS -->
+            <!-- SECCIÓN II A -->
             <mat-expansion-panel formGroupName="secII_A">
               <mat-expansion-panel-header>
-                <mat-panel-title>
-                  II. Percepción sobre los colaboradores y colaboradoras
-                </mat-panel-title>
+                <mat-panel-title>II. Percepción sobre los colaboradores y colaboradoras</mat-panel-title>
                 <mat-panel-description>
                   Escala de 1 a 5, donde 1 es muy insatisfecho y 5 es muy satisfecho.
                 </mat-panel-description>
               </mat-expansion-panel-header>
 
               <div class="question-list-group">
-
                 <div class="question-row">
                   <p class="question-label">
                     Apoyó la inserción al centro educativo en sus distintos niveles
                     (espacios dentro del colegio, presentación frente a estudiantes y colegas).
                   </p>
-
                   <div class="answer-scale">
                     <mat-radio-group formControlName="apoyoInsercion" class="scale-group">
                       <mat-radio-button
                         *ngFor="let op of opcionesEscala5"
                         [value]="op.value"
-                        class="scale-option"
-                      >
+                        class="scale-option">
                         {{ op.value }}
                       </mat-radio-button>
                     </mat-radio-group>
@@ -311,16 +286,15 @@
 
                 <div class="question-row">
                   <p class="question-label">
-                    Apoyó permanentemente la gestión educativa (planificación, ejecución y evaluación) dentro y fuera del aula.
+                    Apoyó permanentemente la gestión educativa (planificación, ejecución y evaluación)
+                    dentro y fuera del aula.
                   </p>
-
                   <div class="answer-scale">
                     <mat-radio-group formControlName="apoyoGestion" class="scale-group">
                       <mat-radio-button
                         *ngFor="let op of opcionesEscala5"
                         [value]="op.value"
-                        class="scale-option"
-                      >
+                        class="scale-option">
                         {{ op.value }}
                       </mat-radio-button>
                     </mat-radio-group>
@@ -331,14 +305,12 @@
                   <p class="question-label">
                     Orientó el comportamiento y presentación personal en el aula con un lenguaje formal y pertinente.
                   </p>
-
                   <div class="answer-scale">
                     <mat-radio-group formControlName="orientacionComportamiento" class="scale-group">
                       <mat-radio-button
                         *ngFor="let op of opcionesEscala5"
                         [value]="op.value"
-                        class="scale-option"
-                      >
+                        class="scale-option">
                         {{ op.value }}
                       </mat-radio-button>
                     </mat-radio-group>
@@ -349,14 +321,12 @@
                   <p class="question-label">
                     Mantuvo una comunicación constante y oportuna, respecto a las actividades del establecimiento educacional.
                   </p>
-
                   <div class="answer-scale">
                     <mat-radio-group formControlName="comunicacionConstante" class="scale-group">
                       <mat-radio-button
                         *ngFor="let op of opcionesEscala5"
                         [value]="op.value"
-                        class="scale-option"
-                      >
+                        class="scale-option">
                         {{ op.value }}
                       </mat-radio-button>
                     </mat-radio-group>
@@ -367,20 +337,17 @@
                   <p class="question-label">
                     Retroalimentó el proceso de práctica en sus distintas etapas, incentivando y facilitando la participación del practicante.
                   </p>
-
                   <div class="answer-scale">
                     <mat-radio-group formControlName="retroalimentacionProceso" class="scale-group">
                       <mat-radio-button
                         *ngFor="let op of opcionesEscala5"
                         [value]="op.value"
-                        class="scale-option"
-                      >
+                        class="scale-option">
                         {{ op.value }}
                       </mat-radio-button>
                     </mat-radio-group>
                   </div>
                 </div>
-
               </div>
             </mat-expansion-panel>
 
@@ -391,7 +358,6 @@
               </mat-expansion-panel-header>
 
               <div class="question-list-group">
-
                 <div class="question-row">
                   <p class="question-label">¿Se evidenció un interés por su rol como colaborador/a?</p>
                   <mat-form-field appearance="outline" class="answer-field">
@@ -405,7 +371,9 @@
                 </div>
 
                 <div class="question-row">
-                  <p class="question-label">¿Usted recomendaría al colaborador/a para ser asignado en un futuro proceso de práctica?</p>
+                  <p class="question-label">
+                    ¿Usted recomendaría al colaborador/a para ser asignado en un futuro proceso de práctica?
+                  </p>
                   <mat-form-field appearance="outline" class="answer-field">
                     <mat-label>Respuesta</mat-label>
                     <mat-select formControlName="recomendarColaborador">
@@ -416,12 +384,13 @@
                   </mat-form-field>
                 </div>
 
-                <p class="question-label full-width">Si usted desea, señale comentarios adicionales</p>
+                <p class="question-label full-width">
+                  Si usted desea, señale comentarios adicionales
+                </p>
                 <mat-form-field class="full-width" appearance="outline">
                   <mat-label>Comentarios</mat-label>
                   <textarea matInput rows="2" formControlName="comentariosColaborador"></textarea>
                 </mat-form-field>
-
               </div>
             </mat-expansion-panel>
 
@@ -432,9 +401,10 @@
               </mat-expansion-panel-header>
 
               <div class="question-list-group">
-
                 <div class="question-row">
-                  <p class="question-label">Plan Integral de Evacuación y Seguridad Escolar Francisca Cooper (ex-DEYSE)</p>
+                  <p class="question-label">
+                    Plan Integral de Evacuación y Seguridad Escolar Francisca Cooper (ex-DEYSE)
+                  </p>
                   <mat-form-field appearance="outline" class="answer-field">
                     <mat-label>Respuesta</mat-label>
                     <mat-select formControlName="planEvacuacion">
@@ -480,7 +450,6 @@
                     </mat-select>
                   </mat-form-field>
                 </div>
-
               </div>
             </mat-expansion-panel>
 
@@ -491,7 +460,6 @@
               </mat-expansion-panel-header>
 
               <div class="question-list-group">
-
                 <div class="question-row">
                   <p class="question-label">Reuniones de departamento de las asignaturas</p>
                   <mat-form-field appearance="outline" class="answer-field">
@@ -575,7 +543,6 @@
                     </mat-select>
                   </mat-form-field>
                 </div>
-
               </div>
             </mat-expansion-panel>
 
@@ -586,7 +553,6 @@
               </mat-expansion-panel-header>
 
               <div class="question-list-group">
-
                 <div class="question-row">
                   <p class="question-label">¿Posee un grato ambiente laboral para los practicantes?</p>
                   <mat-form-field appearance="outline" class="answer-field">
@@ -618,7 +584,6 @@
                   <mat-label>Comentarios sobre el centro</mat-label>
                   <textarea matInput rows="2" formControlName="comentariosCentro"></textarea>
                 </mat-form-field>
-
               </div>
             </mat-expansion-panel>
 
@@ -632,26 +597,20 @@
               </mat-expansion-panel-header>
 
               <div class="question-list-group">
-
-                <!-- 1. Presentación en el centro -->
                 <div class="question-row">
-                  <p class="question-label">
-                    Lo presentó en el centro de prácticas
-                  </p>
+                  <p class="question-label">Lo presentó en el centro de prácticas</p>
                   <div class="answer-scale">
                     <mat-radio-group formControlName="presentacionCentro" class="scale-group">
                       <mat-radio-button
                         *ngFor="let op of opcionesEscala5"
                         [value]="op.value"
-                        class="scale-option"
-                      >
+                        class="scale-option">
                         {{ op.value }}
                       </mat-radio-button>
                     </mat-radio-group>
                   </div>
                 </div>
 
-                <!-- 2. Facilita comprensión del sistema de prácticas -->
                 <div class="question-row">
                   <p class="question-label">
                     Facilitó la comprensión de la estructura del Sistema Educacional
@@ -661,15 +620,13 @@
                       <mat-radio-button
                         *ngFor="let op of opcionesEscala5"
                         [value]="op.value"
-                        class="scale-option"
-                      >
+                        class="scale-option">
                         {{ op.value }}
                       </mat-radio-button>
                     </mat-radio-group>
                   </div>
                 </div>
 
-                <!-- 3. Planifica visitas -->
                 <div class="question-row">
                   <p class="question-label">
                     Planificó visitas a los centros educativos para mantener una comunicación fluida con los/as colaboradores
@@ -679,15 +636,13 @@
                       <mat-radio-button
                         *ngFor="let op of opcionesEscala5"
                         [value]="op.value"
-                        class="scale-option"
-                      >
+                        class="scale-option">
                         {{ op.value }}
                       </mat-radio-button>
                     </mat-radio-group>
                   </div>
                 </div>
 
-                <!-- 4. Sesiones semanales -->
                 <div class="question-row">
                   <p class="question-label">
                     Mantuvo sesiones de talleres semanales de retroalimentación y control de avance
@@ -697,15 +652,13 @@
                       <mat-radio-button
                         *ngFor="let op of opcionesEscala5"
                         [value]="op.value"
-                        class="scale-option"
-                      >
+                        class="scale-option">
                         {{ op.value }}
                       </mat-radio-button>
                     </mat-radio-group>
                   </div>
                 </div>
 
-                <!-- 5. Evaluación permanente -->
                 <div class="question-row">
                   <p class="question-label">
                     Evaluó en forma permanente la labor realizada por el/la practicante
@@ -715,15 +668,13 @@
                       <mat-radio-button
                         *ngFor="let op of opcionesEscala5"
                         [value]="op.value"
-                        class="scale-option"
-                      >
+                        class="scale-option">
                         {{ op.value }}
                       </mat-radio-button>
                     </mat-radio-group>
                   </div>
                 </div>
 
-                <!-- 6. Orienta desempeño -->
                 <div class="question-row">
                   <p class="question-label">
                     Orientó el desempeño pedagógico del practicante, en el Taller de Práctica
@@ -733,15 +684,13 @@
                       <mat-radio-button
                         *ngFor="let op of opcionesEscala5"
                         [value]="op.value"
-                        class="scale-option"
-                      >
+                        class="scale-option">
                         {{ op.value }}
                       </mat-radio-button>
                     </mat-radio-group>
                   </div>
                 </div>
 
-                <!-- 7. Organiza actividades -->
                 <div class="question-row">
                   <p class="question-label">
                     Organizó las actividades curriculares propias de la etapa de taller
@@ -751,18 +700,16 @@
                       <mat-radio-button
                         *ngFor="let op of opcionesEscala5"
                         [value]="op.value"
-                        class="scale-option"
-                      >
+                        class="scale-option">
                         {{ op.value }}
                       </mat-radio-button>
                     </mat-radio-group>
                   </div>
                 </div>
-
               </div>
             </mat-expansion-panel>
 
-           <!-- SECCIÓN IV S -->
+            <!-- SECCIÓN IV S -->
             <mat-expansion-panel formGroupName="secIV_S">
               <mat-expansion-panel-header>
                 <mat-panel-title>VIII. Percepción sobre el Supervisor/a</mat-panel-title>
@@ -772,13 +719,14 @@
               </mat-expansion-panel-header>
 
               <div class="question-list-group">
-
-                <!-- 1. Lo presentó en el centro de prácticas -->
                 <div class="question-row">
                   <p class="question-label">Lo presentó en el centro de prácticas</p>
                   <div class="answer-scale">
                     <mat-radio-group formControlName="presentacionCentro" class="scale-group">
-                      <mat-radio-button *ngFor="let op of opcionesEscala5" [value]="op.value" class="scale-option">
+                      <mat-radio-button
+                        *ngFor="let op of opcionesEscala5"
+                        [value]="op.value"
+                        class="scale-option">
                         {{ op.value }}
                       </mat-radio-button>
                       <mat-radio-button value="NA" class="scale-option">N/O</mat-radio-button>
@@ -786,14 +734,16 @@
                   </div>
                 </div>
 
-                <!-- 2. Orientó la gestión pedagógica desarrollada por el/la practicante -->
                 <div class="question-row">
                   <p class="question-label">
                     Orientó la gestión pedagógica desarrollada por el/la practicante, con relación a la planificación, ejecución y evaluación.
                   </p>
                   <div class="answer-scale">
                     <mat-radio-group formControlName="orientaGestion" class="scale-group">
-                      <mat-radio-button *ngFor="let op of opcionesEscala5" [value]="op.value" class="scale-option">
+                      <mat-radio-button
+                        *ngFor="let op of opcionesEscala5"
+                        [value]="op.value"
+                        class="scale-option">
                         {{ op.value }}
                       </mat-radio-button>
                       <mat-radio-button value="NA" class="scale-option">N/O</mat-radio-button>
@@ -801,12 +751,14 @@
                   </div>
                 </div>
 
-                <!-- 3. Mantuvo una comunicación constante -->
                 <div class="question-row">
                   <p class="question-label">Mantuvo una comunicación constante.</p>
                   <div class="answer-scale">
                     <mat-radio-group formControlName="comunicacionConstante" class="scale-group">
-                      <mat-radio-button *ngFor="let op of opcionesEscala5" [value]="op.value" class="scale-option">
+                      <mat-radio-button
+                        *ngFor="let op of opcionesEscala5"
+                        [value]="op.value"
+                        class="scale-option">
                         {{ op.value }}
                       </mat-radio-button>
                       <mat-radio-button value="NA" class="scale-option">N/O</mat-radio-button>
@@ -814,14 +766,16 @@
                   </div>
                 </div>
 
-                <!-- 4. Orientó el comportamiento y la presentación personal -->
                 <div class="question-row">
                   <p class="question-label">
                     Orientó el comportamiento y la presentación personal en el aula.
                   </p>
                   <div class="answer-scale">
                     <mat-radio-group formControlName="orientaComportamiento" class="scale-group">
-                      <mat-radio-button *ngFor="let op of opcionesEscala5" [value]="op.value" class="scale-option">
+                      <mat-radio-button
+                        *ngFor="let op of opcionesEscala5"
+                        [value]="op.value"
+                        class="scale-option">
                         {{ op.value }}
                       </mat-radio-button>
                       <mat-radio-button value="NA" class="scale-option">N/O</mat-radio-button>
@@ -829,12 +783,14 @@
                   </div>
                 </div>
 
-                <!-- 5. Mantuvo sesiones de retroalimentación -->
                 <div class="question-row">
                   <p class="question-label">Mantuvo sesiones de retroalimentación.</p>
                   <div class="answer-scale">
                     <mat-radio-group formControlName="sesionesRetro" class="scale-group">
-                      <mat-radio-button *ngFor="let op of opcionesEscala5" [value]="op.value" class="scale-option">
+                      <mat-radio-button
+                        *ngFor="let op of opcionesEscala5"
+                        [value]="op.value"
+                        class="scale-option">
                         {{ op.value }}
                       </mat-radio-button>
                       <mat-radio-button value="NA" class="scale-option">N/O</mat-radio-button>
@@ -842,14 +798,16 @@
                   </div>
                 </div>
 
-                <!-- 6. Evaluó de forma global y periódica -->
                 <div class="question-row">
                   <p class="question-label">
                     Evaluó con de forma global y periódicamente la labor realizada por practicantes.
                   </p>
                   <div class="answer-scale">
                     <mat-radio-group formControlName="evaluaGlobal" class="scale-group">
-                      <mat-radio-button *ngFor="let op of opcionesEscala5" [value]="op.value" class="scale-option">
+                      <mat-radio-button
+                        *ngFor="let op of opcionesEscala5"
+                        [value]="op.value"
+                        class="scale-option">
                         {{ op.value }}
                       </mat-radio-button>
                       <mat-radio-button value="NA" class="scale-option">N/O</mat-radio-button>
@@ -857,14 +815,16 @@
                   </div>
                 </div>
 
-                <!-- 7. Resolución de situaciones problemáticas -->
                 <div class="question-row">
                   <p class="question-label">
                     Resolvió oportunamente situaciones problemáticas presentadas por los/las practicantes durante el semestre.
                   </p>
                   <div class="answer-scale">
                     <mat-radio-group formControlName="resuelveProblemas" class="scale-group">
-                      <mat-radio-button *ngFor="let op of opcionesEscala5" [value]="op.value" class="scale-option">
+                      <mat-radio-button
+                        *ngFor="let op of opcionesEscala5"
+                        [value]="op.value"
+                        class="scale-option">
                         {{ op.value }}
                       </mat-radio-button>
                       <mat-radio-button value="NA" class="scale-option">N/O</mat-radio-button>
@@ -872,14 +832,16 @@
                   </div>
                 </div>
 
-                <!-- 8. (repetido en la encuesta) Orientó la gestión pedagógica… -->
                 <div class="question-row">
                   <p class="question-label">
                     Orientó la gestión pedagógica desarrollada por el/la practicante, con relación a la planificación, ejecución y evaluación de la misma.
                   </p>
                   <div class="answer-scale">
                     <mat-radio-group formControlName="orientaGestionDos" class="scale-group">
-                      <mat-radio-button *ngFor="let op of opcionesEscala5" [value]="op.value" class="scale-option">
+                      <mat-radio-button
+                        *ngFor="let op of opcionesEscala5"
+                        [value]="op.value"
+                        class="scale-option">
                         {{ op.value }}
                       </mat-radio-button>
                       <mat-radio-button value="NA" class="scale-option">N/O</mat-radio-button>
@@ -887,7 +849,6 @@
                   </div>
                 </div>
 
-                <!-- 9. Comentarios abiertos (P13) DENTRO DEL MISMO PANEL -->
                 <p class="question-label full-width">
                   Desde su experiencia ¿De qué forma crees que podría mejorar el rol del Tallerista
                   o Supervisor/a en el proceso de práctica?
@@ -898,190 +859,17 @@
                   <textarea
                     matInput
                     rows="4"
-                    formControlName="mejoraRolTallerista">
-                  </textarea>
+                    formControlName="mejoraRolTallerista"></textarea>
                 </mat-form-field>
-
               </div>
             </mat-expansion-panel>
 
             <!-- SECCIÓN V -->
-        <mat-expansion-panel formGroupName="secV">
-          <mat-expansion-panel-header>
-            <mat-panel-title>V. Sobre la Coordinación de Prácticas</mat-panel-title>
-            <mat-panel-description>
-              En una escala de 1 a 5, donde 1 es muy insatisfecho y 5 muy satisfecho.
-            </mat-panel-description>
-          </mat-expansion-panel-header>
-
-          <div class="question-list-group">
-
-            <div class="question-row">
-              <p class="question-label">
-                Las inducciones fueron acorde a las necesidades que se iban a abordar en la práctica realizada
-              </p>
-              <div class="answer-scale">
-                <mat-radio-group formControlName="induccionesAcordes" class="scale-group">
-                  <mat-radio-button
-                    *ngFor="let op of opcionesEscala5"
-                    [value]="op.value"
-                    class="scale-option">
-                    {{ op.value }}
-                  </mat-radio-button>
-                  <mat-radio-button value="NA" class="scale-option">N/O</mat-radio-button>
-                </mat-radio-group>
-              </div>
-            </div>
-
-            <div class="question-row">
-              <p class="question-label">
-                Se informó con claridad sobre los reglamentos y manuales propios de los procesos prácticos
-              </p>
-              <div class="answer-scale">
-                <mat-radio-group formControlName="informacionClara" class="scale-group">
-                  <mat-radio-button
-                    *ngFor="let op of opcionesEscala5"
-                    [value]="op.value"
-                    class="scale-option">
-                    {{ op.value }}
-                  </mat-radio-button>
-                  <mat-radio-button value="NA" class="scale-option">N/O</mat-radio-button>
-                </mat-radio-group>
-              </div>
-            </div>
-
-            <div class="question-row">
-              <p class="question-label">
-                Respondió dudas e inquietudes de proceso de práctica durante el desarrollo del mismo
-              </p>
-              <div class="answer-scale">
-                <mat-radio-group formControlName="respuestaDudas" class="scale-group">
-                  <mat-radio-button
-                    *ngFor="let op of opcionesEscala5"
-                    [value]="op.value"
-                    class="scale-option">
-                    {{ op.value }}
-                  </mat-radio-button>
-                  <mat-radio-button value="NA" class="scale-option">N/O</mat-radio-button>
-                </mat-radio-group>
-              </div>
-            </div>
-
-            <div class="question-row">
-              <p class="question-label">
-                La información que entregó era acorde con la entregada a los centros de prácticas,
-                colaboradores, docente tallerista y supervisores
-              </p>
-              <div class="answer-scale">
-                <mat-radio-group formControlName="infoAcordeCentros" class="scale-group">
-                  <mat-radio-button
-                    *ngFor="let op of opcionesEscala5"
-                    [value]="op.value"
-                    class="scale-option">
-                    {{ op.value }}
-                  </mat-radio-button>
-                  <mat-radio-button value="NA" class="scale-option">N/O</mat-radio-button>
-                </mat-radio-group>
-              </div>
-            </div>
-
-            <div class="question-row">
-              <p class="question-label">
-                Se realizaron gestiones a corto, mediano y largo plazo para mejorar los procesos de prácticas
-              </p>
-              <div class="answer-scale">
-                <mat-radio-group formControlName="gestionesMejora" class="scale-group">
-                  <mat-radio-button
-                    *ngFor="let op of opcionesEscala5"
-                    [value]="op.value"
-                    class="scale-option">
-                    {{ op.value }}
-                  </mat-radio-button>
-                  <mat-radio-button value="NA" class="scale-option">N/O</mat-radio-button>
-                </mat-radio-group>
-              </div>
-            </div>
-
-          </div>
-        </mat-expansion-panel>
-
-      </mat-accordion>
-
-      <h2 class="form-title">Comentarios Adicionales</h2>
-
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>
-          Desde su experiencia ¿De qué forma crees que se podría mejorar el rol de la Coordinación de Prácticas?
-        </mat-label>
-        <textarea matInput rows="3" formControlName="mejoraCoordinacion"></textarea>
-      </mat-form-field>
-          </div>
-
-        <!-- ======================= COLABORADORES / JEFES UTP ======================= -->
-
-        <div *ngIf="tipoRegistroActivo === 'COLABORADORES_JEFES'">
-
-          <h2 class="form-title">Datos Generales</h2>
-
-          <div class="form-grid">
-
-            <mat-form-field appearance="outline" class="field">
-              <mat-label>Nombre del profesor colaborador</mat-label>
-              <mat-select formControlName="nombreColaborador" required>
-                <mat-option *ngFor="let col of colaboradores" [value]="col.id">
-                  {{ col.nombre }}
-                </mat-option>
-              </mat-select>
-            </mat-form-field>
-
-            <mat-form-field appearance="outline" class="field">
-              <mat-label>Nombre del estudiante en práctica</mat-label>
-              <mat-select formControlName="nombreEstudiantePractica">
-                <mat-option *ngFor="let s of estudiantes" [value]="s.rut">
-                  {{ s.nombre }}
-                </mat-option>
-              </mat-select>
-            </mat-form-field>
-
-            <mat-form-field appearance="outline" class="field">
-              <mat-label>Centro educativo</mat-label>
-              <mat-select formControlName="centroEducativo">
-                <mat-option *ngFor="let c of centros" [value]="c.id">
-                  {{ c.nombre }}
-                </mat-option>
-              </mat-select>
-            </mat-form-field>
-
-            <mat-form-field appearance="outline" class="field">
-              <mat-label>Tipo de práctica</mat-label>
-              <mat-select formControlName="tipoPractica">
-                <mat-option value="I">Apoyo docencia I</mat-option>
-                <mat-option value="II">Apoyo docencia II</mat-option>
-                <mat-option value="III">Apoyo docencia III</mat-option>
-                <mat-option value="PROFESIONAL">Práctica profesional</mat-option>
-              </mat-select>
-            </mat-form-field>
-
-            <mat-form-field appearance="outline" class="field">
-              <mat-label>Fecha de evaluación</mat-label>
-              <input matInput [matDatepicker]="pickerC" formControlName="fechaEvaluacion" />
-              <mat-datepicker-toggle matSuffix [for]="pickerC"></mat-datepicker-toggle>
-              <mat-datepicker #pickerC></mat-datepicker>
-            </mat-form-field>
-
-          </div>
-
-          <h2 class="form-title">Evaluación al Docente en Práctica</h2>
-
-          <mat-accordion>
-
-            <mat-expansion-panel formGroupName="secI" [expanded]="true">
+            <mat-expansion-panel formGroupName="secV">
               <mat-expansion-panel-header>
-                <mat-panel-title>
-                  I. Evaluación al Docente en Práctica
-                </mat-panel-title>
+                <mat-panel-title>IX. Sobre la Coordinación de Prácticas</mat-panel-title>
                 <mat-panel-description>
-                  Escala desde “totalmente en desacuerdo” a “totalmente de acuerdo”.
+                  En una escala de 1 a 5, donde 1 es muy insatisfecho y 5 muy satisfecho.
                 </mat-panel-description>
               </mat-expansion-panel-header>
 
@@ -1089,279 +877,463 @@
 
                 <div class="question-row">
                   <p class="question-label">
-                    El profesor(a) en práctica se rige por un sistema de planificación que incluye
-                    calendarizaciones y planificación semanal, la cual entrega en la fecha acordada.
+                    Las inducciones fueron acorde a las necesidades que se iban a abordar en la práctica realizada
                   </p>
-                  <mat-form-field appearance="outline" class="answer-field">
-                    <mat-label>Respuesta</mat-label>
-                    <mat-select formControlName="e1_planificacion">
-                      <mat-option *ngFor="let op of opcionesEscala5" [value]="op.value">
-                        {{ op.label }}
-                      </mat-option>
-                    </mat-select>
-                  </mat-form-field>
+                  <div class="answer-scale">
+                    <mat-radio-group formControlName="induccionesAcordes" class="scale-group">
+                      <mat-radio-button
+                        *ngFor="let op of opcionesEscala5"
+                        [value]="op.value"
+                        class="scale-option">
+                        {{ op.value }}
+                      </mat-radio-button>
+                      <mat-radio-button value="NA" class="scale-option">N/O</mat-radio-button>
+                    </mat-radio-group>
+                  </div>
                 </div>
 
                 <div class="question-row">
                   <p class="question-label">
-                    Durante la realización de la clase sigue una estructura definida.
+                    Se informó con claridad sobre los reglamentos y manuales propios de los procesos prácticos
                   </p>
-                  <mat-form-field appearance="outline" class="answer-field">
-                    <mat-label>Respuesta</mat-label>
-                    <mat-select formControlName="e2_estructuraClase">
-                      <mat-option *ngFor="let op of opcionesEscala5" [value]="op.value">
-                        {{ op.label }}
-                      </mat-option>
-                    </mat-select>
-                  </mat-form-field>
+                  <div class="answer-scale">
+                    <mat-radio-group formControlName="informacionClara" class="scale-group">
+                      <mat-radio-button
+                        *ngFor="let op of opcionesEscala5"
+                        [value]="op.value"
+                        class="scale-option">
+                        {{ op.value }}
+                      </mat-radio-button>
+                      <mat-radio-button value="NA" class="scale-option">N/O</mat-radio-button>
+                    </mat-radio-group>
+                  </div>
                 </div>
 
                 <div class="question-row">
                   <p class="question-label">
-                    En las actividades que realiza hay una secuencia con introducción, desarrollo y conclusión.
+                    Respondió dudas e inquietudes de proceso de práctica durante el desarrollo del mismo
                   </p>
-                  <mat-form-field appearance="outline" class="answer-field">
-                    <mat-label>Respuesta</mat-label>
-                    <mat-select formControlName="e3_secuenciaActividades">
-                      <mat-option *ngFor="let op of opcionesEscala5" [value]="op.value">
-                        {{ op.label }}
-                      </mat-option>
-                    </mat-select>
-                  </mat-form-field>
+                  <div class="answer-scale">
+                    <mat-radio-group formControlName="respuestaDudas" class="scale-group">
+                      <mat-radio-button
+                        *ngFor="let op of opcionesEscala5"
+                        [value]="op.value"
+                        class="scale-option">
+                        {{ op.value }}
+                      </mat-radio-button>
+                      <mat-radio-button value="NA" class="scale-option">N/O</mat-radio-button>
+                    </mat-radio-group>
+                  </div>
                 </div>
 
                 <div class="question-row">
                   <p class="question-label">
-                    Durante la clase realiza preguntas de aplicación de contenidos para verificar lo que los estudiantes han aprendido.
+                    La información que entregó era acorde con la entregada a los centros de prácticas,
+                    colaboradores, docente tallerista y supervisores
                   </p>
-                  <mat-form-field appearance="outline" class="answer-field">
-                    <mat-label>Respuesta</mat-label>
-                    <mat-select formControlName="e4_preguntasAplicacion">
-                      <mat-option *ngFor="let op of opcionesEscala5" [value]="op.value">
-                        {{ op.label }}
-                      </mat-option>
-                    </mat-select>
-                  </mat-form-field>
+                  <div class="answer-scale">
+                    <mat-radio-group formControlName="infoAcordeCentros" class="scale-group">
+                      <mat-radio-button
+                        *ngFor="let op of opcionesEscala5"
+                        [value]="op.value"
+                        class="scale-option">
+                        {{ op.value }}
+                      </mat-radio-button>
+                      <mat-radio-button value="NA" class="scale-option">N/O</mat-radio-button>
+                    </mat-radio-group>
+                  </div>
                 </div>
 
                 <div class="question-row">
                   <p class="question-label">
-                    Utiliza distintas estrategias para captar la atención de los estudiantes, además de demostrar dominio del contenido.
+                    Se realizaron gestiones a corto, mediano y largo plazo para mejorar los procesos de prácticas
                   </p>
-                  <mat-form-field appearance="outline" class="answer-field">
-                    <mat-label>Respuesta</mat-label>
-                    <mat-select formControlName="e5_estrategiasAtencion">
-                      <mat-option *ngFor="let op of opcionesEscala5" [value]="op.value">
-                        {{ op.label }}
-                      </mat-option>
-                    </mat-select>
-                  </mat-form-field>
+                  <div class="answer-scale">
+                    <mat-radio-group formControlName="gestionesMejora" class="scale-group">
+                      <mat-radio-button
+                        *ngFor="let op of opcionesEscala5"
+                        [value]="op.value"
+                        class="scale-option">
+                        {{ op.value }}
+                      </mat-radio-button>
+                      <mat-radio-button value="NA" class="scale-option">N/O</mat-radio-button>
+                    </mat-radio-group>
+                  </div>
                 </div>
 
-                <div class="question-row">
-                  <p class="question-label">
-                    Entrega retroalimentación a los estudiantes luego de sus intervenciones en clases.
-                  </p>
-                  <mat-form-field appearance="outline" class="answer-field">
-                    <mat-label>Respuesta</mat-label>
-                    <mat-select formControlName="e6_retroalimentacion">
-                      <mat-option *ngFor="let op of opcionesEscala5" [value]="op.value">
-                        {{ op.label }}
-                      </mat-option>
-                    </mat-select>
-                  </mat-form-field>
-                </div>
-
-                <div class="question-row">
-                  <p class="question-label">
-                    Establece las normas del curso o actividades a través del diálogo y/o la negociación con los estudiantes.
-                  </p>
-                  <mat-form-field appearance="outline" class="answer-field">
-                    <mat-label>Respuesta</mat-label>
-                    <mat-select formControlName="e7_normasClase">
-                      <mat-option *ngFor="let op of opcionesEscala5" [value]="op.value">
-                        {{ op.label }}
-                      </mat-option>
-                    </mat-select>
-                  </mat-form-field>
-                </div>
-
-                <div class="question-row">
-                  <p class="question-label">
-                    Usa la tecnología para comunicarse con los estudiantes, junto con promover que la usen en sus presentaciones.
-                  </p>
-                  <mat-form-field appearance="outline" class="answer-field">
-                    <mat-label>Respuesta</mat-label>
-                    <mat-select formControlName="e8_usoTecnologia">
-                      <mat-option *ngFor="let op of opcionesEscala5" [value]="op.value">
-                        {{ op.label }}
-                      </mat-option>
-                    </mat-select>
-                  </mat-form-field>
-                </div>
+                <!-- NUEVA PREGUNTA ABIERTA DENTRO DEL ÍTEM V -->
+                <p class="question-label full-width">
+                  Desde su experiencia ¿De qué forma crees que se podría mejorar el rol de la Coordinación de Prácticas?
+                </p>
+                <mat-form-field appearance="outline" class="full-width comments-field">
+                  <mat-label>Comentarios</mat-label>
+                  <textarea
+                    matInput
+                    rows="3"
+                    formControlName="mejoraCoordinacion">
+                  </textarea>
+                </mat-form-field>
 
               </div>
             </mat-expansion-panel>
 
-            <mat-expansion-panel formGroupName="secII">
-              <mat-expansion-panel-header>
-                <mat-panel-title>II. Evaluación respecto a integración a la comunidad educativa</mat-panel-title>
-              </mat-expansion-panel-header>
+            </mat-accordion>
 
-              <div class="question-list-group">
+            <!-- NUEVA SECCIÓN: COMENTARIOS ADICIONALES GENERALES -->
+            <h2 class="form-title">Comentarios Adicionales</h2>
 
-                <div class="question-row">
-                  <p class="question-label">
-                    Establece vinculación con sus pares y docentes del establecimiento, y presenta disposición a participar en actividades extracurriculares.
-                  </p>
-                  <mat-form-field appearance="outline" class="answer-field">
-                    <mat-label>Respuesta</mat-label>
-                    <mat-select formControlName="i1_vinculacionPares">
-                      <mat-option *ngFor="let op of opcionesEscala5" [value]="op.value">
-                        {{ op.label }}
-                      </mat-option>
-                    </mat-select>
-                  </mat-form-field>
-                </div>
-
-                <div class="question-row">
-                  <p class="question-label">Capacidad de participar en un grupo de trabajo.</p>
-                  <mat-form-field appearance="outline" class="answer-field">
-                    <mat-label>Respuesta</mat-label>
-                    <mat-select formControlName="i2_capacidadGrupoTrabajo">
-                      <mat-option *ngFor="let op of opcionesEscala5" [value]="op.value">
-                        {{ op.label }}
-                      </mat-option>
-                    </mat-select>
-                  </mat-form-field>
-                </div>
-
-                <div class="question-row">
-                  <p class="question-label">
-                    Se presenta a la práctica con una presentación personal acorde a lo requerido por el establecimiento, cumpliendo horarios.
-                  </p>
-                  <mat-form-field appearance="outline" class="answer-field">
-                    <mat-label>Respuesta</mat-label>
-                    <mat-select formControlName="i3_presentacionPersonal">
-                      <mat-option *ngFor="let op of opcionesEscala5" [value]="op.value">
-                        {{ op.label }}
-                      </mat-option>
-                    </mat-select>
-                  </mat-form-field>
-                </div>
-
-                <div class="question-row">
-                  <p class="question-label">
-                    Existe un proceso de autoaprendizaje e iniciativa personal frente a la superación de debilidades presentadas.
-                  </p>
-                  <mat-form-field appearance="outline" class="answer-field">
-                    <mat-label>Respuesta</mat-label>
-                    <mat-select formControlName="i4_autoaprendizaje">
-                      <mat-option *ngFor="let op of opcionesEscala5" [value]="op.value">
-                        {{ op.label }}
-                      </mat-option>
-                    </mat-select>
-                  </mat-form-field>
-                </div>
-
-                <div class="question-row">
-                  <p class="question-label">
-                    La formación recibida en la Universidad fue suficiente para el desempeño del profesor en su práctica profesional.
-                  </p>
-                  <mat-form-field appearance="outline" class="answer-field">
-                    <mat-label>Respuesta</mat-label>
-                    <mat-select formControlName="i5_formacionSuficiente">
-                      <mat-option *ngFor="let op of opcionesEscala5" [value]="op.value">
-                        {{ op.label }}
-                      </mat-option>
-                    </mat-select>
-                  </mat-form-field>
-                </div>
-
-              </div>
-            </mat-expansion-panel>
-
-            <mat-expansion-panel formGroupName="secIII">
-              <mat-expansion-panel-header>
-                <mat-panel-title>III. Evaluación vinculación con la Coordinación de las Prácticas</mat-panel-title>
-              </mat-expansion-panel-header>
-
-              <div class="question-list-group">
-
-                <div class="question-row">
-                  <p class="question-label">
-                    Durante el desarrollo de la práctica se mantuvo flujo de información con el supervisor/tallerista asignado.
-                  </p>
-                  <mat-form-field appearance="outline" class="answer-field">
-                    <mat-label>Respuesta</mat-label>
-                    <mat-select formControlName="v1_flujoInformacionSupervisor">
-                      <mat-option *ngFor="let op of opcionesEscala5" [value]="op.value">
-                        {{ op.label }}
-                      </mat-option>
-                    </mat-select>
-                  </mat-form-field>
-                </div>
-
-                <div class="question-row">
-                  <p class="question-label">
-                    Existe claridad de los roles de supervisores o talleristas, profesores colaboradores y coordinadora de práctica.
-                  </p>
-                  <mat-form-field appearance="outline" class="answer-field">
-                    <mat-label>Respuesta</mat-label>
-                    <mat-select formControlName="v2_claridadRoles">
-                      <mat-option *ngFor="let op of opcionesEscala5" [value]="op.value">
-                        {{ op.label }}
-                      </mat-option>
-                    </mat-select>
-                  </mat-form-field>
-                </div>
-
-                <div class="question-row">
-                  <p class="question-label">
-                    La coordinadora verifica los estados de avance de los procesos de práctica.
-                  </p>
-                  <mat-form-field appearance="outline" class="answer-field">
-                    <mat-label>Respuesta</mat-label>
-                    <mat-select formControlName="v3_verificacionAvance">
-                      <mat-option *ngFor="let op of opcionesEscala5" [value]="op.value">
-                        {{ op.label }}
-                      </mat-option>
-                    </mat-select>
-                  </mat-form-field>
-                </div>
-
-                <div class="question-row">
-                  <p class="question-label">
-                    En general, se encuentra satisfecho con la información y el sistema de prácticas de la carrera.
-                  </p>
-                  <mat-form-field appearance="outline" class="answer-field">
-                    <mat-label>Respuesta</mat-label>
-                    <mat-select formControlName="v4_satisfaccionGeneral">
-                      <mat-option *ngFor="let op of opcionesEscala5" [value]="op.value">
-                        {{ op.label }}
-                      </mat-option>
-                    </mat-select>
-                  </mat-form-field>
-                </div>
-
-              </div>
-            </mat-expansion-panel>
-
-          </mat-accordion>
-
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>
-              ¿Tiene sugerencias o recomendaciones respecto a las prácticas, practicantes y coordinación de ellas que puedan generar mejoras en el futuro?
-            </mat-label>
-            <textarea matInput rows="3" formControlName="sugerencias"></textarea>
-          </mat-form-field>
-
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>¿Cree que se cumple el perfil de egreso declarado?</mat-label>
-            <textarea matInput rows="3" formControlName="cumplePerfilEgreso"></textarea>
-          </mat-form-field>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Comentarios adicionales sobre la encuesta</mat-label>
+              <textarea matInput rows="3" formControlName="comentariosAdicionales"></textarea>
+            </mat-form-field>
 
         </div>
+
+        <!-- ======================= COLABORADORES / JEFES UTP ======================= -->
+
+          <div *ngIf="tipoRegistroActivo === 'COLABORADORES_JEFES'">
+
+            <h2 class="form-title">Datos Generales</h2>
+
+            <div class="form-grid">
+
+              <mat-form-field appearance="outline" class="field">
+                <mat-label>Nombre del profesor colaborador</mat-label>
+                <mat-select formControlName="nombreColaborador" required>
+                  <mat-option *ngFor="let col of colaboradores" [value]="col.id">
+                    {{ col.nombre }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="field">
+                <mat-label>Nombre del estudiante en práctica</mat-label>
+                <mat-select formControlName="nombreEstudiantePractica">
+                  <mat-option *ngFor="let s of estudiantes" [value]="s.rut">
+                    {{ s.nombre }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="field">
+                <mat-label>Centro educativo</mat-label>
+                <mat-select formControlName="centroEducativo">
+                  <mat-option *ngFor="let c of centros" [value]="c.id">
+                    {{ c.nombre }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="field">
+                <mat-label>Tipo de práctica</mat-label>
+                <mat-select formControlName="tipoPractica">
+                  <mat-option value="I">Apoyo docencia I</mat-option>
+                  <mat-option value="II">Apoyo docencia II</mat-option>
+                  <mat-option value="III">Apoyo docencia III</mat-option>
+                  <mat-option value="PROFESIONAL">Práctica profesional</mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="field">
+                <mat-label>Fecha de evaluación</mat-label>
+                <input matInput [matDatepicker]="pickerC" formControlName="fechaEvaluacion" />
+                <mat-datepicker-toggle matSuffix [for]="pickerC"></mat-datepicker-toggle>
+                <mat-datepicker #pickerC></mat-datepicker>
+              </mat-form-field>
+
+            </div>
+
+            <h2 class="form-title">Evaluación al Docente en Práctica</h2>
+
+            <mat-accordion>
+
+              <!-- SECCIÓN I -->
+              <mat-expansion-panel formGroupName="secI" [expanded]="true">
+                <mat-expansion-panel-header>
+                  <mat-panel-title>
+                    I. Evaluación al Docente en Práctica
+                  </mat-panel-title>
+                  <mat-panel-description>
+                    Escala desde “totalmente en desacuerdo” a “totalmente de acuerdo”.
+                  </mat-panel-description>
+                </mat-expansion-panel-header>
+
+                <div class="question-list-group">
+
+                  <div class="question-row">
+                    <p class="question-label">
+                      El profesor(a) en práctica se rige por un sistema de planificación que incluye
+                      calendarizaciones y planificación semanal, la cual entrega en la fecha acordada.
+                    </p>
+                    <div class="answer-scale">
+                      <mat-radio-group formControlName="e1_planificacion" class="scale-group">
+                        <mat-radio-button *ngFor="let op of opcionesEscala5" [value]="op.value" class="scale-option">
+                          {{ op.label }}
+                        </mat-radio-button>
+                      </mat-radio-group>
+                    </div>
+                  </div>
+
+                  <div class="question-row">
+                    <p class="question-label">
+                      Durante la realización de la clase sigue una estructura definida.
+                    </p>
+                    <div class="answer-scale">
+                      <mat-radio-group formControlName="e2_estructuraClase" class="scale-group">
+                        <mat-radio-button *ngFor="let op of opcionesEscala5" [value]="op.value" class="scale-option">
+                          {{ op.label }}
+                        </mat-radio-button>
+                      </mat-radio-group>
+                    </div>
+                  </div>
+
+                  <div class="question-row">
+                    <p class="question-label">
+                      En las actividades que realiza hay una secuencia con introducción, desarrollo y conclusión.
+                    </p>
+                    <div class="answer-scale">
+                      <mat-radio-group formControlName="e3_secuenciaActividades" class="scale-group">
+                        <mat-radio-button *ngFor="let op of opcionesEscala5" [value]="op.value" class="scale-option">
+                          {{ op.label }}
+                        </mat-radio-button>
+                      </mat-radio-group>
+                    </div>
+                  </div>
+
+                  <div class="question-row">
+                    <p class="question-label">
+                      Durante la clase realiza preguntas de aplicación de contenidos para verificar
+                      lo que los estudiantes han aprendido.
+                    </p>
+                    <div class="answer-scale">
+                      <mat-radio-group formControlName="e4_preguntasAplicacion" class="scale-group">
+                        <mat-radio-button *ngFor="let op of opcionesEscala5" [value]="op.value" class="scale-option">
+                          {{ op.label }}
+                        </mat-radio-button>
+                      </mat-radio-group>
+                    </div>
+                  </div>
+
+                  <div class="question-row">
+                    <p class="question-label">
+                      Utiliza distintas estrategias para captar la atención de los estudiantes,
+                      además de demostrar dominio del contenido.
+                    </p>
+                    <div class="answer-scale">
+                      <mat-radio-group formControlName="e5_estrategiasAtencion" class="scale-group">
+                        <mat-radio-button *ngFor="let op of opcionesEscala5" [value]="op.value" class="scale-option">
+                          {{ op.label }}
+                        </mat-radio-button>
+                      </mat-radio-group>
+                    </div>
+                  </div>
+
+                  <div class="question-row">
+                    <p class="question-label">
+                      Entrega retroalimentación a los estudiantes luego de sus intervenciones en clases,
+                      generando instancias para comentar sus respuestas, propone nuevos análisis,
+                      realiza contra preguntas, etc.
+                    </p>
+                    <div class="answer-scale">
+                      <mat-radio-group formControlName="e6_retroalimentacion" class="scale-group">
+                        <mat-radio-button *ngFor="let op of opcionesEscala5" [value]="op.value" class="scale-option">
+                          {{ op.label }}
+                        </mat-radio-button>
+                      </mat-radio-group>
+                    </div>
+                  </div>
+
+                  <div class="question-row">
+                    <p class="question-label">
+                      Establece las normas del curso o actividades a través del diálogo y/o la
+                      negociación con los estudiantes.
+                    </p>
+                    <div class="answer-scale">
+                      <mat-radio-group formControlName="e7_normasClase" class="scale-group">
+                        <mat-radio-button *ngFor="let op of opcionesEscala5" [value]="op.value" class="scale-option">
+                          {{ op.label }}
+                        </mat-radio-button>
+                      </mat-radio-group>
+                    </div>
+                  </div>
+
+                  <div class="question-row">
+                    <p class="question-label">
+                      Usa la tecnología para comunicarse con los estudiantes, junto con promover
+                      que la usen en sus presentaciones.
+                    </p>
+                    <div class="answer-scale">
+                      <mat-radio-group formControlName="e8_usoTecnologia" class="scale-group">
+                        <mat-radio-button *ngFor="let op of opcionesEscala5" [value]="op.value" class="scale-option">
+                          {{ op.label }}
+                        </mat-radio-button>
+                      </mat-radio-group>
+                    </div>
+                  </div>
+
+                </div>
+              </mat-expansion-panel>
+
+              <!-- SECCIÓN II -->
+              <mat-expansion-panel formGroupName="secII">
+                <mat-expansion-panel-header>
+                  <mat-panel-title>II. Evaluación respecto a integración a la comunidad educativa</mat-panel-title>
+                </mat-expansion-panel-header>
+
+                <div class="question-list-group">
+
+                  <div class="question-row">
+                    <p class="question-label">
+                      Establece vinculación con sus pares y docentes del establecimiento,
+                      y presenta disposición a participar en actividades extracurriculares del colegio.
+                    </p>
+                    <div class="answer-scale">
+                      <mat-radio-group formControlName="i1_vinculacionPares" class="scale-group">
+                        <mat-radio-button *ngFor="let op of opcionesEscala5" [value]="op.value" class="scale-option">
+                          {{ op.label }}
+                        </mat-radio-button>
+                      </mat-radio-group>
+                    </div>
+                  </div>
+
+                  <div class="question-row">
+                    <p class="question-label">Capacidad de participar en un grupo de trabajo.</p>
+                    <div class="answer-scale">
+                      <mat-radio-group formControlName="i2_capacidadGrupoTrabajo" class="scale-group">
+                        <mat-radio-button *ngFor="let op of opcionesEscala5" [value]="op.value" class="scale-option">
+                          {{ op.label }}
+                        </mat-radio-button>
+                      </mat-radio-group>
+                    </div>
+                  </div>
+
+                  <div class="question-row">
+                    <p class="question-label">
+                      Se presenta a la práctica con una presentación personal acorde a lo requerido
+                      por el establecimiento, cumpliendo horarios.
+                    </p>
+                    <div class="answer-scale">
+                      <mat-radio-group formControlName="i3_presentacionPersonal" class="scale-group">
+                        <mat-radio-button *ngFor="let op of opcionesEscala5" [value]="op.value" class="scale-option">
+                          {{ op.label }}
+                        </mat-radio-button>
+                      </mat-radio-group>
+                    </div>
+                  </div>
+
+                  <div class="question-row">
+                    <p class="question-label">
+                      Existe un proceso de autoaprendizaje e iniciativa personal frente a la
+                      superación de debilidades presentadas.
+                    </p>
+                    <div class="answer-scale">
+                      <mat-radio-group formControlName="i4_autoaprendizaje" class="scale-group">
+                        <mat-radio-button *ngFor="let op of opcionesEscala5" [value]="op.value" class="scale-option">
+                          {{ op.label }}
+                        </mat-radio-button>
+                      </mat-radio-group>
+                    </div>
+                  </div>
+
+                  <div class="question-row">
+                    <p class="question-label">
+                      La formación recibida en la Universidad fue suficiente para el desempeño
+                      del profesor en su práctica profesional.
+                    </p>
+                    <div class="answer-scale">
+                      <mat-radio-group formControlName="i5_formacionSuficiente" class="scale-group">
+                        <mat-radio-button *ngFor="let op of opcionesEscala5" [value]="op.value" class="scale-option">
+                          {{ op.label }}
+                        </mat-radio-button>
+                      </mat-radio-group>
+                    </div>
+                  </div>
+
+                </div>
+              </mat-expansion-panel>
+
+              <!-- SECCIÓN III -->
+              <mat-expansion-panel formGroupName="secIII">
+                <mat-expansion-panel-header>
+                  <mat-panel-title>III. Evaluación vinculación con la Coordinación de las Prácticas</mat-panel-title>
+                </mat-expansion-panel-header>
+
+                <div class="question-list-group">
+
+                  <div class="question-row">
+                    <p class="question-label">
+                      Durante el desarrollo de la práctica se mantuvo flujo de información
+                      con el supervisor/tallerista asignado.
+                    </p>
+                    <div class="answer-scale">
+                      <mat-radio-group formControlName="v1_flujoInformacionSupervisor" class="scale-group">
+                        <mat-radio-button *ngFor="let op of opcionesEscala5" [value]="op.value" class="scale-option">
+                          {{ op.label }}
+                        </mat-radio-button>
+                      </mat-radio-group>
+                    </div>
+                  </div>
+
+                  <div class="question-row">
+                    <p class="question-label">
+                      Existe claridad de los roles de supervisores o talleristas, profesores colaboradores
+                      y coordinadora de práctica.
+                    </p>
+                    <div class="answer-scale">
+                      <mat-radio-group formControlName="v2_claridadRoles" class="scale-group">
+                        <mat-radio-button *ngFor="let op of opcionesEscala5" [value]="op.value" class="scale-option">
+                          {{ op.label }}
+                        </mat-radio-button>
+                      </mat-radio-group>
+                    </div>
+                  </div>
+
+                  <div class="question-row">
+                    <p class="question-label">
+                      La coordinadora verifica los estados de avance de los procesos de práctica.
+                    </p>
+                    <div class="answer-scale">
+                      <mat-radio-group formControlName="v3_verificacionAvance" class="scale-group">
+                        <mat-radio-button *ngFor="let op of opcionesEscala5" [value]="op.value" class="scale-option">
+                          {{ op.label }}
+                        </mat-radio-button>
+                      </mat-radio-group>
+                    </div>
+                  </div>
+
+                  <div class="question-row">
+                    <p class="question-label">
+                      En general, se encuentra satisfecho con la información y el sistema de prácticas de la carrera.
+                    </p>
+                    <div class="answer-scale">
+                      <mat-radio-group formControlName="v4_satisfaccionGeneral" class="scale-group">
+                        <mat-radio-button *ngFor="let op of opcionesEscala5" [value]="op.value" class="scale-option">
+                          {{ op.label }}
+                        </mat-radio-button>
+                      </mat-radio-group>
+                    </div>
+                  </div>
+
+                </div>
+              </mat-expansion-panel>
+
+            </mat-accordion>
+
+            <!-- Preguntas abiertas -->
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>
+                ¿Tiene sugerencias o recomendaciones respecto a las prácticas, practicantes y coordinación de ellas
+                que puedan generar mejoras en el futuro?
+              </mat-label>
+              <textarea matInput rows="3" formControlName="sugerencias"></textarea>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>¿Cree que se cumple el perfil de egreso declarado?</mat-label>
+              <textarea matInput rows="3" formControlName="cumplePerfilEgreso"></textarea>
+            </mat-form-field>
+
+          </div>
 
       </mat-card-content>
 
@@ -1376,18 +1348,16 @@
           Guardar
         </button>
       </mat-card-actions>
-
     </form>
   </mat-card>
 
   <!-- ============= MODAL DETALLE ENCUESTA ============= -->
-
   <mat-card class="elev detail-card custom-modal" *ngIf="selectedEncuesta">
-
     <mat-card-header>
       <mat-card-title>Detalle Encuesta</mat-card-title>
       <mat-card-subtitle>
-        {{ mapTipoLabel(selectedEncuesta.tipo) }} — {{ selectedEncuesta.fecha | date:'dd/MM/yyyy' }}
+        {{ mapTipoLabel(selectedEncuesta.tipo) }} —
+        {{ selectedEncuesta.fecha | date: 'dd/MM/yyyy' }}
       </mat-card-subtitle>
 
       <button mat-icon-button class="close-btn" (click)="cerrarDetalles()">
@@ -1396,7 +1366,6 @@
     </mat-card-header>
 
     <mat-card-content>
-
       <p class="summary-info">
         <strong>Origen:</strong> {{ selectedEncuesta.origenArchivo }} |
         <strong>Respuestas:</strong> {{ selectedEncuesta.respuestas.length }}
@@ -1410,7 +1379,6 @@
               <th>Valor</th>
             </tr>
           </thead>
-
           <tbody>
             <tr *ngFor="let key of getDetailColumns(selectedEncuesta)">
               <td><strong>{{ key }}</strong></td>
@@ -1419,8 +1387,6 @@
           </tbody>
         </table>
       </div>
-
     </mat-card-content>
-
   </mat-card>
 </div>

@@ -94,12 +94,11 @@ export class EncuestasService {
           data: {
             nombre_estudiante: data.nombreEstudiante ?? null,
             nombre_tallerista: data.nombreTalleristaSupervisor ?? null,
+            nombre_colaborador: data.nombreDocenteColaborador ?? null,
             nombre_centro: data.establecimiento ?? null,
             fecha: data.fechaEvaluacion ? new Date(data.fechaEvaluacion) : new Date(),
-            // 👇 aquí estaba el bug: "mejorasCoordinacion" vs "mejoraCoordinacion"
             observacion: data.mejoraCoordinacion ?? null,
             semestreId: data.semestreId ?? undefined,
-            // TODO: si luego quieres guardar cada respuesta, aquí haces nested create
           },
         });
         return { success: true, created };
