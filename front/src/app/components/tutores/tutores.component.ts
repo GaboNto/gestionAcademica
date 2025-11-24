@@ -1,5 +1,5 @@
-import { Component, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, inject, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 
 import { MatButtonModule } from '@angular/material/button';
@@ -45,6 +45,7 @@ export class TutoresComponent {
   private snack = inject(MatSnackBar);
   private tutoresService = inject(TutoresService);
   private fb = inject(FormBuilder);
+  private platformId = inject(PLATFORM_ID);
 
   mostrarFormulario = false;
   tutorSeleccionado: Tutor | null = null;
@@ -57,6 +58,19 @@ export class TutoresComponent {
   terminoBusqueda = '';
 
   formularioTutor!: FormGroup;
+  
+  // Verificar si el usuario es jefatura (solo lectura)
+  get esJefatura(): boolean {
+    if (!isPlatformBrowser(this.platformId)) return false;
+    try {
+      const roleStr = localStorage.getItem('app.selectedRole');
+      if (!roleStr) return false;
+      const role = JSON.parse(roleStr);
+      return role?.id === 'jefatura';
+    } catch {
+      return false;
+    }
+  }
 
   // ===== paginación (back) =====
   pageIndex = 0;
@@ -165,6 +179,9 @@ export class TutoresComponent {
   }
 
   alternarFormulario() {
+    // Si es jefatura, no permitir abrir el formulario
+    if (this.esJefatura) return;
+    
     this.mostrarFormulario = !this.mostrarFormulario;
     if (!this.mostrarFormulario) {
       this.estaEditando = false;
@@ -245,6 +262,9 @@ export class TutoresComponent {
   }
 
   eliminar(tutor: Tutor) {
+    // Si es jefatura, no permitir eliminar
+    if (this.esJefatura) return;
+    
     this.tutorAEliminar = tutor;
     this.mostrarConfirmarEliminar = true;
   }
@@ -337,6 +357,9 @@ export class TutoresComponent {
   }
 
   editarTutor(tutor: Tutor) {
+    // Si es jefatura, no permitir editar
+    if (this.esJefatura) return;
+    
     this.estaEditando = true;
     this.tutorEditando = tutor;
     this.tutorSeleccionado = null;

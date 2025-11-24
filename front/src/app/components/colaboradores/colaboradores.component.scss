@@ -41,13 +41,13 @@
 
 .FiltersGrid {
   display: grid;
-  grid-template-columns: 2fr 1fr;
+  grid-template-columns: 1fr;
   gap: 16px;
   align-items: end;
 }
 
 .SearchField {
-  min-width: 300px;
+  width: 100%;
 }
 
 .FilterField {
@@ -56,7 +56,6 @@
 
 @media (max-width: 768px) {
   .FiltersGrid {
-    grid-template-columns: 1fr;
     gap: 12px;
   }
 

@@ -76,6 +76,9 @@ export class DashboardComponent implements OnInit {
       return [
         { title: 'Usuarios', icon: 'manage_accounts', route: '/usuarios', desc: 'Roles y permisos' },
         { title: 'Estudiantes en práctica', icon: 'school', route: '/estudiantes-en-practica', desc: 'Visualización de estudiantes en práctica' },
+        { title: 'Tutores', icon: 'supervisor_account', route: '/tutores', desc: 'Visualización de tutores' },
+        { title: 'Colaboradores', icon: 'groups', route: '/colaboradores', desc: 'Visualización de colaboradores' },
+        { title: 'Actividades', icon: 'assignment', route: '/actividades-estudiantes', desc: 'Visualización de actividades' },
         { title: 'Supervisión general', icon: 'insights', route: '/supervision', desc: 'Indicadores y seguimiento' },
         { title: 'Reportes completos', icon: 'analytics', route: '/reportes', desc: 'Reportes y estadísticas' },
         { title: 'Generar solicitud', icon: 'description', route: '/carta', desc: 'Generar cartas de presentación' },

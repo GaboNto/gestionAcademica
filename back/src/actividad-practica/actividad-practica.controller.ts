@@ -38,7 +38,7 @@ export class ActividadPracticaController {
       fileFilter: (req, file, cb) => {
         // 👉 Validar por EXTENSIÓN, no por mimetype
         const extension = extname(file.originalname).toLowerCase();
-        const allowed = ['.pdf', '.png'];
+        const allowed = ['.pdf', '.png', '.zip'];
 
         console.log('DEBUG archivo POST =>', {
           originalname: file.originalname,
@@ -48,14 +48,14 @@ export class ActividadPracticaController {
 
         if (!allowed.includes(extension)) {
           return cb(
-            new BadRequestException('Solo se permiten archivos PDF o PNG'),
+            new BadRequestException('Solo se permiten archivos PDF, PNG o ZIP'),
             false,
           );
         }
 
         cb(null, true);
       },
-      limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
+      limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB (aumentado para ZIPs)
     }),
   )
   create(
@@ -97,7 +97,7 @@ export class ActividadPracticaController {
       }),
       fileFilter: (req, file, cb) => {
         const extension = extname(file.originalname).toLowerCase();
-        const allowed = ['.pdf', '.png'];
+        const allowed = ['.pdf', '.png', '.zip'];
 
         console.log('DEBUG archivo PATCH =>', {
           originalname: file.originalname,
@@ -107,14 +107,14 @@ export class ActividadPracticaController {
 
         if (!allowed.includes(extension)) {
           return cb(
-            new BadRequestException('Solo se permiten archivos PDF o PNG'),
+            new BadRequestException('Solo se permiten archivos PDF, PNG o ZIP'),
             false,
           );
         }
 
         cb(null, true);
       },
-      limits: { fileSize: 5 * 1024 * 1024 },
+      limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB (aumentado para ZIPs)
     }),
   )
   update(
