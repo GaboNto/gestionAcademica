@@ -1,8 +1,11 @@
 import { IsEmail, IsInt, IsNotEmpty, IsOptional, IsString, Length } from 'class-validator';
+import { IsRut } from 'src/validador/rut.validador';
+
 
 export class CreateTrabajadorDto {
   @IsString()
   @Length(3, 20)
+  @IsRut({ message: 'El RUT no es válido' })
   rut: string; // único según tu schema
 
   @IsString()

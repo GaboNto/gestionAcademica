@@ -248,7 +248,7 @@ export class ColaboradoresComponent {
     this.colaboradoresService.crear(datosParaEnviar).subscribe({
       next: () => {
         this.snack.open(
-          `âœ“ ${datosParaEnviar.nombre} agregado correctamente`, 
+          `${datosParaEnviar.nombre} agregado correctamente`, 
           'Cerrar', 
           { 
             duration: 4000,
@@ -292,7 +292,7 @@ export class ColaboradoresComponent {
       this.colaboradoresService.eliminar(this.colaboradorAEliminar.id).subscribe({
         next: () => {
           this.snack.open(
-            `âœ“ ${this.colaboradorAEliminar!.nombre} eliminado exitosamente`, 
+            `${this.colaboradorAEliminar!.nombre} eliminado exitosamente`, 
             'Cerrar', 
             { 
               duration: 4000,
@@ -453,7 +453,7 @@ export class ColaboradoresComponent {
     this.colaboradoresService.actualizar(colaboradorOriginal.id, datosParaEnviar).subscribe({
       next: () => {
         this.snack.open(
-          `âœ“ ${datosParaEnviar.nombre} actualizado exitosamente`, 
+          `${datosParaEnviar.nombre} actualizado exitosamente`, 
           'Cerrar', 
           { 
             duration: 4000,
