@@ -36,8 +36,14 @@ export class EncuestasService {
       });
 
       const normalized = [
-        ...encEst.map((e) => ({ ...e, tipo: 'ESTUDIANTIL' as TipoEncuesta })),
-        ...encCol.map((e) => ({ ...e, tipo: 'COLABORADORES_JEFES' as TipoEncuesta })),
+        ...encEst.map((e) => ({
+          ...e,
+          tipo: 'ESTUDIANTIL' as TipoEncuesta,
+        })),
+        ...encCol.map((e) => ({
+          ...e,
+          tipo: 'COLABORADORES_JEFES' as TipoEncuesta,
+        })),
       ];
 
       return normalized;
@@ -73,54 +79,82 @@ export class EncuestasService {
     } catch (err) {
       if (err instanceof NotFoundException) throw err;
       console.error('EncuestasService.findOne error', err);
-      throw new InternalServerErrorException('Error al obtener detalle de la encuesta');
+      throw new InternalServerErrorException(
+        'Error al obtener detalle de la encuesta',
+      );
     }
   }
 
   // -----------------------
-  //  CREATE (simple)
+  //  CREATE (simple + guarda RespuestaSeleccionada)
   //  Payload esperado: { tipo: 'ESTUDIANTIL' | 'COLABORADORES_JEFES', data: {...} }
   // -----------------------
   async create(payload: { tipo: TipoEncuesta; data: any }): Promise<any> {
     try {
       if (!payload || !payload.tipo || !payload.data) {
-        throw new BadRequestException('Payload inválido. Debe contener { tipo, data }');
+        throw new BadRequestException(
+          'Payload inválido. Debe contener { tipo, data }',
+        );
       }
 
       const { tipo, data } = payload;
 
       if (tipo === 'ESTUDIANTIL') {
-        const created = await this.prisma.encuestaEstudiante.create({
-          data: {
-            nombre_estudiante: data.nombreEstudiante ?? null,
-            nombre_tallerista: data.nombreTalleristaSupervisor ?? null,
-            nombre_colaborador: data.nombreDocenteColaborador ?? null,
-            nombre_centro: data.establecimiento ?? null,
-            fecha: data.fechaEvaluacion ? new Date(data.fechaEvaluacion) : new Date(),
-            observacion: data.mejoraCoordinacion ?? null,
-            semestreId: data.semestreId ?? undefined,
-          },
+        // Mantenemos la lógica original (no la rompemos), sólo la envolvemos en una transacción
+        return this.prisma.$transaction(async (tx) => {
+          const created = await tx.encuestaEstudiante.create({
+            data: {
+              nombre_estudiante: data.nombreEstudiante ?? null,
+              nombre_tallerista: data.nombreTalleristaSupervisor ?? null,
+              nombre_colaborador: data.nombreDocenteColaborador ?? null,
+              nombre_centro: data.establecimiento ?? null,
+              fecha: data.fechaEvaluacion
+                ? new Date(data.fechaEvaluacion)
+                : new Date(),
+              // 👇 IMPORTANTE: aquí sigues usando mejoraCoordinacion (que en el front mapeas desde comentariosAdicionales)
+              observacion: data.mejoraCoordinacion ?? null,
+              semestreId: data.semestreId ?? undefined,
+            },
+          });
+
+          // Guardar todas las respuestas en RespuestaSeleccionada
+          await this.saveRespuestasGenericas(tx, {
+            tipo,
+            encuestaId: created.id,
+            data,
+          });
+
+          return { success: true, created };
         });
-        return { success: true, created };
       }
 
       if (tipo === 'COLABORADORES_JEFES') {
-        const createData: any = {
-          nombre_colaborador: data.nombreColaborador ?? null,
-          nombre_colegio: data.centroEducativo ?? null,
-          observacion: data.comentariosAdicionales ?? null,
-          semestreId: data.semestreId ?? undefined,
-        };
+        return this.prisma.$transaction(async (tx) => {
+          const createData: any = {
+            nombre_colaborador: data.nombreColaborador ?? null,
+            nombre_colegio: data.centroEducativo ?? null,
+            // 👇 IMPORTANTE: observación = Comentarios adicionales sobre la práctica
+            observacion: data.comentariosAdicionalesPractica ?? null,
+            semestreId: data.semestreId ?? undefined,
+          };
 
-        // Solo si tu modelo encuestaColaborador tiene campo "fecha"
-        if (data.fechaEvaluacion) {
-          (createData as any).fecha = new Date(data.fechaEvaluacion);
-        }
+          if (data.fechaEvaluacion) {
+            createData.fecha = new Date(data.fechaEvaluacion);
+          }
 
-        const created = await this.prisma.encuestaColaborador.create({
-          data: createData,
+          const created = await tx.encuestaColaborador.create({
+            data: createData,
+          });
+
+          // Guardar todas las respuestas en RespuestaSeleccionada
+          await this.saveRespuestasGenericas(tx, {
+            tipo,
+            encuestaId: created.id,
+            data,
+          });
+
+          return { success: true, created };
         });
-        return { success: true, created };
       }
 
       throw new BadRequestException('Tipo de encuesta no soportado');
@@ -149,8 +183,16 @@ export class EncuestasService {
 
       sheet.columns = [
         { header: 'ID', key: 'id', width: 8 },
-        { header: 'Nombre Estudiante (rut)', key: 'nombre_estudiante', width: 24 },
-        { header: 'Tallerista/Supervisor', key: 'nombre_tallerista', width: 30 },
+        {
+          header: 'Nombre Estudiante (rut)',
+          key: 'nombre_estudiante',
+          width: 24,
+        },
+        {
+          header: 'Tallerista/Supervisor',
+          key: 'nombre_tallerista',
+          width: 30,
+        },
         { header: 'Centro', key: 'nombre_centro', width: 30 },
         { header: 'Fecha', key: 'fecha', width: 20 },
         { header: 'Observacion', key: 'observacion', width: 40 },
@@ -163,8 +205,10 @@ export class EncuestasService {
         if (e.respuestas && e.respuestas.length) {
           resumen = e.respuestas
             .map((r) => {
-              const textoPregunta = r.pregunta?.descripcion ?? `pregunta_${r.preguntaId}`;
-              const textoResp = r.alternativa?.descripcion ?? r.respuestaAbierta ?? '';
+              const textoPregunta =
+                r.pregunta?.descripcion ?? `pregunta_${r.preguntaId}`;
+              const textoResp =
+                r.alternativa?.descripcion ?? r.respuestaAbierta ?? '';
               return `${textoPregunta}: ${textoResp}`;
             })
             .join(' | ');
@@ -177,7 +221,9 @@ export class EncuestasService {
           nombre_centro: e.nombre_centro ?? '',
           fecha: e.fecha ? e.fecha.toISOString() : '',
           observacion: e.observacion ?? '',
-          semestre: e.semestre ? `${e.semestre.anio}-${e.semestre.semestre}` : '',
+          semestre: e.semestre
+            ? `${e.semestre.anio}-${e.semestre.semestre}`
+            : '',
           resumen,
         });
       }
@@ -194,7 +240,10 @@ export class EncuestasService {
       await workbook.xlsx.write(response);
       response.end();
     } catch (err) {
-      console.error('EncuestasService.exportEncuestasEstudiantesExcel error', err);
+      console.error(
+        'EncuestasService.exportEncuestasEstudiantesExcel error',
+        err,
+      );
       throw new InternalServerErrorException('Error al generar el Excel');
     }
   }
@@ -216,7 +265,9 @@ export class EncuestasService {
     }
   }
 
-  async getCatalogoCentros(): Promise<{ id: number; nombre: string; comuna?: string; region?: string }[]> {
+  async getCatalogoCentros(): Promise<
+    { id: number; nombre: string; comuna?: string; region?: string }[]
+  > {
     try {
       const centros = await this.prisma.centroEducativo.findMany({
         select: { id: true, nombre: true, comuna: true, region: true },
@@ -245,8 +296,13 @@ export class EncuestasService {
       });
       return cols;
     } catch (err) {
-      console.error('EncuestasService.getCatalogoColaboradores error', err);
-      throw new InternalServerErrorException('Error al obtener colaboradores');
+      console.error(
+        'EncuestasService.getCatalogoColaboradores error',
+        err,
+      );
+      throw new InternalServerErrorException(
+        'Error al obtener colaboradores',
+      );
     }
   }
 
@@ -262,5 +318,165 @@ export class EncuestasService {
       console.error('EncuestasService.getCatalogoTutores error', err);
       throw new InternalServerErrorException('Error al obtener tutores');
     }
+  }
+
+  // -------------------------------------------------
+  // Helpers privados para guardar RespuestaSeleccionada
+  // -------------------------------------------------
+
+  // Aplana un objeto anidado en claves tipo "secI.e1_planificacion"
+  private flattenRespuestas(
+    prefix: string,
+    value: any,
+    out: Record<string, any>,
+  ) {
+    if (value === null || value === undefined) return;
+
+    if (typeof value !== 'object' || Array.isArray(value)) {
+      const key = prefix;
+      if (key) out[key] = value;
+      return;
+    }
+
+    for (const [k, v] of Object.entries(value)) {
+      const newPrefix = prefix ? `${prefix}.${k}` : k;
+      this.flattenRespuestas(newPrefix, v, out);
+    }
+  }
+
+  private async saveRespuestasGenericas(
+    tx: any,
+    opts: {
+      tipo: TipoEncuesta;
+      encuestaId: number;
+      data: any;
+    },
+  ) {
+    const { tipo, encuestaId, data } = opts;
+
+    const raw: Record<string, any> = {};
+
+    if (tipo === 'ESTUDIANTIL') {
+      // secciones de la encuesta de estudiantes
+      this.flattenRespuestas('secI', data.secI, raw);
+      this.flattenRespuestas('secII_A', data.secII_A, raw);
+      this.flattenRespuestas('secII_B', data.secII_B, raw);
+      this.flattenRespuestas('secIII_A', data.secIII_A, raw);
+      this.flattenRespuestas('secIII_B', data.secIII_B, raw);
+      this.flattenRespuestas('secIII_C', data.secIII_C, raw);
+      this.flattenRespuestas('secIV_T', data.secIV_T, raw);
+      this.flattenRespuestas('secIV_S', data.secIV_S, raw);
+      this.flattenRespuestas('secV', data.secV, raw);
+
+      // campo abierto general
+      if (data.comentariosAdicionales) {
+        raw['comentariosAdicionales'] = data.comentariosAdicionales;
+      }
+    } else {
+      // COLABORADORES_JEFES
+      this.flattenRespuestas('secI', data.secI, raw);
+      this.flattenRespuestas('secII', data.secII, raw);
+      this.flattenRespuestas('secIII', data.secIII, raw);
+
+      if (data.sugerencias) {
+        raw['sugerencias'] = data.sugerencias;
+      }
+      if (data.cumplePerfilEgreso) {
+        raw['cumplePerfilEgreso'] = data.cumplePerfilEgreso;
+      }
+      if (data.comentariosAdicionalesPractica) {
+        raw['comentariosAdicionalesPractica'] =
+          data.comentariosAdicionalesPractica;
+      }
+      if (data.comentariosAdicionales) {
+        raw['comentariosAdicionales'] = data.comentariosAdicionales;
+      }
+    }
+
+    const respuestasToCreate: {
+      encuestaEstudianteId?: number;
+      encuestaColaboradorId?: number;
+      preguntaId: number;
+      alternativaId?: number | null;
+      respuestaAbierta?: string | null;
+    }[] = [];
+
+    for (const [clave, valor] of Object.entries(raw)) {
+      if (valor === null || valor === undefined || valor === '') continue;
+
+      const keyLower = clave.toLowerCase();
+      const valStr = String(valor).trim();
+      const valLower = valStr.toLowerCase();
+
+      // Heurística: qué consideramos pregunta abierta
+      const esAbierta =
+        keyLower.includes('comentario') ||
+        keyLower.includes('sugerencia') ||
+        keyLower.includes('mejora') ||
+        keyLower.includes('adicional') ||
+        keyLower.includes('perfil') ||
+        (typeof valor === 'string' &&
+          !['1', '2', '3', '4', '5', 'na', 'si', 'no'].includes(valLower));
+
+      // 1. Buscamos o creamos la Pregunta por descripcion = clave
+      let pregunta = await tx.pregunta.findFirst({
+        where: { descripcion: clave },
+      });
+
+      if (!pregunta) {
+        pregunta = await tx.pregunta.create({
+          data: {
+            descripcion: clave, // ej: "secI.e1_planificacion"
+            tipo: esAbierta ? 'ABIERTA' : 'CERRADA',
+          },
+        });
+      }
+
+      if (esAbierta) {
+        // 2A. Respuesta abierta
+        respuestasToCreate.push({
+          encuestaEstudianteId: tipo === 'ESTUDIANTIL' ? encuestaId : undefined,
+          encuestaColaboradorId:
+            tipo === 'COLABORADORES_JEFES' ? encuestaId : undefined,
+          preguntaId: pregunta.id,
+          alternativaId: null,
+          respuestaAbierta: valStr,
+        });
+      } else {
+        // 2B. Respuesta cerrada (1–5, SI/NO, NA...)
+        let alternativa = await tx.alternativa.findFirst({
+          where: {
+            preguntaId: pregunta.id,
+            descripcion: valStr,
+          },
+        });
+
+        if (!alternativa) {
+          const puntajeNumeric = Number(valStr);
+          alternativa = await tx.alternativa.create({
+            data: {
+              descripcion: valStr,
+              puntaje: Number.isNaN(puntajeNumeric) ? 0 : puntajeNumeric,
+              preguntaId: pregunta.id,
+            },
+          });
+        }
+
+        respuestasToCreate.push({
+          encuestaEstudianteId: tipo === 'ESTUDIANTIL' ? encuestaId : undefined,
+          encuestaColaboradorId:
+            tipo === 'COLABORADORES_JEFES' ? encuestaId : undefined,
+          preguntaId: pregunta.id,
+          alternativaId: alternativa.id,
+          respuestaAbierta: null,
+        });
+      }
+    }
+
+    if (!respuestasToCreate.length) return;
+
+    await tx.respuestaSeleccionada.createMany({
+      data: respuestasToCreate,
+    });
   }
 }

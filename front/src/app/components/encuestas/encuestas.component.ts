@@ -36,7 +36,13 @@ export interface EncuestaRegistro {
   tipo: TipoEncuesta;
   fecha: Date;
   origenArchivo: string;
-  respuestas: { [key: string]: any }[];
+  metadata: { [key: string]: any };
+  respuestas: {
+    preguntaId: number;
+    pregunta?: { descripcion: string };
+    alternativa?: { descripcion: string };
+    respuestaAbierta?: string;
+  }[];
 }
 
 @Component({
@@ -129,6 +135,73 @@ export class EncuestasComponent implements OnInit {
     },
   ];
 
+  // ====== MAPA DE PREGUNTAS PARA MOSTRAR TEXTO LITERAL ======
+  private preguntaLabels: { [key: string]: string } = {
+    // --- COLABORADORES / JEFES UTP ---
+
+    // SECCIÓN I
+    'secI.e1_planificacion':
+      'El profesor(a) en práctica se rige por un sistema de planificación que incluye calendarizaciones y planificación semanal, la cual entrega en la fecha acordada.',
+    'secI.e2_estructuraClase':
+      'Durante la realización de la clase sigue una estructura definida.',
+    'secI.e3_secuenciaActividades':
+      'En las actividades que realiza hay una secuencia con introducción, desarrollo y conclusión.',
+    'secI.e4_preguntasAplicacion':
+      'Durante la clase realiza preguntas de aplicación de contenidos para verificar lo que los estudiantes han aprendido.',
+    'secI.e5_estrategiasAtencion':
+      'Utiliza distintas estrategias para captar la atención de los estudiantes, además de demostrar dominio del contenido.',
+    'secI.e6_retroalimentacion':
+      'Entrega retroalimentación a los estudiantes luego de sus intervenciones en clases.',
+    'secI.e7_normasClase':
+      'Establece las normas del curso o actividades a través del diálogo y/o la negociación con los estudiantes.',
+    'secI.e8_usoTecnologia':
+      'Usa la tecnología para comunicarse con los estudiantes y promover su uso en sus presentaciones.',
+
+    // SECCIÓN II
+    'secII.i1_vinculacionPares':
+      'Establece vinculación con sus pares y docentes del establecimiento y participa en actividades extracurriculares.',
+    'secII.i2_capacidadGrupoTrabajo':
+      'Capacidad de participar en un grupo de trabajo.',
+    'secII.i3_presentacionPersonal':
+      'Presentación personal acorde a lo requerido por el establecimiento, cumpliendo horarios.',
+    'secII.i4_autoaprendizaje':
+      'Existe un proceso de autoaprendizaje e iniciativa personal frente a la superación de debilidades.',
+    'secII.i5_formacionSuficiente':
+      'La formación recibida en la Universidad fue suficiente para el desempeño del profesor en su práctica profesional.',
+
+    // SECCIÓN III
+    'secIII.v1_flujoInformacionSupervisor':
+      'Durante la práctica se mantuvo flujo de información con el supervisor/tallerista asignado.',
+    'secIII.v2_claridadRoles':
+      'Existe claridad de los roles de supervisores o talleristas, profesores colaboradores y coordinadora de práctica.',
+    'secIII.v3_verificacionAvance':
+      'La coordinadora verifica los estados de avance de los procesos de práctica.',
+    'secIII.v4_satisfaccionGeneral':
+      'En general, se encuentra satisfecho con la información y el sistema de prácticas de la carrera.',
+
+    // Preguntas abiertas COLABORADORES
+    sugerencias:
+      '¿Tiene sugerencias o recomendaciones respecto a las prácticas, practicantes y coordinación de ellas que puedan generar mejoras en el futuro?',
+    cumplePerfilEgreso:
+      '¿Cree que se cumple el perfil de egreso declarado?',
+    comentariosAdicionales:
+      'Comentarios adicionales sobre la práctica',
+
+    // --- Algunos ejemplos de ESTUDIANTES (puedes completar más si quieres) ---
+    'secI.objetivos':
+      'Los objetivos planteados para el nivel de práctica desempeñado.',
+    'secI.accionesEstablecimiento':
+      'Las acciones realizadas en el desarrollo de esta práctica en los establecimientos educacionales.',
+    'secI.accionesTaller':
+      'Las acciones desarrolladas en las sesiones de taller en la universidad.',
+    'secI.satisfaccionGeneral':
+      'El grado de satisfacción general del proceso.',
+  };
+
+  mapPreguntaDescripcion(desc: string): string {
+    return this.preguntaLabels[desc] ?? desc;
+  }
+
   ngOnInit(): void {
     this.registroForm = this.fb.group({});
     this.loadEncuestas();
@@ -140,18 +213,25 @@ export class EncuestasComponent implements OnInit {
     this.isLoading = true;
     this.encuestasApi.getEncuestasRegistradas().subscribe({
       next: (data: ApiEncuesta[]) => {
-        this.encuestas = data.map((item) => ({
-          id: (item.id ?? Math.random()).toString(),
-          // acceso con ['nombre_estudiante'] para evitar error TS
-          tipo: (item.tipo ??
-            (item['nombre_estudiante']
+        this.encuestas = data.map((item) => {
+          const { respuestas, tipo, ...rest } = item;
+
+          const tipoInferido: TipoEncuesta =
+            (tipo as TipoEncuesta) ??
+            ((item as any).nombre_estudiante
               ? 'ESTUDIANTIL'
-              : 'COLABORADORES_JEFES')) as TipoEncuesta,
-          fecha: item.fecha ? new Date(item.fecha) : new Date(),
-          origenArchivo: item.origenArchivo ?? 'API (BD)',
-          // guardamos la fila completa dentro de respuestas[0]
-          respuestas: [item as any],
-        }));
+              : 'COLABORADORES_JEFES');
+
+          return {
+            id: (item.id ?? Math.random()).toString(),
+            tipo: tipoInferido,
+            fecha: item.fecha ? new Date(item.fecha) : new Date(),
+            origenArchivo: (item as any).origenArchivo ?? 'API (BD)',
+            metadata: rest,
+            respuestas: (respuestas as any[]) || [],
+          } as EncuestaRegistro;
+        });
+
         this.isLoading = false;
       },
       error: (err) => {
@@ -388,10 +468,17 @@ export class EncuestasComponent implements OnInit {
     return found ? found.label : (tipo as string);
   }
 
+    getNombreEstudiantePorRut(rut: string | null | undefined): string {
+    if (!rut) return '';
+    const est = this.estudiantes.find((e) => e.rut === rut);
+    return est ? est.nombre : '';
+  }
+
   getDetailColumns(encuesta: EncuestaRegistro | null): string[] {
-    if (!encuesta || !encuesta.respuestas || !encuesta.respuestas.length)
-      return [];
-    return Object.keys(encuesta.respuestas[0]);
+    if (!encuesta || !encuesta.metadata) return [];
+    return Object.keys(encuesta.metadata).filter((k) =>
+      !['respuestas', 'tipo'].includes(k)
+    );
   }
 
   // ---------- ENVÍO ----------
@@ -439,7 +526,7 @@ export class EncuestasComponent implements OnInit {
         fechaEvaluacion: data.fechaEvaluacion
           ? new Date(data.fechaEvaluacion).toISOString()
           : new Date().toISOString(),
-         nivelCursado: data.nivelCursado,
+        nivelCursado: data.nivelCursado,
         anio: data.anio,
 
         nombreTalleristaSupervisor: tutorNombre,

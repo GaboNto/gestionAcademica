@@ -287,7 +287,8 @@ model RespuestaSeleccionada {
   alternativaId         Int?
   alternativa           Alternativa? @relation(fields: [alternativaId], references: [id])
 
-  respuestaAbierta      String?
+  respuestaAbierta      String? @db.Text
+
 
   @@map("respuesta_seleccionada")
 }
