@@ -103,37 +103,60 @@
 
             <div class="FormRow">
               <div class="FormField FullWidth">
-                <label class="FormLabel">Archivo adjunto</label>
+                <label class="FormLabel">Archivos adjuntos</label>
                 <div class="FileUploadContainer" style="margin-top: 8px;">
                   <input 
                     type="file" 
                     #fileInput
                     (change)="onFileSelected($event)"
                     accept=".pdf,.jpg,.jpeg,.png,.gif,.bmp,.webp"
+                    multiple
                     style="display: none;"
                     id="fileInput" />
                   <button 
                     type="button"
                     mat-stroked-button 
                     (click)="fileInput.click()"
-                    class="FileUploadBtn">
+                    class="FileUploadBtn"
+                    [disabled]="estaComprimiendo">
                     <mat-icon>attach_file</mat-icon>
-                    {{ nombreArchivoSeleccionado || 'Seleccionar archivo (PDF, imágenes)' }}
+                    {{ archivosSeleccionados.length > 0 ? `Seleccionar más archivos (${archivosSeleccionados.length} archivo${archivosSeleccionados.length > 1 ? 's' : ''})` : 'Seleccionar archivos (PDF, imágenes)' }}
                   </button>
-                  @if (nombreArchivoSeleccionado) {
-                    <div class="FileInfo">
-                      <mat-icon class="FileIcon">description</mat-icon>
-                      <span class="FileName">{{ nombreArchivoSeleccionado }}</span>
-                      <button 
-                        type="button"
-                        mat-icon-button 
-                        (click)="archivoSeleccionado = null; nombreArchivoSeleccionado = ''; formularioActividad.patchValue({ archivo_adjunto: '' })"
-                        class="RemoveFileBtn">
-                        <mat-icon>close</mat-icon>
-                      </button>
+                  
+                  @if (estaComprimiendo) {
+                    <div class="CompressingIndicator">
+                      <mat-spinner diameter="20"></mat-spinner>
+                      <span>Comprimiendo archivos...</span>
                     </div>
                   }
-                  <mat-hint>Formatos permitidos: PDF, JPG, PNG, GIF, BMP, WEBP</mat-hint>
+                  
+                  @if (archivosSeleccionados.length > 0 && !estaComprimiendo) {
+                    <div class="FilesList">
+                      @for (file of archivosSeleccionados; track $index) {
+                        <div class="FileInfo">
+                          <mat-icon class="FileIcon">description</mat-icon>
+                          <span class="FileName" [title]="file.name">{{ file.name }}</span>
+                          <span class="FileSize">({{ formatFileSize(file.size) }})</span>
+                          <button 
+                            type="button"
+                            mat-icon-button 
+                            (click)="eliminarArchivo($index)"
+                            class="RemoveFileBtn">
+                            <mat-icon>close</mat-icon>
+                          </button>
+                        </div>
+                      }
+                      @if (archivoZip) {
+                        <div class="FileInfo" style="background: #f0fdf4; border-color: #86efac;">
+                          <mat-icon class="FileIcon" style="color: #16a34a;">folder_zip</mat-icon>
+                          <span class="FileName" [title]="archivoZip.name">{{ archivoZip.name }}</span>
+                          <span class="FileSize">({{ formatFileSize(archivoZip.size) }})</span>
+                          <span style="font-size: 12px; color: #16a34a; font-weight: 500;">✓ Comprimido</span>
+                        </div>
+                      }
+                    </div>
+                  }
+                  <mat-hint>Puedes seleccionar múltiples archivos. Se comprimirán automáticamente en un ZIP. Formatos permitidos: PDF, JPG, PNG, GIF, BMP, WEBP</mat-hint>
                 </div>
               </div>
             </div>
@@ -284,11 +307,11 @@
             </div>
 
             <div class="DetailItem" *ngIf="actividadSeleccionada.archivo_adjunto">
-              <label>Archivo adjunto:</label>
+              <label>Archivos adjuntos:</label>
               <span>
-                <a [href]="actividadSeleccionada.archivo_adjunto" [download]="'archivo_adjunto'" target="_blank" rel="noopener noreferrer">
+                <a [href]="actividadSeleccionada.archivo_adjunto" [download]="'archivos_adjuntos.zip'" target="_blank" rel="noopener noreferrer">
                   <mat-icon style="vertical-align: middle; font-size: 18px; width: 18px; height: 18px;">download</mat-icon>
-                  Descargar archivo
+                  Descargar ZIP con archivos
                 </a>
               </span>
             </div>

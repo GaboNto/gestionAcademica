@@ -14,8 +14,10 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import { ActividadesEstudiantesService, Actividad } from '../../services/actividades-estudiantes.service';
+import JSZip from 'jszip';
 
 @Component({
   standalone: true,
@@ -36,7 +38,8 @@ import { ActividadesEstudiantesService, Actividad } from '../../services/activid
     MatNativeDateModule,
     MatPaginatorModule,
     MatSelectModule,
-    MatSnackBarModule
+    MatSnackBarModule,
+    MatProgressSpinnerModule
   ]
 })
 export class ActividadesEstudiantesComponent implements OnInit {
@@ -71,9 +74,10 @@ export class ActividadesEstudiantesComponent implements OnInit {
   pendingDelete: Actividad | null = null;
   actividadSeleccionada: Actividad | null = null;
   
-  // Control de archivo adjunto
-  archivoSeleccionado: File | null = null;
-  nombreArchivoSeleccionado: string = '';
+  // Control de archivos adjuntos
+  archivosSeleccionados: File[] = []; // Archivos originales seleccionados
+  archivoZip: File | null = null; // ZIP comprimido
+  estaComprimiendo: boolean = false;
   
   // Verificar si el usuario es jefatura (solo lectura)
   get esJefatura(): boolean {
@@ -226,8 +230,8 @@ export class ActividadesEstudiantesComponent implements OnInit {
       this.estaEditando = false;
       this.actividadEditando = null;
       this.formularioActividad.reset();
-      this.archivoSeleccionado = null;
-      this.nombreArchivoSeleccionado = '';
+      this.archivosSeleccionados = [];
+      this.archivoZip = null;
     }
   }
 
@@ -238,22 +242,86 @@ export class ActividadesEstudiantesComponent implements OnInit {
       this.estaEditando = false;
       this.actividadEditando = null;
       this.formularioActividad.reset();
-      this.archivoSeleccionado = null;
-      this.nombreArchivoSeleccionado = '';
+      this.archivosSeleccionados = [];
+      this.archivoZip = null;
       this.mostrarFormulario = true;
     }
   }
 
-  onFileSelected(event: Event): void {
+  async onFileSelected(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
-      const file = input.files[0];
-      this.archivoSeleccionado = file;
-      this.nombreArchivoSeleccionado = file.name;
+      // Convertir FileList a Array
+      this.archivosSeleccionados = Array.from(input.files);
       
-      // No necesitamos convertir a base64, el archivo se enviará directamente
-      // Solo guardamos el nombre para mostrar en el formulario
+      // Comprimir archivos en ZIP
+      await this.comprimirArchivos();
     }
+  }
+
+  async comprimirArchivos(): Promise<void> {
+    if (this.archivosSeleccionados.length === 0) {
+      this.archivoZip = null;
+      return;
+    }
+
+    this.estaComprimiendo = true;
+
+    try {
+      const zip = new JSZip();
+
+      // Agregar cada archivo al ZIP
+      for (const file of this.archivosSeleccionados) {
+        const fileData = await this.leerArchivoComoArrayBuffer(file);
+        zip.file(file.name, fileData);
+      }
+
+      // Generar el ZIP como Blob
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+
+      // Convertir el ZIP a File para poder enviarlo
+      const zipFile = new File([zipBlob], `archivos_actividad_${Date.now()}.zip`, {
+        type: 'application/zip'
+      });
+
+      // Guardar el ZIP por separado, manteniendo los archivos originales
+      this.archivoZip = zipFile;
+      this.estaComprimiendo = false;
+    } catch (error) {
+      console.error('Error al comprimir archivos:', error);
+      this.estaComprimiendo = false;
+      this.archivoZip = null;
+      this.snack.open('Error al comprimir los archivos', 'Cerrar', {
+        duration: 3000,
+        horizontalPosition: 'center',
+        verticalPosition: 'bottom'
+      });
+    }
+  }
+
+  leerArchivoComoArrayBuffer(file: File): Promise<ArrayBuffer> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as ArrayBuffer);
+      reader.onerror = reject;
+      reader.readAsArrayBuffer(file);
+    });
+  }
+
+  eliminarArchivo(index: number): void {
+    this.archivosSeleccionados.splice(index, 1);
+    this.archivoZip = null;
+    if (this.archivosSeleccionados.length > 0) {
+      this.comprimirArchivos();
+    }
+  }
+
+  formatFileSize(bytes: number): string {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
   }
 
   guardarActividad(): void {
@@ -281,19 +349,19 @@ export class ActividadesEstudiantesComponent implements OnInit {
       estudiantes: formValue.estudiantes || undefined,
     };
 
-    // Determinar qué archivo enviar
+    // Determinar qué archivo enviar (el ZIP comprimido)
     let archivoParaEnviar: File | undefined = undefined;
     
-    // Si hay un archivo nuevo seleccionado, usarlo
-    if (this.archivoSeleccionado) {
-      archivoParaEnviar = this.archivoSeleccionado;
-    } 
+    // Si hay un ZIP comprimido, usarlo
+    if (this.archivoZip) {
+      archivoParaEnviar = this.archivoZip;
+    }
     // Si estamos editando y hay un archivo base64 en el formulario, convertirlo a File
     else if (this.estaEditando && formValue.archivo_adjunto && formValue.archivo_adjunto.startsWith('data:')) {
       try {
         archivoParaEnviar = this.actividadesService.base64ToFile(
           formValue.archivo_adjunto,
-          this.nombreArchivoSeleccionado || 'archivo_adjunto'
+          'archivo_adjunto.zip'
         );
       } catch (error) {
         console.error('Error al convertir base64 a File:', error);
@@ -408,24 +476,9 @@ export class ActividadesEstudiantesComponent implements OnInit {
     // Convertir fecha a formato para el datepicker
     const fecha = typeof actividad.fecha === 'string' ? new Date(actividad.fecha) : actividad.fecha;
     
-    // Si hay un archivo adjunto, mostrar indicador
-    if (actividad.archivo_adjunto) {
-      if (actividad.archivo_adjunto.startsWith('data:')) {
-        // Es base64, guardarlo en el formulario para mantenerlo
-        this.nombreArchivoSeleccionado = 'Archivo adjunto existente';
-        this.archivoSeleccionado = null;
-      } else if (actividad.archivo_adjunto.startsWith('http') || actividad.archivo_adjunto.startsWith('uploads/')) {
-        // Es una URL o ruta, guardarla en el formulario
-        this.nombreArchivoSeleccionado = 'Archivo adjunto existente';
-        this.archivoSeleccionado = null;
-      } else {
-        this.nombreArchivoSeleccionado = '';
-        this.archivoSeleccionado = null;
-      }
-    } else {
-      this.archivoSeleccionado = null;
-      this.nombreArchivoSeleccionado = '';
-    }
+    // Si hay un archivo adjunto, no podemos recuperar los archivos originales desde el ZIP guardado
+    this.archivosSeleccionados = [];
+    this.archivoZip = null;
     
     this.formularioActividad.patchValue({
       nombre_actividad: actividad.nombre_actividad,
