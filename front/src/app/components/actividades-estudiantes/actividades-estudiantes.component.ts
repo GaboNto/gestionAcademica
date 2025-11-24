@@ -13,6 +13,7 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatSelectModule } from '@angular/material/select';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
 interface Actividad {
   id: number;
@@ -43,12 +44,14 @@ interface Actividad {
     MatDatepickerModule,
     MatNativeDateModule,
     MatPaginatorModule,
-    MatSelectModule
+    MatSelectModule,
+    MatSnackBarModule
   ]
 })
 export class ActividadesEstudiantesComponent {
   private fb = inject(FormBuilder);
   private platformId = inject(PLATFORM_ID);
+  private snack = inject(MatSnackBar);
   
   searchTerm: string = '';
   selectedMes: string = 'all';
@@ -74,6 +77,10 @@ export class ActividadesEstudiantesComponent {
   actividadEditando: Actividad | null = null;
   pendingDelete: Actividad | null = null;
   actividadSeleccionada: Actividad | null = null;
+  
+  // Control de archivo adjunto
+  archivoSeleccionado: File | null = null;
+  nombreArchivoSeleccionado: string = '';
   
   // Verificar si el usuario es jefatura (solo lectura)
   get esJefatura(): boolean {
@@ -263,6 +270,8 @@ export class ActividadesEstudiantesComponent {
       this.estaEditando = false;
       this.actividadEditando = null;
       this.formularioActividad.reset();
+      this.archivoSeleccionado = null;
+      this.nombreArchivoSeleccionado = '';
     }
   }
 
@@ -273,7 +282,27 @@ export class ActividadesEstudiantesComponent {
       this.estaEditando = false;
       this.actividadEditando = null;
       this.formularioActividad.reset();
+      this.archivoSeleccionado = null;
+      this.nombreArchivoSeleccionado = '';
       this.mostrarFormulario = true;
+    }
+  }
+
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      const file = input.files[0];
+      this.archivoSeleccionado = file;
+      this.nombreArchivoSeleccionado = file.name;
+      
+      // Convertir archivo a base64 para almacenarlo
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64String = reader.result as string;
+        // Guardar como data URL: data:[<mediatype>][;base64],<data>
+        this.formularioActividad.patchValue({ archivo_adjunto: base64String });
+      };
+      reader.readAsDataURL(file);
     }
   }
 
@@ -298,6 +327,13 @@ export class ActividadesEstudiantesComponent {
                    'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'];
     const mes = meses[fechaCompleta.getMonth()];
 
+    // Determinar el valor del archivo adjunto
+    let archivoAdjunto: string | undefined;
+    if (this.archivoSeleccionado) {
+      // Si hay un archivo seleccionado, usar el base64 almacenado en el formulario
+      archivoAdjunto = formValue.archivo_adjunto || undefined;
+    }
+
     if (this.estaEditando && this.actividadEditando) {
       // Editar actividad existente
       const index = this.actividades.findIndex(a => a.id === this.actividadEditando!.id);
@@ -309,7 +345,7 @@ export class ActividadesEstudiantesComponent {
           horario: formValue.horario || undefined,
           lugar: formValue.lugar || undefined,
           estudiantes: formValue.estudiantes || undefined,
-          archivo_adjunto: formValue.archivo_adjunto || undefined,
+          archivo_adjunto: archivoAdjunto,
           mes: mes
         };
       }
@@ -322,10 +358,22 @@ export class ActividadesEstudiantesComponent {
         horario: formValue.horario || undefined,
         lugar: formValue.lugar || undefined,
         estudiantes: formValue.estudiantes || undefined,
-        archivo_adjunto: formValue.archivo_adjunto || undefined,
+        archivo_adjunto: archivoAdjunto,
         mes: mes
       };
       this.actividades.push(nuevaActividad);
+      
+      // Mostrar mensaje de confirmación
+      this.snack.open(
+        `✓ ${formValue.nombre_actividad} agregada correctamente`,
+        'Cerrar',
+        {
+          duration: 4000,
+          horizontalPosition: 'center',
+          verticalPosition: 'bottom',
+          panelClass: ['success-snackbar'],
+        },
+      );
     }
 
     this.actualizarPaginacion();
@@ -349,6 +397,15 @@ export class ActividadesEstudiantesComponent {
     
     // Convertir fecha a formato para el datepicker
     const fecha = typeof actividad.fecha === 'string' ? new Date(actividad.fecha) : actividad.fecha;
+    
+    // Si hay un archivo adjunto (base64), mostrar indicador
+    if (actividad.archivo_adjunto && actividad.archivo_adjunto.startsWith('data:')) {
+      this.nombreArchivoSeleccionado = 'Archivo adjunto';
+      this.archivoSeleccionado = null; // No podemos recuperar el archivo original desde base64
+    } else {
+      this.archivoSeleccionado = null;
+      this.nombreArchivoSeleccionado = '';
+    }
     
     this.formularioActividad.patchValue({
       nombre_actividad: actividad.nombre_actividad,

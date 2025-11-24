@@ -102,11 +102,40 @@
             </div>
 
             <div class="FormRow">
-              <mat-form-field appearance="outline" class="FormField FullWidth">
-                <mat-label>Archivo adjunto (URL o ruta)</mat-label>
-                <input matInput formControlName="archivo_adjunto" placeholder="URL o ruta del archivo" />
-                <mat-hint>Ruta o URL del archivo de evidencia</mat-hint>
-              </mat-form-field>
+              <div class="FormField FullWidth">
+                <label class="FormLabel">Archivo adjunto</label>
+                <div class="FileUploadContainer" style="margin-top: 8px;">
+                  <input 
+                    type="file" 
+                    #fileInput
+                    (change)="onFileSelected($event)"
+                    accept=".pdf,.jpg,.jpeg,.png,.gif,.bmp,.webp"
+                    style="display: none;"
+                    id="fileInput" />
+                  <button 
+                    type="button"
+                    mat-stroked-button 
+                    (click)="fileInput.click()"
+                    class="FileUploadBtn">
+                    <mat-icon>attach_file</mat-icon>
+                    {{ nombreArchivoSeleccionado || 'Seleccionar archivo (PDF, imágenes)' }}
+                  </button>
+                  @if (nombreArchivoSeleccionado) {
+                    <div class="FileInfo">
+                      <mat-icon class="FileIcon">description</mat-icon>
+                      <span class="FileName">{{ nombreArchivoSeleccionado }}</span>
+                      <button 
+                        type="button"
+                        mat-icon-button 
+                        (click)="archivoSeleccionado = null; nombreArchivoSeleccionado = ''; formularioActividad.patchValue({ archivo_adjunto: '' })"
+                        class="RemoveFileBtn">
+                        <mat-icon>close</mat-icon>
+                      </button>
+                    </div>
+                  }
+                  <mat-hint>Formatos permitidos: PDF, JPG, PNG, GIF, BMP, WEBP</mat-hint>
+                </div>
+              </div>
             </div>
           </form>
 
@@ -257,9 +286,9 @@
             <div class="DetailItem" *ngIf="actividadSeleccionada.archivo_adjunto">
               <label>Archivo adjunto:</label>
               <span>
-                <a [href]="actividadSeleccionada.archivo_adjunto" target="_blank" rel="noopener noreferrer">
-                  <mat-icon style="vertical-align: middle; font-size: 18px; width: 18px; height: 18px;">attach_file</mat-icon>
-                  Ver archivo
+                <a [href]="actividadSeleccionada.archivo_adjunto" [download]="'archivo_adjunto'" target="_blank" rel="noopener noreferrer">
+                  <mat-icon style="vertical-align: middle; font-size: 18px; width: 18px; height: 18px;">download</mat-icon>
+                  Descargar archivo
                 </a>
               </span>
             </div>
