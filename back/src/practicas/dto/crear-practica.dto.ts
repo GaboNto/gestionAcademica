@@ -1,10 +1,9 @@
-import { IsDateString, IsEnum, IsInt, IsNotEmpty, IsOptional, IsPositive, IsString, Length } from 'class-validator';
+import { IsArray, IsDateString, IsEnum, IsInt, IsNotEmpty, IsOptional, IsPositive, IsString, Length, IsIn } from 'class-validator';
 
 export enum EstadoPractica {
-  PENDIENTE = 'PENDIENTE',
   EN_CURSO = 'EN_CURSO',
-  FINALIZADA = 'FINALIZADA',
-  RECHAZADA = 'RECHAZADA',
+  APROBADO = 'APROBADO',
+  REPROBADO = 'REPROBADO',
 }
 
 export class CreatePracticaDto {
@@ -14,8 +13,27 @@ export class CreatePracticaDto {
   @IsInt() @IsPositive()
   centroId!: number;
 
-  @IsInt() @IsPositive()
-  colaboradorId!: number;
+  // admitir uno o varios colaboradores
+  @IsOptional() @IsInt() @IsPositive()
+  colaboradorId?: number;
+  @IsOptional() @IsArray()
+  @IsInt({ each: true }) @IsPositive({ each: true })
+  colaboradorIds?: number[];
+
+  // admitir uno o varios tutores
+  @IsOptional() @IsInt() @IsPositive()
+  tutorId?: number;
+  @IsOptional() @IsArray()
+  @IsInt({ each: true }) @IsPositive({ each: true })
+  tutorIds?: number[];
+
+  // Roles por tutor (alineados con tutorIds)
+  // Valores permitidos: 'Supervisor' | 'Tallerista'
+  @IsOptional() @IsString() @IsIn(['Supervisor','Tallerista'])
+  tutorRole?: 'Supervisor' | 'Tallerista';
+  @IsOptional() @IsArray()
+  @IsIn(['Supervisor','Tallerista'] as unknown as string[], { each: true })
+  tutorRoles?: ('Supervisor' | 'Tallerista')[];
 
   @IsDateString()
   fecha_inicio!: string;
@@ -27,5 +45,5 @@ export class CreatePracticaDto {
   tipo?: string;
 
   @IsOptional() @IsEnum(EstadoPractica)
-  estado?: EstadoPractica; // default = PENDIENTE
+  estado?: EstadoPractica; // default = EN_CURSO
 }

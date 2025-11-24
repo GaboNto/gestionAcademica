@@ -1,8 +1,9 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Post, Query, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseIntPipe, Post, Patch, Query, UsePipes, ValidationPipe } from '@nestjs/common';
 import { PracticasService } from './practicas.service';
 import { CreatePracticaDto } from './dto/crear-practica.dto';
 import { ConsultasPracticasDto } from './dto/consultar-practicas-dto';
 import { ConsultasJefaturaDto } from './dto/consultar-jefatura.dto';
+import { ActualizarEstadoDto } from './dto/actualizar-estado.dto';
 import { Sse } from '@nestjs/common';
 import { Observable, map } from 'rxjs';
 
@@ -29,6 +30,15 @@ export class PracticasController {
   @UsePipes(new ValidationPipe({ transform: true }))
   async listForJefatura(@Query() q: ConsultasJefaturaDto) {
     return this.service.listForJefatura(q);
+  }
+
+  @Patch(':id/estado')
+  @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
+  async updateEstado(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: ActualizarEstadoDto,
+  ) {
+    return this.service.updateEstado(id, dto.estado);
   }
   
   @Get(':id')

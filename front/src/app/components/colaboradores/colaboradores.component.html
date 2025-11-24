@@ -28,19 +28,11 @@
       <div class="FiltersGrid">
         <mat-form-field appearance="outline" class="SearchField">
           <mat-label>Buscar</mat-label>
-          <input matInput [(ngModel)]="terminoBusqueda" placeholder="Nombre, email, cargo, RUT..." />
+          <input matInput [(ngModel)]="terminoBusqueda" (ngModelChange)="onFiltersChange()" placeholder="Nombre, email, cargo, RUT..." />
           <mat-icon matSuffix>search</mat-icon>
         </mat-form-field>
 
-        <mat-form-field appearance="outline" class="FilterField">
-          <mat-label>Rol</mat-label>
-        <mat-select [(ngModel)]="rolSeleccionado" (selectionChange)="aplicarFiltros()">
-            <mat-option value="all">Todos los roles</mat-option>
-          <mat-option value="Supervisor">Supervisor</mat-option>
-          <mat-option value="Colaborador">Colaborador</mat-option>
-          <mat-option value="Tallerista">Tallerista</mat-option>
-          </mat-select>
-        </mat-form-field>
+        <!-- Eliminado filtro por Rol -->
       </div>
     </mat-card-content>
   </mat-card>
@@ -111,17 +103,12 @@
 
             <div class="FormRow">
               <mat-form-field appearance="outline" class="FormField">
-                <mat-label>Rol *</mat-label>
-                <mat-select formControlName="tipo">
-                  <mat-option value="Colaborador">Colaborador</mat-option>
-                  <mat-option value="Supervisor">Supervisor</mat-option>
-                  <mat-option value="Tallerista">Tallerista</mat-option>
-                </mat-select>
+                <mat-label>Cargo 1</mat-label>
+                <input matInput formControlName="cargo1" placeholder="Ej: Profesor de Historia" />
               </mat-form-field>
-
               <mat-form-field appearance="outline" class="FormField">
-                <mat-label>Cargo</mat-label>
-                <input matInput formControlName="cargo" placeholder="Profesor de Historia, Coordinador…" />
+                <mat-label>Cargo 2</mat-label>
+                <input matInput formControlName="cargo2" placeholder="Ej: Coordinador" />
               </mat-form-field>
             </div>
 
@@ -148,14 +135,14 @@
   </div>
 
   <!-- LISTADO DE COLABORADORES -->
-  <mat-card class="Elev">
+  <mat-card class="Elev" *ngIf="totalItems > 0">
     <mat-card-content class="ListContainer">
       @if (cargando) {
         <div style="text-align: center; padding: 2rem;">
           <p class="Muted">Cargando colaboradores...</p>
         </div>
       } @else {
-        @for (c of filtrados; track c.id) {
+        @for (c of colaboradores; track c.id) {
         <div class="ListItem">
           <div class="ItemContent">
             <!-- Avatar y nombre -->
@@ -166,12 +153,9 @@
                 </div>
             </div>
 
-            <!-- Rol y cargo -->
+            <!-- Cargo(s) -->
             <div class="ItemRole">
-                <strong>{{ c.tipo || 'Sin rol' }}</strong>
-                @if (c.cargo) {
-                  <span> · {{ c.cargo }}</span>
-              }
+              @if (c.cargo) { <span>{{ c.cargo }}</span> } @else { <span class="Muted">Sin cargo</span> }
             </div>
 
             <!-- Acciones -->
@@ -191,10 +175,21 @@
         }
       }
     </mat-card-content>
+
+    <!-- PAGINADOR -->
+    <div class="list-paginator">
+      <mat-paginator
+        [length]="totalItems"
+        [pageIndex]="pageIndex"
+        [pageSize]="pageSize"
+        [pageSizeOptions]="pageSizeOptions"
+        (page)="onPageChange($event)">
+      </mat-paginator>
+    </div>
   </mat-card>
 
   <!-- EMPTY -->
-  @if (!filtrados.length) {
+  @if (!cargando && totalItems === 0) {
     <mat-card class="Elev Empty">
       <mat-card-content class="Muted EmptyContent">
         <mat-icon>group_off</mat-icon>
@@ -242,10 +237,7 @@
               <span>{{ colaboradorSeleccionado.telefono || 'No especificado' }}</span>
             </div>
             
-            <div class="DetailItem">
-              <label>Rol:</label>
-              <span>{{ colaboradorSeleccionado.tipo || 'No especificado' }}</span>
-            </div>
+            <!-- Sin campo Rol -->
             
             <div class="DetailItem">
               <label>Cargo:</label>

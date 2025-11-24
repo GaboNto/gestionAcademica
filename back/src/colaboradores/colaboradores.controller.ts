@@ -18,10 +18,6 @@ export class ColaboradoresController {
     return this.service.findAll(q);
   }
 
-  @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.service.verPracticas(id);
-  }
 
   @Patch(':id')
   update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateColaboradorDto) {

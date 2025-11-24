@@ -27,7 +27,7 @@ export class PracticasService {
 
 
   async create(dto: CreatePracticaDto) {
-    const estado = dto.estado ?? EstadoPractica.PENDIENTE;
+    const estado = dto.estado ?? EstadoPractica.EN_CURSO;
     const start = new Date(dto.fecha_inicio);
     const end = dto.fecha_termino ? new Date(dto.fecha_termino) : null;
 
@@ -38,25 +38,58 @@ export class PracticasService {
       throw new BadRequestException('Debe completar todos los campos requeridos.');
     }
 
-    const [estudiante, centro, colaborador] = await Promise.all([
+    // normalizar IDs de colaboradores/tutores (uno o varios)
+    const colaboradorIds = Array.isArray(dto.colaboradorIds)
+      ? Array.from(new Set(dto.colaboradorIds))
+      : dto.colaboradorId !== undefined
+      ? [dto.colaboradorId]
+      : [];
+    const tutorIds = Array.isArray(dto.tutorIds)
+      ? Array.from(new Set(dto.tutorIds))
+      : dto.tutorId !== undefined
+      ? [dto.tutorId]
+      : [];
+
+    // roles por tutor
+    const rolesInput = Array.isArray((dto as any).tutorRoles)
+      ? ((dto as any).tutorRoles as ('Supervisor' | 'Tallerista')[])
+      : (dto as any).tutorRole
+      ? [((dto as any).tutorRole as 'Supervisor' | 'Tallerista')]
+      : [];
+
+    if (colaboradorIds.length === 0 || tutorIds.length === 0) {
+      throw new BadRequestException('Debe indicar al menos un colaborador y un tutor.');
+    }
+    if (rolesInput.length && rolesInput.length !== tutorIds.length) {
+      throw new BadRequestException('La cantidad de tutorRoles debe coincidir con tutorIds.');
+    }
+
+    const [estudiante, centro, colaboradores, tutores] = await Promise.all([
       this.prisma.estudiante.findUnique({ where: { rut: dto.estudianteRut } }),
       this.prisma.centroEducativo.findUnique({ where: { id: dto.centroId } }),
-      this.prisma.colaborador.findUnique({ where: { id: dto.colaboradorId } }),
+      this.prisma.colaborador.findMany({ where: { id: { in: colaboradorIds } } }),
+      this.prisma.tutor.findMany({ where: { id: { in: tutorIds } } }),
     ]);
-    if (!estudiante || !centro || !colaborador) {
+    if (!estudiante || !centro) {
       throw new BadRequestException('Debe completar todos los campos requeridos.');
+    }
+    if (colaboradores.length !== colaboradorIds.length) {
+      throw new BadRequestException('Uno o más colaboradores no existen.');
+    }
+    if (tutores.length !== tutorIds.length) {
+      throw new BadRequestException('Uno o más tutores no existen.');
     }
 
     const posiblesActivas = await this.prisma.practica.findMany({
       where: {
         estudianteRut: dto.estudianteRut,
-        estado: { in: [EstadoPractica.PENDIENTE, EstadoPractica.EN_CURSO] as any },
+        estado: { in: [EstadoPractica.EN_CURSO] as any },
       },
       select: { id: true, fecha_inicio: true, fecha_termino: true },
     });
 
     // Si ya hay una práctica activa en estado, se bloquea
-    if (posiblesActivas.length > 0 && (estado === EstadoPractica.PENDIENTE || estado === EstadoPractica.EN_CURSO)) {
+    if (posiblesActivas.length > 0 && (estado === EstadoPractica.EN_CURSO)) {
       throw new BadRequestException('No se puede asignar más de una práctica activa simultáneamente para este estudiante.');
     }
 
@@ -72,16 +105,25 @@ export class PracticasService {
       data: {
         estudianteRut: dto.estudianteRut,
         centroId: dto.centroId,
-        colaboradorId: dto.colaboradorId,
         fecha_inicio: start,
         fecha_termino: end,
         tipo: dto.tipo ?? null,
         estado: estado as any,
+        practicaColaboradores: {
+          create: colaboradorIds.map((id) => ({ colaborador: { connect: { id } } })),
+        },
+        practicaTutores: {
+          create: tutorIds.map((id, idx) => ({
+            tutor: { connect: { id } },
+            rol: ((rolesInput[idx] ?? 'Supervisor') as any),
+          })),
+        },
       },
       include: {
         estudiante: true,
         centro: true,
-        colaborador: true,
+        practicaColaboradores: { include: { colaborador: true } },
+        practicaTutores: { include: { tutor: true } },
       },
     });
 
@@ -102,7 +144,12 @@ export class PracticasService {
         estudianteRut: params.estudianteRut,
       },
       orderBy: { fecha_inicio: 'desc' },
-      include: { estudiante: true, centro: true, colaborador: true },
+      include: {
+        estudiante: true,
+        centro: true,
+        practicaColaboradores: { include: { colaborador: true } },
+        practicaTutores: { include: { tutor: true } },
+      },
     });
   }
 
@@ -124,21 +171,23 @@ export class PracticasService {
             OR: [
             { estudiante:  { nombre: { contains: q.q, mode: 'insensitive' } } },
             { centro:      { nombre: { contains: q.q, mode: 'insensitive' } } },
-            { colaborador: { nombre: { contains: q.q, mode: 'insensitive' } } },
+            { practicaColaboradores: { some: { colaborador: { nombre: { contains: q.q, mode: 'insensitive' } } } } },
             { tipo:        { contains: q.q, mode: 'insensitive' } },
             ],
         }
         : {};
 
+    // @ts-ignore - Prisma types not generated, run: npx prisma generate
     const where: Prisma.PracticaWhereInput = {
         ...(q.estado ? { estado: q.estado as any } : {}),
         ...(q.centroId ? { centroId: q.centroId } : {}),
-        ...(q.colaboradorId ? { colaboradorId: q.colaboradorId } : {}),
+        ...(q.colaboradorId ? { practicaColaboradores: { some: { colaboradorId: q.colaboradorId } } } : {}),
         ...(fromDate ? { fecha_inicio: { gte: fromDate } } : {}),
         ...(toDate   ? { fecha_inicio: { ...(fromDate ? { gte: fromDate } : {}), lte: toDate } } : {}),
         ...searchFilter,
     };
 
+    // @ts-ignore - Prisma types not generated, run: npx prisma generate
     const orderBy: Prisma.PracticaOrderByWithRelationInput =
         q.sortBy ? { [q.sortBy]: q.sortOrder ?? 'desc' } : { fecha_inicio: 'desc' };
 
@@ -149,7 +198,7 @@ export class PracticasService {
         include: {
             estudiante: { select: { rut: true, nombre: true } },
             centro:     { select: { id: true, nombre: true, tipo: true } },
-            colaborador:{ select: { id: true, nombre: true } },
+            practicaColaboradores: { select: { colaborador: { select: { id: true, nombre: true } } } },
         },
         }),
     ]);
@@ -163,9 +212,42 @@ export class PracticasService {
   async findOne(id: number) {
     const p = await this.prisma.practica.findUnique({
       where: { id },
-      include: { estudiante: true, centro: true, colaborador: true },
+      include: {
+        estudiante: true,
+        centro: true,
+        practicaColaboradores: { include: { colaborador: true } },
+        practicaTutores: { include: { tutor: true } },
+      },
     });
     if (!p) throw new NotFoundException('Práctica no encontrada');
     return p;
+  }
+
+  async updateEstado(id: number, estado: EstadoPractica) {
+    const practica = await this.prisma.practica.findUnique({
+      where: { id },
+    });
+    
+    if (!practica) {
+      throw new NotFoundException('Práctica no encontrada');
+    }
+
+    const updated = await this.prisma.practica.update({
+      where: { id },
+      data: { estado: estado as any },
+      include: {
+        estudiante: true,
+        centro: true,
+        practicaColaboradores: { include: { colaborador: true } },
+        practicaTutores: { include: { tutor: true } },
+      },
+    });
+
+    this.notifyChange('updated', updated);
+
+    return {
+      message: 'Estado de la práctica actualizado exitosamente.',
+      data: updated,
+    };
   }
 }

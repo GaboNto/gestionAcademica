@@ -1,9 +1,11 @@
-import { TipoColaborador } from '@prisma/client';
-import { IsEmail, IsEnum, IsNumber, IsOptional, IsString, Length } from 'class-validator';
+import { IsEmail, IsNumber, IsOptional, IsString, Length, IsArray } from 'class-validator';
+import { IsRut } from 'src/validador/rut.validador';
 
 export class CreateColaboradorDto {
+
   @IsString()
   @Length(3, 20)
+  @IsRut({ message: 'El RUT no es válido' })
   rut: string;
 
   @IsString()
@@ -19,11 +21,12 @@ export class CreateColaboradorDto {
   @IsOptional() @IsNumber()
   telefono?: number;
 
-  @IsOptional() @IsEnum(TipoColaborador)
-  tipo?: TipoColaborador; // COLABORADOR | Supervisor | TALLERISTA
-
   @IsOptional() @IsString()
   cargo?: string;
+
+  @IsOptional() @IsArray()
+  @IsString({ each: true })
+  cargos?: string[];
 
   @IsOptional() @IsString()
   universidad_egreso?: string;

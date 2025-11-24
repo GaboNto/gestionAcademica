@@ -13,18 +13,23 @@
         (click)="previa()"
         [disabled]="form.invalid"
       >
-        <mat-icon>visibility</mat-icon> Previa
+        <mat-icon>visibility</mat-icon>
+        Previa
       </button>
+
       <button
-        mat-raised-button
+        mat-flat-button
         color="primary"
         (click)="grabar()"
         [disabled]="form.invalid"
       >
-        <mat-icon>picture_as_pdf</mat-icon> Grabar
+        <mat-icon>save</mat-icon>
+        Grabar
       </button>
+
       <button mat-stroked-button color="warn" (click)="limpiar()">
-        <mat-icon>backspace</mat-icon> Limpiar
+        <mat-icon>refresh</mat-icon>
+        Limpiar
       </button>
     </div>
   </div>
@@ -57,13 +62,6 @@
                 {{ c.region ?? "s/ región" }}
               </mat-option>
             </mat-select>
-
-            <mat-hint *ngIf="centroSeleccionado">
-              Se dirigirá a: <b>{{ centroSeleccionado.nombre }}</b> ({{
-                centroSeleccionado.comuna ?? "—"
-              }})
-            </mat-hint>
-
             <mat-error *ngIf="form.get('centroId')?.hasError('required')">
               Selecciona un centro educativo
             </mat-error>
@@ -75,13 +73,13 @@
         <!-- Línea 2: Estudiantes -->
         <div class="grid g1">
           <mat-form-field appearance="outline" class="full">
-            <mat-label>Estudiantes</mat-label>
+            <mat-label>Estudiante(s)</mat-label>
             <mat-select formControlName="estudiantesIds" multiple required>
               <mat-option disabled>
                 <mat-icon>search</mat-icon>
                 <input
                   matInput
-                  placeholder="Buscar estudiante o RUT…"
+                  placeholder="Buscar estudiante…"
                   (keyup)="
                     studentFilter = $any($event.target).value; _markForCheck()
                   "
@@ -163,6 +161,7 @@
               matInput
               [matDatepicker]="dp3"
               formControlName="periodoFin"
+              [min]="minFechaFin"
               required
             />
             <mat-datepicker-toggle
@@ -181,11 +180,51 @@
 
         <mat-divider class="sep"></mat-divider>
 
-        <!-- Nota informativa -->
+        <!-- Configuración de carta -->
+        <div class="grid g2 note-grid">
+          <div class="field-block">
+            <mat-form-field appearance="outline">
+              <mat-label>Referencia de la carta</mat-label>
+              <input
+                matInput
+                formControlName="referencia"
+                placeholder="SOLICITUD DE AUTORIZACION PARA PRACTICA"
+              />
+            </mat-form-field>
+            <small class="field-note">
+              Se usará en la línea REF. del documento
+            </small>
+          </div>
+
+          <div class="field-block">
+            <mat-form-field appearance="outline">
+              <mat-label>Folio (opcional)</mat-label>
+              <input
+                matInput
+                formControlName="folioManual"
+                placeholder="Se usará en PHG N° ..."
+              />
+            </mat-form-field>
+            <small class="field-note">
+              Si lo dejas vacío, se usará el folio autogenerado del sistema.
+            </small>
+          </div>
+        </div>
+
+        <div class="grid g2">
+          <mat-form-field appearance="outline">
+            <mat-label>Nombre Jefatura de Carrera</mat-label>
+            <input matInput formControlName="jefaturaNombre" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Cargo Jefatura</mat-label>
+            <input matInput formControlName="jefaturaCargo" />
+          </mat-form-field>
+        </div>
+
         <div class="meta-note">
-          La carta se firmará como <b>Dr. IGNACIO JARA PARRA</b>,
-          <b>Jefe de Carrera</b>. La <b>fecha</b> será la del día de generación
-          y el <b>folio</b> se asignará al presionar <i>Grabar</i>.
+
         </div>
       </mat-card-content>
     </mat-card>

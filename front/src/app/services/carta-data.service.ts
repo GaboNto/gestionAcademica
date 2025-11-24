@@ -1,46 +1,110 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
-const API = 'http://localhost:3000/api';
+export interface ApiCentro {
+  id: number;
+  nombre: string;
+  comuna?: string | null;
+  region?: string | null;
+}
 
-export interface ApiCentro { id: number; nombre: string; region?: string; comuna?: string; }
-export interface ApiEstudiante { rut: string; nombre: string; }
-export interface ApiSupervisor { id: number; nombre: string; correo?: string; trato?: string; }
+export interface ApiEstudiante {
+  rut: string;
+  nombre: string;
+}
+
+export interface ApiSupervisor {
+  id: number;
+  nombre: string;
+  trato?: string | null;
+  correo?: string | null;
+}
 
 export interface CreateCartaDto {
   tipoPractica: string;
   centroId: number;
-  estudiantesIds: string[]; // RUTs del estudiante
+  estudiantesIds: string[];
   supervisorId: number;
   periodoInicio: string; // yyyy-mm-dd
-  periodoFin: string;    // yyyy-mm-dd
+  periodoFin: string;
 }
 
 @Injectable({ providedIn: 'root' })
 export class CartaDataService {
-  private http = inject(HttpClient);
 
+  private readonly API = 'http://localhost:3000';
+  private readonly TIPOS_PRACTICA_DEFAULT = [
+    'Apoyo a la Docencia I',
+    'Apoyo a la Docencia II',
+    'Apoyo a la Docencia III',
+    'Práctica Profesional',
+  ];
+
+  constructor(private http: HttpClient) {}
+
+  // -------------------------
+  // CENTROS EDUCATIVOS
+  // -------------------------
+  /**
+   * Obtiene centros educativos con paginación opcional
+   * Devuelve solo el array "items" ya listo para el mat-select.
+   */
+  getCentros(search = '', page = 1, limit = 200): Observable<ApiCentro[]> {
+    
+    let params = new HttpParams()
+      .set('page', page)
+      .set('limit', limit);
+
+    if (search) {
+      params = params.set('search', search);
+    }
+
+    return new Observable<ApiCentro[]>(observer => {
+      this.http.get<any>(`${this.API}/centros`, { params }).subscribe({
+        next: (res) => {
+          // Normaliza datos para que el componente no cambie nada
+          observer.next(res.items ?? res);
+        },
+        error: (err) => observer.error(err)
+      });
+    });
+  }
+
+  // -------------------------
+  // TIPOS DE PRÁCTICA
+  // -------------------------
   getTiposPractica(): Observable<string[]> {
-    return this.http.get<string[]>(`${API}/tipos-practica`);
+    return this.http
+      .get<string[]>(`${this.API}/api/practicas/tipos`)
+      .pipe(catchError(() => of(this.TIPOS_PRACTICA_DEFAULT)));
   }
 
-  getCentros(q = ''): Observable<ApiCentro[]> {
-    const params = q ? new HttpParams().set('q', q) : undefined;
-    return this.http.get<ApiCentro[]>(`${API}/centros`, { params });
-  }
-
+  // -------------------------
+  // ESTUDIANTES
+  // -------------------------
   getEstudiantes(q = ''): Observable<ApiEstudiante[]> {
     const params = q ? new HttpParams().set('q', q) : undefined;
-    return this.http.get<ApiEstudiante[]>(`${API}/estudiantes`, { params });
+    return this.http.get<ApiEstudiante[]>(`${this.API}/api/estudiantes`, { params });
   }
 
+  // -------------------------
+  // SUPERVISORES
+  // -------------------------
   getSupervisores(q = ''): Observable<ApiSupervisor[]> {
     const params = q ? new HttpParams().set('q', q) : undefined;
-    return this.http.get<ApiSupervisor[]>(`${API}/supervisores`, { params });
+    return this.http.get<ApiSupervisor[]>(`${this.API}/api/supervisores`, { params });
   }
 
-  crearCarta(dto: CreateCartaDto) {
-    return this.http.post(`${API}/cartas`, dto);
+  // -------------------------
+  // CARTAS
+  // -------------------------
+  crearCarta(dto: CreateCartaDto): Observable<any> {
+    return this.http.post(`${this.API}/api/cartas`, dto);
+  }
+
+  generarPdf(id: number): Observable<Blob> {
+    return this.http.get(`${this.API}/api/cartas/${id}/pdf`, { responseType: 'blob' });
   }
 }

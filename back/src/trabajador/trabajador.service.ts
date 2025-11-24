@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateTrabajadorDto } from './dto/create-trabajador.dto';
 import { UpdateTrabajadorDto } from './dto/update-trabajador.dto';
 import { PrismaService } from 'prisma/prisma.service';
+import { normalizeRut } from 'src/validador/rut.util';
 
 type ListParams = { centroId?: number; rol?: string; search?: string; page: number; limit: number; };
 
@@ -39,14 +40,17 @@ export class TrabajadoresService {
   }
 
   // ====== CREATE ======
+
   async create(dto: CreateTrabajadorDto) {
     // validar que el centro exista
     const centro = await this.prisma.centroEducativo.findUnique({ where: { id: dto.centroId } });
     if (!centro) throw new NotFoundException('Centro educativo no encontrado');
 
+    const rutNormalizado = normalizeRut(dto.rut);
+
     return this.prisma.trabajadorEduc.create({
       data: {
-        rut: dto.rut,
+        rut: rutNormalizado,
         nombre: dto.nombre,
         rol: dto.rol,
         correo: dto.correo,
@@ -68,15 +72,19 @@ export class TrabajadoresService {
 
   // ====== UPDATE ======
   async update(id: number, dto: UpdateTrabajadorDto) {
-    // si cambia el centro, validar que exista
+    // Si cambia el centro, validar que exista
     if (dto.centroId !== undefined) {
       const centro = await this.prisma.centroEducativo.findUnique({ where: { id: dto.centroId } });
       if (!centro) throw new NotFoundException('Centro educativo no encontrado');
     }
 
-    // construir data solo con campos presentes
+    // Construir data solo con campos presentes
     const data: any = {};
-    if (dto.rut !== undefined) data.rut = dto.rut;
+
+    if (dto.rut !== undefined) {
+      // Normalizar RUT antes de actualizar
+      data.rut = normalizeRut(dto.rut);
+    }
     if (dto.nombre !== undefined) data.nombre = dto.nombre;
     if (dto.rol !== undefined) data.rol = dto.rol;
     if (dto.correo !== undefined) data.correo = dto.correo;
@@ -92,6 +100,7 @@ export class TrabajadoresService {
       throw new NotFoundException('Trabajador no encontrado');
     }
   }
+
 
   // ====== DELETE ======
   async remove(id: number) {

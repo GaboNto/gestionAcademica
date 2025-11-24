@@ -79,23 +79,25 @@
 
 .AssignmentContent {
   display: grid;
-  grid-template-columns: 2fr 2fr 1fr 1fr auto;
-  gap: 20px;
+  grid-template-columns: 1.5fr 1.6fr 1.1fr 1fr auto;
+  gap: 14px;
   align-items: center;
-  padding: 20px;
+  padding: 20px 16px 20px 20px;
 }
 
 /* Información del estudiante */
 .StudentInfo { min-width: 200px; }
 
 .StudentHeader h3 {
-  margin: 0 0 8px 0;
+  margin: 0 0 8px 4px;
   font-size: 18px;
   font-weight: 600;
   color: #1f2937;
 }
 
-.StudentDetails { display: flex; flex-direction: column; gap: 4px; }
+.StudentDetails { display: flex; flex-direction: column; gap: 4px; margin-left: 4px; }
+
+.SchoolInfo { min-width: 200px; margin-left: -8px; }
 
 .Rut {
   font-size: 14px;
@@ -118,7 +120,7 @@
 /* Información del colegio */
 .SchoolInfo { min-width: 200px; }
 
-.SchoolHeader { display: flex; align-items: flex-start; gap: 8px; }
+.SchoolHeader { display: flex; align-items: flex-start; gap: 6px; }
 
 .SchoolIcon { color: #6b7280; font-size: 20px; margin-top: 2px; }
 
@@ -129,7 +131,7 @@
   color: #1f2937;
 }
 
-.SupervisorInfo { display: flex; align-items: center; gap: 4px; font-size: 14px; color: #6b7280; }
+.SupervisorInfo { display: flex; align-items: center; gap: 4px; font-size: 14px; color: #6b7280; margin-left: -2px; }
 .LockIcon { font-size: 14px; color: #9ca3af; }
 
 /* Información de fechas */
@@ -157,10 +159,9 @@
   letter-spacing: 0.5px;
 }
 
-.StatusBadge.pendiente { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
-.StatusBadge.en_curso { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
-.StatusBadge.finalizada { background: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; }
-.StatusBadge.rechazada { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
+.StatusBadge.en_curso { background: #fef08a; color: #854d0e; border: 1px solid #facc15; }
+.StatusBadge.aprobado { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+.StatusBadge.reprobado { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
 
 /* Botón de detalles */
 .ActionSection { display: flex; justify-content: flex-end; }
@@ -242,6 +243,80 @@
 }
 
 .DetailItem span { font-size: 16px; color: #1f2937; font-weight: 500; }
+
+/* Colaboradores */
+.CollaboratorsList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.CollaboratorRow {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 12px 16px;
+}
+
+.CollaboratorInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.CollaboratorName {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.CollaboratorCargo {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.CollaboratorEmail {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+/* Tutores */
+.TutorsList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.TutorRow {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 12px 16px;
+}
+
+.TutorInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.TutorName {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.TutorRole {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.TutorEmail {
+  font-size: 14px;
+  color: #6b7280;
+}
 
 /* Actividades */
 .ActivitiesList { display: flex; flex-direction: column; gap: 12px; }

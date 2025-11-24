@@ -22,6 +22,13 @@ export const routes: Routes = [
       import('./components/colaboradores/colaboradores.component').then(m => m.ColaboradoresComponent),
   },
 
+  // Gestión de tutores
+  {
+    path: 'tutores',
+    loadComponent: () =>
+      import('./components/tutores/tutores.component').then(m => m.TutoresComponent),
+  },
+
   // Gestión de usuarios
   {
     path: 'usuarios',
@@ -70,6 +77,21 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./components/carta/carta.component').then(m => m.CartaComponent),
   },
+
+  // Estudiantes en práctica (solo para jefatura de carrera)
+  {
+    path: 'estudiantes-en-practica',
+    loadComponent: () =>
+      import('./components/estudiantes-en-practica/estudiantes-en-practica.component').then(m => m.EstudiantesEnPracticaComponent),
+  },
+
+  // Actividades de estudiantes
+  {
+    path: 'actividades-estudiantes',
+    loadComponent: () =>
+      import('./components/actividades-estudiantes/actividades-estudiantes.component').then(m => m.ActividadesEstudiantesComponent),
+  },
+
   // Ruta por defecto → redirige a inicio
   { path: '**', redirectTo: '', pathMatch: 'full' },
 ];

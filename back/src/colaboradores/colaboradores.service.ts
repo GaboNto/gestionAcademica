@@ -3,20 +3,37 @@ import { CreateColaboradorDto } from './dto/create-colaborador.dto';
 import { UpdateColaboradorDto } from './dto/update-colaborador.dto';
 import { QueryColaboradorDto } from './dto/query-colaborador.dto';
 import { PrismaService } from 'prisma/prisma.service';
+import { normalizeRut } from 'src/validador/rut.util';
 
 @Injectable()
 export class ColaboradoresService {
   constructor(private prisma: PrismaService) {}
 
   async create(dto: CreateColaboradorDto) {
-    // rut es único: si ya existe, prisma lanzará error único
-    return this.prisma.colaborador.create({ data: dto });
+    // Acepta 'cargo' (string) o 'cargos' (string[])
+    const cargosList = Array.isArray((dto as any).cargos)
+      ? ((dto as any).cargos as string[])
+          .filter((c) => !!c && c.trim())
+          .map((c) => ({ cargo: c.trim() }))
+      : dto.cargo && dto.cargo.trim()
+      ? [{ cargo: dto.cargo.trim() }]
+      : [];
+
+    const { cargo, cargos, ...rest } = dto as any;
+
+    return this.prisma.colaborador.create({
+      data: {
+        ...rest,
+        rut: normalizeRut(dto.rut),
+        ...(cargosList.length ? { cargos: { create: cargosList } } : {}),
+      },
+      include: { cargos: true },
+    });
   }
 
   async findAll(q: QueryColaboradorDto) {
-    const { tipo, search, page = 1, limit = 10, orderBy = 'nombre', orderDir = 'asc' } = q;
+    const { search, page = 1, limit = 10, orderBy = 'nombre', orderDir = 'asc' } = q;
     const where = {
-      ...(tipo ? { tipo } : {}),
       ...(search
         ? {
             OR: [
@@ -40,16 +57,20 @@ export class ColaboradoresService {
           nombre: true,
           correo: true,
           telefono: true,
-          tipo: true,
-          cargo: true,
           universidad_egreso: true,
+          cargos: { select: { id: true, cargo: true } },
         },
       }),
       this.prisma.colaborador.count({ where }),
     ]);
 
+    const itemsWithCargo = items.map((it: any) => ({
+      ...it,
+      cargo: Array.isArray(it.cargos) && it.cargos.length ? it.cargos.map((c: any) => c.cargo).join(', ') : undefined,
+    }));
+
     return {
-      items,
+      items: itemsWithCargo,
       page,
       limit,
       total,
@@ -57,35 +78,38 @@ export class ColaboradoresService {
     };
   }
 
-  async verPracticas(id: number) {
-    const col = await this.prisma.colaborador.findUnique({
-      where: { id },
-      include: {
-        practicas: {
-          select: {
-            id: true,
-            estado: true,
-            fecha_inicio: true,
-            fecha_termino: true,
-            estudiante: { select: { rut: true, nombre: true } },
-            centro: { select: { id: true, nombre: true, comuna: true } },
-          },
-        },
-      },
-    });
-    if (!col) throw new NotFoundException('Colaborador no encontrado');
-    return col;
-  }
 
   async update(id: number, dto: UpdateColaboradorDto) {
     try {
-      return await this.prisma.colaborador.update({ where: { id }, data: dto });
+      const cargosList = Array.isArray((dto as any).cargos)
+        ? ((dto as any).cargos as string[])
+            .filter((c) => !!c && c.trim())
+            .map((c) => ({ cargo: c.trim() }))
+        : (dto.cargo && (dto.cargo as string).trim())
+        ? [{ cargo: (dto.cargo as string).trim() }]
+        : [];
+
+      const { cargo, cargos, ...rest } = dto as any;
+      
+      if (rest.rut !== undefined) {
+        rest.rut = normalizeRut(rest.rut);
+      }
+
+      return await this.prisma.colaborador.update({
+        where: { id },
+        data: {
+          ...rest,
+          ...(cargo !== undefined || cargos !== undefined
+            ? { cargos: { deleteMany: {}, ...(cargosList.length ? { create: cargosList } : {}) } }
+            : {}),
+        },
+        include: { cargos: true },
+      });
     } catch {
       throw new NotFoundException('Colaborador no encontrado');
     }
   }
 
-  // Si prefieres borrado lógico, cambia por update({data:{activo:false}})
   async remove(id: number) {
     try {
       return await this.prisma.colaborador.delete({ where: { id } });

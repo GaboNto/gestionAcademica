@@ -27,28 +27,36 @@
 
   <!-- ===== GRID DE OPCIONES ===== -->
   <div class="cards">
-    <mat-card class="option-card elev card-click" *ngFor="let c of cards" (click)="go(c.route)">
-      <div class="opt-top">
-        <div class="opt-icon">
-          <span class="material-icons">{{ c.icon }}</span>
-        </div>
-        <h3>{{ c.title }}</h3>
-      </div>
-
-      <p *ngIf="c.desc" class="opt-desc">{{ c.desc }}</p>
-
-      <ng-container *ngIf="c.subItems?.length">
-        <div class="sublist">
-          <div class="subitem" *ngFor="let s of c.subItems" (click)="$event.stopPropagation(); go(s.route)">
-            <div class="subitem-title">{{ s.title }}</div>
-            <div class="subitem-desc" *ngIf="s.desc">{{ s.desc }}</div>
+    @for (c of cards; track c.title) {
+      <mat-card class="option-card elev card-click" (click)="go(c.route)">
+        <div class="opt-top">
+          <div class="opt-icon">
+            <span class="material-icons">{{ c.icon }}</span>
           </div>
+          <h3>{{ c.title }}</h3>
         </div>
-      </ng-container>
 
-      <button mat-stroked-button class="opt-btn" (click)="$event.stopPropagation(); go(c.route)">
-        Acceder
-      </button>
-    </mat-card>
+        @if (c.desc) {
+          <p class="opt-desc">{{ c.desc }}</p>
+        }
+
+        @if (c.subItems?.length) {
+          <div class="sublist">
+            @for (s of c.subItems; track s.title) {
+              <div class="subitem" (click)="$event.stopPropagation(); go(s.route)">
+                <div class="subitem-title">{{ s.title }}</div>
+                @if (s.desc) {
+                  <div class="subitem-desc">{{ s.desc }}</div>
+                }
+              </div>
+            }
+          </div>
+        }
+
+        <button mat-stroked-button class="opt-btn" (click)="$event.stopPropagation(); go(c.route)">
+          Acceder
+        </button>
+      </mat-card>
+    }
   </div>
 </div>

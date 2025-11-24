@@ -22,13 +22,12 @@ CREATE TABLE `estudiante` (
 -- CreateTable
 CREATE TABLE `practica` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `estado` ENUM('PENDIENTE', 'EN CURSO', 'FINALIZADA', 'RECHAZADA') NOT NULL,
+    `estado` ENUM('En Curso', 'Aprobado', 'Reprobado') NOT NULL,
     `fecha_inicio` DATETIME(3) NOT NULL,
     `fecha_termino` DATETIME(3) NULL,
     `tipo` VARCHAR(191) NULL,
     `estudianteRut` VARCHAR(191) NOT NULL,
     `centroId` INTEGER NOT NULL,
-    `colaboradorId` INTEGER NOT NULL,
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -40,13 +39,12 @@ CREATE TABLE `centro_educativo` (
     `region` VARCHAR(191) NULL,
     `comuna` VARCHAR(191) NULL,
     `direccion` VARCHAR(191) NULL,
-    `nombre_calle` VARCHAR(191) NULL,
-    `numero_calle` INTEGER NULL,
     `telefono` INTEGER NULL,
     `correo` VARCHAR(191) NULL,
     `tipo` ENUM('PARTICULAR', 'PARTICULAR SUBVENCIONADO', 'SLEP') NULL,
     `convenio` VARCHAR(191) NULL,
     `url_rrss` VARCHAR(191) NULL,
+    `fecha_inicio_asociacion` DATETIME(3) NULL,
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -73,8 +71,6 @@ CREATE TABLE `colaborador` (
     `correo` VARCHAR(191) NULL,
     `direccion` VARCHAR(191) NULL,
     `telefono` INTEGER NULL,
-    `tipo` ENUM('Colaborador', 'Supervisor', 'Tallerista') NULL,
-    `cargo` VARCHAR(191) NULL,
     `universidad_egreso` VARCHAR(191) NULL,
 
     UNIQUE INDEX `colaborador_rut_key`(`rut`),
@@ -104,18 +100,6 @@ CREATE TABLE `usuario` (
     `contrasena` VARCHAR(191) NOT NULL,
 
     UNIQUE INDEX `usuario_correo_key`(`correo`),
-    PRIMARY KEY (`id`)
-) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
--- CreateTable
-CREATE TABLE `carta_solicitud` (
-    `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `numero_folio` VARCHAR(191) NOT NULL,
-    `fecha` DATETIME(3) NOT NULL,
-    `direccion_emisor` VARCHAR(191) NULL,
-    `url_archivo` VARCHAR(191) NULL,
-
-    UNIQUE INDEX `carta_solicitud_numero_folio_key`(`numero_folio`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -183,30 +167,55 @@ CREATE TABLE `enc_colab_preg` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE `AuthorizationRequest` (
+CREATE TABLE `tutor` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `code` VARCHAR(191) NULL,
-    `refTitle` VARCHAR(191) NOT NULL,
-    `city` VARCHAR(191) NOT NULL,
-    `letterDate` DATETIME(3) NOT NULL,
-    `addresseeName` VARCHAR(191) NOT NULL,
-    `addresseeRole` VARCHAR(191) NOT NULL,
-    `institution` VARCHAR(191) NOT NULL,
-    `institutionAddr` VARCHAR(191) NOT NULL,
-    `practiceType` VARCHAR(191) NOT NULL,
-    `periodStart` DATETIME(3) NOT NULL,
-    `periodEnd` DATETIME(3) NOT NULL,
-    `degree` VARCHAR(191) NOT NULL,
-    `comments` VARCHAR(191) NULL,
-    `tutorName` VARCHAR(191) NULL,
-    `tutorPhone` VARCHAR(191) NULL,
-    `studentsJson` JSON NOT NULL,
-    `status` ENUM('PENDING', 'SENT', 'CANCELED') NOT NULL DEFAULT 'PENDING',
-    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `updatedAt` DATETIME(3) NOT NULL,
+    `rut` VARCHAR(191) NOT NULL,
+    `nombre` VARCHAR(191) NOT NULL,
+    `correo` VARCHAR(191) NULL,
+    `direccion` VARCHAR(191) NULL,
+    `telefono` INTEGER NULL,
+    `universidad_egreso` VARCHAR(191) NULL,
 
-    INDEX `AuthorizationRequest_letterDate_idx`(`letterDate`),
-    INDEX `AuthorizationRequest_institution_idx`(`institution`),
+    UNIQUE INDEX `tutor_rut_key`(`rut`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `carta_solicitud` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `numero_folio` VARCHAR(191) NOT NULL,
+    `fecha` DATETIME(3) NOT NULL,
+    `direccion_emisor` VARCHAR(191) NULL,
+    `url_archivo` VARCHAR(191) NULL,
+
+    UNIQUE INDEX `carta_solicitud_numero_folio_key`(`numero_folio`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `practica_colaborador` (
+    `practicaId` INTEGER NOT NULL,
+    `colaboradorId` INTEGER NOT NULL,
+
+    PRIMARY KEY (`practicaId`, `colaboradorId`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `practica_tutor` (
+    `practicaId` INTEGER NOT NULL,
+    `tutorId` INTEGER NOT NULL,
+    `rol` ENUM('Supervisor', 'Tallerista') NOT NULL,
+
+    PRIMARY KEY (`practicaId`, `tutorId`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `cargo` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `cargo` VARCHAR(191) NOT NULL,
+    `tutorId` INTEGER NULL,
+    `colaboradorId` INTEGER NULL,
+
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -215,9 +224,6 @@ ALTER TABLE `practica` ADD CONSTRAINT `practica_estudianteRut_fkey` FOREIGN KEY 
 
 -- AddForeignKey
 ALTER TABLE `practica` ADD CONSTRAINT `practica_centroId_fkey` FOREIGN KEY (`centroId`) REFERENCES `centro_educativo`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE `practica` ADD CONSTRAINT `practica_colaboradorId_fkey` FOREIGN KEY (`colaboradorId`) REFERENCES `colaborador`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `trabajador_educ` ADD CONSTRAINT `trabajador_educ_centroId_fkey` FOREIGN KEY (`centroId`) REFERENCES `centro_educativo`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
@@ -242,3 +248,21 @@ ALTER TABLE `enc_colab_preg` ADD CONSTRAINT `enc_colab_preg_encuestaId_fkey` FOR
 
 -- AddForeignKey
 ALTER TABLE `enc_colab_preg` ADD CONSTRAINT `enc_colab_preg_preguntaId_fkey` FOREIGN KEY (`preguntaId`) REFERENCES `pregunta`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `practica_colaborador` ADD CONSTRAINT `practica_colaborador_practicaId_fkey` FOREIGN KEY (`practicaId`) REFERENCES `practica`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `practica_colaborador` ADD CONSTRAINT `practica_colaborador_colaboradorId_fkey` FOREIGN KEY (`colaboradorId`) REFERENCES `colaborador`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `practica_tutor` ADD CONSTRAINT `practica_tutor_practicaId_fkey` FOREIGN KEY (`practicaId`) REFERENCES `practica`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `practica_tutor` ADD CONSTRAINT `practica_tutor_tutorId_fkey` FOREIGN KEY (`tutorId`) REFERENCES `tutor`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `cargo` ADD CONSTRAINT `cargo_tutorId_fkey` FOREIGN KEY (`tutorId`) REFERENCES `tutor`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `cargo` ADD CONSTRAINT `cargo_colaboradorId_fkey` FOREIGN KEY (`colaboradorId`) REFERENCES `colaborador`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;

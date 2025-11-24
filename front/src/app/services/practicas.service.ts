@@ -2,6 +2,8 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
+import { Tutor } from './tutores.service';
+
 const API_URL = 'http://localhost:3000/practicas';
 
 export interface Estudiante {
@@ -31,7 +33,12 @@ export interface Colaborador {
   telefono?: number;
 }
 
-export type EstadoPractica = 'PENDIENTE' | 'EN_CURSO' | 'FINALIZADA' | 'RECHAZADA';
+export type TutorRol = 'Supervisor' | 'Tallerista';
+
+export type EstadoPractica =
+  | 'EN_CURSO'
+  | 'APROBADO'
+  | 'REPROBADO';
 
 export interface Practica {
   id: number;
@@ -41,7 +48,8 @@ export interface Practica {
   tipo?: string;
   estudiante?: Estudiante;
   centro?: CentroEducativo;
-  colaborador?: Colaborador;
+  colaboradores?: Colaborador[];
+  tutores?: { tutor: Tutor; rol: TutorRol }[];
   createdAt?: string;
   updatedAt?: string;
 }
@@ -49,11 +57,17 @@ export interface Practica {
 export interface CreatePracticaDto {
   estudianteRut: string;
   centroId: number;
-  colaboradorId: number;
+  colaboradorIds: number[];
+  tutorIds: number[];
+  tutorRoles: TutorRol[];
   fecha_inicio: string;
   fecha_termino?: string;
   tipo?: string;
   estado?: EstadoPractica;
+  // Compatibilidad con versiones anteriores del backend
+  colaboradorId?: number;
+  tutorId?: number;
+  tutorRole?: TutorRol;
 }
 
 export interface QueryPracticasParams {
@@ -77,14 +91,11 @@ export interface PracticasResponse {
 export class PracticasService {
   constructor(private http: HttpClient) {}
 
-  /**
-   * Listar prácticas con filtros opcionales
-   */
   listar(params?: QueryPracticasParams): Observable<Practica[]> {
     let httpParams = new HttpParams();
-    
+
     if (params) {
-      Object.keys(params).forEach(key => {
+      Object.keys(params).forEach((key) => {
         const value = params[key as keyof QueryPracticasParams];
         if (value !== undefined && value !== null) {
           httpParams = httpParams.set(key, value.toString());
@@ -95,28 +106,19 @@ export class PracticasService {
     return this.http.get<Practica[]>(API_URL, { params: httpParams });
   }
 
-  /**
-   * Crear una nueva práctica
-   */
   crear(practica: CreatePracticaDto): Observable<{ message: string; data: Practica }> {
     return this.http.post<{ message: string; data: Practica }>(API_URL, practica);
   }
 
-  /**
-   * Obtener una práctica por ID
-   */
   obtenerPorId(id: number): Observable<Practica> {
     return this.http.get<Practica>(`${API_URL}/${id}`);
   }
 
-  /**
-   * Listar para jefatura con filtros avanzados
-   */
   listarParaJefatura(params: any): Observable<PracticasResponse> {
     let httpParams = new HttpParams();
-    
+
     if (params) {
-      Object.keys(params).forEach(key => {
+      Object.keys(params).forEach((key) => {
         const value = params[key];
         if (value !== undefined && value !== null && value !== '') {
           httpParams = httpParams.set(key, value.toString());
@@ -125,6 +127,10 @@ export class PracticasService {
     }
 
     return this.http.get<PracticasResponse>(`${API_URL}/jefatura`, { params: httpParams });
+  }
+
+  actualizarEstado(id: number, estado: EstadoPractica): Observable<{ message: string; data: Practica }> {
+    return this.http.patch<{ message: string; data: Practica }>(`${API_URL}/${id}/estado`, { estado });
   }
 }
 

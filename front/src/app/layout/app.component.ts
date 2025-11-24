@@ -110,9 +110,11 @@ export class AppComponent implements OnInit, AfterViewInit {
   /** Construye el menú del sidebar según funciones reales por rol */
   private buildNav(id: RoleId): NavItem[] {
     if (id === 'jefatura') {
-      // Reportes completos + Generar cartas + Supervisión general
+      // Reportes completos + Generar cartas + Supervisión general + Estudiantes en práctica + Usuarios
       return [
         { label: 'Dashboard',          icon: 'dashboard',    route: '/dashboard' },
+        { label: 'Usuarios',           icon: 'manage_accounts', route: '/usuarios' },
+        { label: 'Estudiantes en práctica', icon: 'school',  route: '/estudiantes-en-practica' },
         { label: 'Supervisión general',icon: 'insights',     route: '/supervision' },
         { label: 'Reportes completos', icon: 'analytics',    route: '/reportes' },
         { label: 'Generar solicitud',  icon: 'description',  route: '/carta' }, // crea la ruta si aún no existe
@@ -129,16 +131,16 @@ export class AppComponent implements OnInit, AfterViewInit {
 
     if (id === 'practicas') {
       // Gestionar centros, estudiantes, prácticas, colaboradores, reportes/historial
-      const items: NavItem[] = [
-        { label: 'Dashboard',       icon: 'dashboard', route: '/dashboard' },
-        { label: 'Estudiantes',     icon: 'school',    route: '/estudiantes' },
-        { label: 'Colaboradores',   icon: 'groups',    route: '/colaboradores' },
-        { label: 'Prácticas',       icon: 'event_note',route: '/practicas' },     // crea la ruta si aún no existe
-        { label: 'Reportes/Historial', icon: 'timeline', route: '/reportes' },    // crea la ruta si aún no existe
+      return [
+        { label: 'Dashboard',          icon: 'dashboard',          route: '/dashboard' },
+        { label: 'Estudiantes',        icon: 'school',             route: '/estudiantes' },
+        { label: 'Tutores',            icon: 'supervisor_account', route: '/tutores' },
+        { label: 'Colaboradores',      icon: 'groups',             route: '/colaboradores' },
+        { label: 'Centros educativos', icon: 'domain',             route: '/centros-educativos' },
+        { label: 'Prácticas',          icon: 'event_note',         route: '/practicas' },     // crea la ruta si aún no existe
+        { label: 'Actividades',        icon: 'assignment',         route: '/actividades-estudiantes' },
+        { label: 'Reportes/Historial', icon: 'timeline',           route: '/reportes' },     // crea la ruta si aún no existe
       ];
-      // Si ya tienes /centros, lo dejamos visible:
-      items.splice(3, 0, { label: 'Centros educativos', icon: 'domain', route: '/centros-educativos' }); // opcional
-      return items;
     }
 
     // Fallback si no calza

@@ -98,29 +98,6 @@ export class CartaService {
       },
     });
 
-    // 2) Guardar detalle en AuthorizationRequest (string en practiceType)
-    await this.prisma.authorizationRequest.create({
-      data: {
-        code: folio,
-        refTitle: 'SOLICITUD DE AUTORIZACIÓN DE PRÁCTICA',
-        city: 'ARICA',
-        letterDate: new Date(),
-        addresseeName: '',
-        addresseeRole: '',
-        institution: '',
-        institutionAddr: '',
-        practiceType: dto.tipoPractica,
-        periodStart: new Date(dto.periodoInicio),
-        periodEnd: new Date(dto.periodoFin),
-        degree: 'Pedagogía en Historia y Geografía',
-        comments: null,
-        tutorName: null,
-        tutorPhone: null,
-        // guarda los RUT/IDs tal cual
-        studentsJson: JSON.parse(JSON.stringify(dto.estudiantesIds)) as any,
-      },
-    });
-
-    return { ok: true, folio };
+    
   }
 }

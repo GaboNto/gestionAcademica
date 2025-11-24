@@ -1,11 +1,7 @@
 import { Transform } from 'class-transformer';
-import { IsEnum, IsInt, IsOptional, IsString, Min } from 'class-validator';
-import { TipoColaborador } from '@prisma/client';
+import { IsInt, IsOptional, IsString, Min } from 'class-validator';
 
 export class QueryColaboradorDto {
-  @IsOptional() @IsEnum(TipoColaborador)
-  tipo?: TipoColaborador;
-
   @IsOptional() @IsString()
   search?: string; // nombre|rut|correo contiene
 
