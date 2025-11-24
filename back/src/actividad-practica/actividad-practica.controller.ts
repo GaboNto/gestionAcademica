@@ -1,4 +1,17 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query, UseInterceptors, UploadedFile, BadRequestException} from '@nestjs/common';
+import { 
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+  UseInterceptors,
+  UploadedFile,
+  BadRequestException
+} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
@@ -23,20 +36,24 @@ export class ActividadPracticaController {
         },
       }),
       fileFilter: (req, file, cb) => {
-        // Solo PDF o PNG
-        if (
-          file.mimetype === 'application/pdf' ||
-          file.mimetype === 'image/png'
-        ) {
-          cb(null, true);
-        } else {
-          cb(
-            new BadRequestException(
-              'Solo se permiten archivos PDF o PNG como evidencia',
-            ) as any,
+        // 👉 Validar por EXTENSIÓN, no por mimetype
+        const extension = extname(file.originalname).toLowerCase();
+        const allowed = ['.pdf', '.png'];
+
+        console.log('DEBUG archivo POST =>', {
+          originalname: file.originalname,
+          mimetype: file.mimetype,
+          extension,
+        });
+
+        if (!allowed.includes(extension)) {
+          return cb(
+            new BadRequestException('Solo se permiten archivos PDF o PNG'),
             false,
           );
         }
+
+        cb(null, true);
       },
       limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
     }),
@@ -45,7 +62,6 @@ export class ActividadPracticaController {
     @UploadedFile() archivo: Express.Multer.File,
     @Body() dto: CreateActividadPracticaDto,
   ) {
-    // Si vino archivo, construimos la URL/ruta
     const evidenciaUrl = archivo
       ? `uploads/actividades/${archivo.filename}`
       : dto.evidenciaUrl;
@@ -80,19 +96,23 @@ export class ActividadPracticaController {
         },
       }),
       fileFilter: (req, file, cb) => {
-        if (
-          file.mimetype === 'application/pdf' ||
-          file.mimetype === 'image/png'
-        ) {
-          cb(null, true);
-        } else {
-          cb(
-            new BadRequestException(
-              'Solo se permiten archivos PDF o PNG como evidencia',
-            ) as any,
+        const extension = extname(file.originalname).toLowerCase();
+        const allowed = ['.pdf', '.png'];
+
+        console.log('DEBUG archivo PATCH =>', {
+          originalname: file.originalname,
+          mimetype: file.mimetype,
+          extension,
+        });
+
+        if (!allowed.includes(extension)) {
+          return cb(
+            new BadRequestException('Solo se permiten archivos PDF o PNG'),
             false,
           );
         }
+
+        cb(null, true);
       },
       limits: { fileSize: 5 * 1024 * 1024 },
     }),
