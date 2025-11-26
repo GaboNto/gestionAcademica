@@ -12,6 +12,7 @@ import { CartaModule } from './carta/carta.module';
 import { TutorModule } from './tutor/tutor.module';
 import { PracticasModule } from './practicas/practicas.module';
 import { ActividadPracticaModule } from './actividad-practica/actividad-practica.module';
+import { ActividadesModule } from './actividades/actividades.module';
 
 
 @Module({
@@ -25,6 +26,7 @@ import { ActividadPracticaModule } from './actividad-practica/actividad-practica
     TutorModule,                 // Tutores (Supervisor / Tallerista)
     PracticasModule,             // Gestión de prácticas
     ActividadPracticaModule,
+    ActividadesModule,           // Listado de actividades (solo lectura para jefatura)
   ],
   controllers: [AppController],
   providers: [AppService],
