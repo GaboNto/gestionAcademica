@@ -125,8 +125,11 @@ export class AppComponent implements OnInit, AfterViewInit {
     if (id === 'vinculacion') {
       // Registrar encuestas
       return [
-        { label: 'Dashboard',  icon: 'dashboard',  route: '/dashboard' },
-        { label: 'Encuestas',  icon: 'assignment', route: '/encuestas'  },
+        { label: 'Dashboard',          icon: 'dashboard',          route: '/dashboard' },
+        { label: 'Encuestas',          icon: 'assignment',         route: '/encuestas' },
+        { label: 'Estudiantes',        icon: 'school',             route: '/estudiantes' },
+        { label: 'Colaboradores',      icon: 'groups',             route: '/colaboradores' },
+        { label: 'Centros educativos', icon: 'domain',             route: '/centros-educativos' },
       ];
     }
 

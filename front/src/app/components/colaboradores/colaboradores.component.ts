@@ -10,6 +10,8 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule }  from '@angular/material/input';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { OnInit, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 
 // Servicios y tipos
 import { ColaboradoresService, Colaborador } from '../../services/colaboradores.service';
@@ -38,10 +40,11 @@ interface ColaboradorForm {
     MatSnackBarModule, MatPaginatorModule
   ]
 })
-export class ColaboradoresComponent {
+export class ColaboradoresComponent implements OnInit {
   private snack = inject(MatSnackBar);
   private colaboradoresService = inject(ColaboradoresService);
   private fb = inject(FormBuilder);
+  private platformId = inject(PLATFORM_ID);
 
   // Interfaz de usuario
   mostrarFormulario = false;
@@ -51,6 +54,7 @@ export class ColaboradoresComponent {
   mostrarConfirmarEliminar = false;
   colaboradorAEliminar: Colaborador | null = null;
   cargando = false;
+  soloLecturaVinculacion = false;
 
   // Filtros
   terminoBusqueda = '';
@@ -70,6 +74,26 @@ export class ColaboradoresComponent {
   constructor() {
     this.inicializarFormulario();
     this.load();
+  }
+
+  ngOnInit(): void {
+    this.soloLecturaVinculacion = this.esRolVinculacionSoloLectura();
+    if (this.soloLecturaVinculacion) {
+      this.mostrarFormulario = false;
+      this.estaEditando = false;
+    }
+  }
+
+  private esRolVinculacionSoloLectura(): boolean {
+    if (!isPlatformBrowser(this.platformId)) return false;
+    try {
+      const saved = localStorage.getItem('app.selectedRole');
+      if (!saved) return false;
+      const parsed = JSON.parse(saved);
+      return parsed?.id === 'vinculacion';
+    } catch {
+      return false;
+    }
   }
 
   // Validador personalizado para RUT chileno (bÃ¡sico)
@@ -174,6 +198,7 @@ export class ColaboradoresComponent {
 
   // Interfaz de usuario
   alternarFormulario() { 
+    if (this.soloLecturaVinculacion) return;
     this.mostrarFormulario = !this.mostrarFormulario;
     if (!this.mostrarFormulario) {
       this.estaEditando = false;
@@ -189,6 +214,7 @@ export class ColaboradoresComponent {
 
   // Agregar
   agregarColaborador() {
+    if (this.soloLecturaVinculacion) return;
     // Marcar todos los campos como tocados para mostrar errores
     if (this.formularioColaborador.invalid) {
       this.formularioColaborador.markAllAsTouched();
@@ -265,11 +291,13 @@ export class ColaboradoresComponent {
 
   // Eliminar
   eliminar(c: Colaborador) {
+    if (this.soloLecturaVinculacion) return;
     this.colaboradorAEliminar = c;
     this.mostrarConfirmarEliminar = true;
   }
 
   confirmarEliminar() {
+    if (this.soloLecturaVinculacion) return;
     if (this.colaboradorAEliminar?.id) {
       this.colaboradoresService.eliminar(this.colaboradorAEliminar.id).subscribe({
         next: () => {
@@ -359,6 +387,7 @@ export class ColaboradoresComponent {
 
   // Funciones de ediciÃ³n
   editarColaborador(colaborador: Colaborador) {
+    if (this.soloLecturaVinculacion) return;
     this.estaEditando = true;
     this.colaboradorEditando = colaborador;
     this.colaboradorSeleccionado = null; // Cerrar modal
@@ -383,6 +412,7 @@ export class ColaboradoresComponent {
   }
 
   actualizarColaborador() {
+    if (this.soloLecturaVinculacion) return;
     const colaboradorOriginal = this.colaboradorEditando;
 
     // Marcar todos los campos como tocados para mostrar errores
