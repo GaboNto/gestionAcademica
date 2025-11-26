@@ -90,6 +90,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   }
 
   // ------- UI -------
+  onSidenavChange(opened: boolean) { this.isSidenavOpened = opened; }
   toggleSidenav(sidenav: MatSidenav) { sidenav.toggle(); }
 
   logout() {

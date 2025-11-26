@@ -1,7 +1,11 @@
 /* Layout base */
-.shell { height: 100vh; }
+.shell {
+  height: 100vh;
+  --side-offset: 0px;
+}
 .side  { width: 260px; border-right: 1px solid #e5e7eb; }
 .content { background: #f7f9fc; }
+.shell--open { --side-offset: 260px; }
 
 /* Topbar */
 .topbar { position: sticky; top: 0; z-index: 10; }
@@ -46,4 +50,5 @@ a.mat-mdc-list-item.active {
 @media (max-width: 960px) {
   .side { width: 260px; }
   .shell ::ng-deep mat-sidenav { position: fixed !important; }
+  .shell--open { --side-offset: 0px; }
 }
