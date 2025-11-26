@@ -10,7 +10,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatNativeDateModule } from '@angular/material/core';
+import { MatNativeDateModule, NativeDateAdapter, MAT_DATE_FORMATS, DateAdapter, MAT_DATE_LOCALE } from '@angular/material/core';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
@@ -18,6 +18,53 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import { ActividadesEstudiantesService, Actividad } from '../../services/actividades-estudiantes.service';
 import JSZip from 'jszip';
+
+// DateAdapter personalizado para formato DD/MM/YYYY
+export class CustomDateAdapter extends NativeDateAdapter {
+  override format(date: Date, displayFormat: Object): string {
+    // Formatear siempre en DD/MM/YYYY para el input
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  }
+
+  override parse(value: string): Date | null {
+    if (!value) return null;
+    
+    // Intentar parsear formato DD/MM/YYYY
+    const parts = value.split('/');
+    if (parts.length === 3) {
+      const day = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10) - 1; // Los meses en JS son 0-indexed
+      const year = parseInt(parts[2], 10);
+      
+      if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
+        const date = new Date(year, month, day);
+        // Validar que la fecha es válida
+        if (date.getDate() === day && date.getMonth() === month && date.getFullYear() === year) {
+          return date;
+        }
+      }
+    }
+    
+    // Si no coincide, intentar con el formato nativo
+    return super.parse(value);
+  }
+}
+
+// Formato de fecha personalizado DD/MM/YYYY
+export const MY_DATE_FORMATS = {
+  parse: {
+    dateInput: 'DD/MM/YYYY',
+  },
+  display: {
+    dateInput: 'DD/MM/YYYY',
+    monthYearLabel: 'MMMM YYYY',
+    dateA11yLabel: 'LL',
+    monthYearA11yLabel: 'MMMM YYYY',
+  },
+};
 
 @Component({
   standalone: true,
@@ -40,6 +87,11 @@ import JSZip from 'jszip';
     MatSelectModule,
     MatSnackBarModule,
     MatProgressSpinnerModule
+  ],
+  providers: [
+    { provide: DateAdapter, useClass: CustomDateAdapter },
+    { provide: MAT_DATE_FORMATS, useValue: MY_DATE_FORMATS },
+    { provide: MAT_DATE_LOCALE, useValue: 'es-ES' }
   ]
 })
 export class ActividadesEstudiantesComponent implements OnInit {
@@ -191,7 +243,21 @@ export class ActividadesEstudiantesComponent implements OnInit {
 
   formatDate(date: Date | string): string {
     try {
-      const d = typeof date === 'string' ? new Date(date) : date;
+      let d: Date;
+      if (typeof date === 'string') {
+        // Si es un string ISO, extraer año, mes y día y crear fecha en hora local
+        // para evitar problemas de zona horaria
+        if (date.includes('T')) {
+          const fechaStr = date.split('T')[0]; // YYYY-MM-DD
+          const [year, month, day] = fechaStr.split('-').map(Number);
+          d = new Date(year, month - 1, day); // month es 0-indexed
+        } else {
+          d = new Date(date);
+        }
+      } else {
+        d = date;
+      }
+      
       if (isNaN(d.getTime())) {
         return '—';
       }
@@ -462,6 +528,13 @@ export class ActividadesEstudiantesComponent implements OnInit {
     });
   }
 
+  /**
+   * Obtener la URL completa del archivo adjunto para descarga
+   */
+  getArchivoUrl(archivoPath: string | undefined): string | null {
+    return this.actividadesService.getArchivoUrl(archivoPath);
+  }
+
   cerrarDetalles(): void {
     this.actividadSeleccionada = null;
   }
@@ -474,7 +547,16 @@ export class ActividadesEstudiantesComponent implements OnInit {
     this.estaEditando = true;
     
     // Convertir fecha a formato para el datepicker
-    const fecha = typeof actividad.fecha === 'string' ? new Date(actividad.fecha) : actividad.fecha;
+    // Si viene como string ISO, parsearla correctamente para evitar problemas de zona horaria
+    let fecha: Date;
+    if (typeof actividad.fecha === 'string') {
+      // Si es un string ISO, extraer año, mes y día y crear fecha en hora local
+      const fechaStr = actividad.fecha.split('T')[0]; // YYYY-MM-DD
+      const [year, month, day] = fechaStr.split('-').map(Number);
+      fecha = new Date(year, month - 1, day); // month es 0-indexed
+    } else {
+      fecha = actividad.fecha;
+    }
     
     // Si hay un archivo adjunto, no podemos recuperar los archivos originales desde el ZIP guardado
     this.archivosSeleccionados = [];

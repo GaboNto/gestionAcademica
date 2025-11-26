@@ -3,6 +3,7 @@ import { HttpClient, HttpParams, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 const API_URL = 'http://localhost:3000/actividad-practica';
+const API_BASE_URL = 'http://localhost:3000';
 
 // Interfaz que coincide con el modelo de Prisma (lo que devuelve el backend)
 export interface Actividad {
@@ -50,6 +51,17 @@ export class ActividadesEstudiantesService {
   constructor(private http: HttpClient) {}
 
   /**
+   * Convertir fecha a formato YYYY-MM-DD usando hora local (sin conversión UTC)
+   * Esto evita problemas de zona horaria que causan que la fecha retroceda un día
+   */
+  private formatearFechaLocal(fecha: Date): string {
+    const year = fecha.getFullYear();
+    const month = (fecha.getMonth() + 1).toString().padStart(2, '0');
+    const day = fecha.getDate().toString().padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  /**
    * Obtener lista de actividades con filtros opcionales
    */
   listar(params?: QueryActividadParams): Observable<ActividadResponse> {
@@ -89,7 +101,8 @@ export class ActividadesEstudiantesService {
           : actividad.fecha)
       : new Date();
     
-    const fechaRegistro = fecha.toISOString().split('T')[0]; // YYYY-MM-DD
+    // Usar formato local para evitar problemas de zona horaria
+    const fechaRegistro = this.formatearFechaLocal(fecha); // YYYY-MM-DD
     
     // El backend mapea: titulo → nombre_actividad, descripcion → lugar, tallerista → horario, estudiante → estudiantes
     formData.append('titulo', actividad.nombre_actividad || '');
@@ -142,7 +155,8 @@ export class ActividadesEstudiantesService {
       const fecha = typeof actividad.fecha === 'string' 
         ? new Date(actividad.fecha) 
         : actividad.fecha;
-      const fechaRegistro = fecha.toISOString().split('T')[0];
+      // Usar formato local para evitar problemas de zona horaria
+      const fechaRegistro = this.formatearFechaLocal(fecha);
       formData.append('fechaRegistro', fechaRegistro);
     }
     
@@ -185,6 +199,25 @@ export class ActividadesEstudiantesService {
     }
     
     return new File([u8arr], filename, { type: mime });
+  }
+
+  /**
+   * Construir la URL completa del archivo adjunto
+   * @param archivoPath Ruta relativa del archivo (ej: uploads/actividades/archivo.zip)
+   * @returns URL completa para descargar el archivo
+   */
+  getArchivoUrl(archivoPath: string | undefined): string | null {
+    if (!archivoPath) return null;
+    
+    // Si ya es una URL completa, retornarla tal cual
+    if (archivoPath.startsWith('http://') || archivoPath.startsWith('https://')) {
+      return archivoPath;
+    }
+    
+    // Si es una ruta relativa, construir la URL completa
+    // Asegurarse de que la ruta comience con /uploads
+    const path = archivoPath.startsWith('/') ? archivoPath : `/${archivoPath}`;
+    return `${API_BASE_URL}${path}`;
   }
 }
 
