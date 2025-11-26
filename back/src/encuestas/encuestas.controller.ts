@@ -6,6 +6,7 @@ import {
   Param,
   Res,
   BadRequestException,
+  Patch,
 } from '@nestjs/common';
 import { EncuestasService } from './encuestas.service';
 import type { Response } from 'express';
@@ -67,4 +68,20 @@ export class EncuestasController {
   async exportExcel(@Res() res: Response) {
     return this.encuestasService.exportEncuestasEstudiantesExcel(res);
   }
+
+    // PATCH http://localhost:3000/encuestas/:id/abiertas
+  @Patch(':id/abiertas')
+  async actualizarAbiertas(
+    @Param('id') idParam: string,
+    @Body()
+    body: {
+      respuestas: { preguntaId: number; respuestaAbierta: string }[];
+    },
+  ) {
+    const id = Number(idParam);
+    if (isNaN(id)) throw new BadRequestException('ID inválido');
+
+    return this.encuestasService.actualizarRespuestasAbiertas(id, body);
+  }
+
 }

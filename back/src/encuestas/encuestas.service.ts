@@ -479,4 +479,53 @@ export class EncuestasService {
       data: respuestasToCreate,
     });
   }
+    async actualizarRespuestasAbiertas(
+    encuestaId: number,
+    body: { respuestas: { preguntaId: number; respuestaAbierta: string }[] },
+  ) {
+    const { respuestas } = body;
+
+    if (!respuestas || !respuestas.length) {
+      return { updated: 0 };
+    }
+
+    // Primero vemos si el id corresponde a estudiante o colaborador
+    const encuestaEst = await this.prisma.encuestaEstudiante.findUnique({
+      where: { id: encuestaId },
+      select: { id: true },
+    });
+
+    const encuestaCol = !encuestaEst
+      ? await this.prisma.encuestaColaborador.findUnique({
+          where: { id: encuestaId },
+          select: { id: true },
+        })
+      : null;
+
+    if (!encuestaEst && !encuestaCol) {
+      throw new NotFoundException('Encuesta no encontrada');
+    }
+
+    const whereBase: any = encuestaEst
+      ? { encuestaEstudianteId: encuestaId }
+      : { encuestaColaboradorId: encuestaId };
+
+    await this.prisma.$transaction(async (tx) => {
+      for (const r of respuestas) {
+        await tx.respuestaSeleccionada.updateMany({
+          where: {
+            ...whereBase,
+            preguntaId: r.preguntaId,
+          },
+          data: {
+            respuestaAbierta: r.respuestaAbierta ?? '',
+          },
+        });
+      }
+    });
+
+    return { updated: respuestas.length };
+  }
+
+  
 }
