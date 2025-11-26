@@ -5,6 +5,11 @@
   margin: 0 auto;
   padding: 1.5rem 1rem 3rem;
   box-sizing: border-box;
+
+  /* NUEVO: forzamos layout en columna y separación entre bloques */
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
 .header {
@@ -36,8 +41,13 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
+}
+
+/* Puedes mantener este margin si te gusta más espacio
+.registration-grid {
   margin-bottom: 1.5rem;
 }
+*/
 
 .elev {
   border-radius: 12px;
@@ -70,10 +80,29 @@
   }
 }
 
+/* ====== FILTROS DE BÚSQUEDA ====== */
+
+.filters-card {
+  /* al estar en un flex column, ya queda entre registration-grid y la lista */
+  /* pero le damos un poco de aire propio */
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+.filters-grid {
+  display: flex;
+  gap: 1rem;
+}
+
+.search-field {
+  flex: 1;
+}
+
 /* ====== LISTA DE ENCUESTAS ====== */
 
 .registered-list-card {
-  margin-top: 1rem;
+  /* antes: margin-top: 1rem; ahora no lo necesitamos porque el gap ya separa */
+  margin-top: 0;
 }
 
 .registered-item {
@@ -344,6 +373,10 @@
 
   .detail-grid {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .filters-grid {
+    flex-direction: column;
   }
 }
 

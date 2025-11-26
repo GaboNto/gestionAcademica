@@ -600,6 +600,40 @@ ngOnInit(): void {
     return est ? est.nombre : '';
   }
 
+  terminoBusqueda: string = '';
+
+get encuestasFiltradas() {
+  if (!this.encuestas || !this.encuestas.length) return [];
+
+  const termino = this.terminoBusqueda?.trim().toLowerCase();
+  if (!termino) return this.encuestas;
+
+  return this.encuestas.filter((e) => {
+    const tipo = (e.tipo || '').toString().toLowerCase();
+
+    const meta = e.metadata || {};
+    const nombreEstudiante = (meta['nombre_estudiante'] || '').toString().toLowerCase();
+    const nombreCentro =
+      (meta['nombre_centro'] || meta['nombre_colegio'] || '').toString().toLowerCase();
+    const nombreColaborador = (meta['nombre_colaborador'] || '').toString().toLowerCase();
+
+    // fecha como string por si viene como Date / ISO
+    const fecha = (e.fecha ? new Date(e.fecha).toISOString().slice(0, 10) : '').toLowerCase();
+
+    return (
+      tipo.includes(termino) ||
+      nombreEstudiante.includes(termino) ||
+      nombreCentro.includes(termino) ||
+      nombreColaborador.includes(termino) ||
+      fecha.includes(termino)
+    );
+  });
+}
+
+onFiltersChange() {
+}
+
+
   getDetailColumns(encuesta: EncuestaRegistro | null): string[] {
     if (!encuesta || !encuesta.metadata) return [];
     const ocultar = new Set(['respuestas', 'tipo', 'id', 'semestreId']);
