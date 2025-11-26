@@ -353,8 +353,6 @@ ngOnInit(): void {
       nombreEstudiante: ['', Validators.required],
       establecimiento: [''],
       fechaEvaluacion: [null],
-      nivelCursado: [''],
-      anio: [''],
       nombreTalleristaSupervisor: [''],
       nombreDocenteColaborador: [''],
 
@@ -442,7 +440,6 @@ ngOnInit(): void {
       nombreColaborador: ['', Validators.required],
       nombreEstudiantePractica: [''],
       centroEducativo: [''],
-      tipoPractica: [''],
       fechaEvaluacion: [null],
 
       secI: this.fb.group({
@@ -610,8 +607,6 @@ ngOnInit(): void {
         fechaEvaluacion: data.fechaEvaluacion
           ? new Date(data.fechaEvaluacion).toISOString()
           : new Date().toISOString(),
-        nivelCursado: data.nivelCursado,
-        anio: data.anio,
 
         nombreTalleristaSupervisor: tutorNombre,
         nombreTalleristaSupervisorId: tutorId,
@@ -656,7 +651,6 @@ ngOnInit(): void {
         nombreEstudiantePracticaLabel: estudianteNombre,
         centroEducativo: centroNombre,
         centroEducativoId: centroId,
-        tipoPractica: data.tipoPractica,
         fechaEvaluacion: data.fechaEvaluacion
           ? new Date(data.fechaEvaluacion).toISOString()
           : new Date().toISOString(),

@@ -181,19 +181,12 @@
             </mat-form-field>
 
             <mat-form-field appearance="outline" class="field">
-              <mat-label>Nivel de práctica cursado</mat-label>
-              <mat-select formControlName="nivelCursado">
-                <mat-option value="APOYO_I">Práctica Profesional Apoyo a la Docencia I</mat-option>
-                <mat-option value="APOYO_II">Práctica Profesional Apoyo a la Docencia II</mat-option>
-                <mat-option value="APOYO_III">Práctica Profesional Apoyo a la Docencia III</mat-option>
-                <mat-option value="PROFESIONAL">Práctica Profesional</mat-option>
-              </mat-select>
+              <mat-label>Fecha de evaluacion</mat-label>
+              <input matInput [matDatepicker]="pickerEst" formControlName="fechaEvaluacion" />
+              <mat-datepicker-toggle matSuffix [for]="pickerEst"></mat-datepicker-toggle>
+              <mat-datepicker #pickerEst></mat-datepicker>
             </mat-form-field>
 
-            <mat-form-field appearance="outline" class="field">
-              <mat-label>Año</mat-label>
-              <input matInput formControlName="anio" type="number" />
-            </mat-form-field>
           </div>
 
           <!-- ======================= SECCIONES ======================= -->
@@ -1051,15 +1044,6 @@
                 </mat-select>
               </mat-form-field>
 
-              <mat-form-field appearance="outline" class="field">
-                <mat-label>Tipo de práctica</mat-label>
-                <mat-select formControlName="tipoPractica">
-                  <mat-option value="I">Apoyo docencia I</mat-option>
-                  <mat-option value="II">Apoyo docencia II</mat-option>
-                  <mat-option value="III">Apoyo docencia III</mat-option>
-                  <mat-option value="PROFESIONAL">Práctica profesional</mat-option>
-                </mat-select>
-              </mat-form-field>
 
               <mat-form-field appearance="outline" class="field">
                 <mat-label>Fecha de evaluación</mat-label>
