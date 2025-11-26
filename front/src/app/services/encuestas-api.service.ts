@@ -60,4 +60,12 @@ export class EncuestasApiService {
   getTutores(): Observable<{ id: number; nombre: string }[]> {
     return this.http.get<{ id: number; nombre: string }[]>(`${API_URL}/tutores`);
   }
+
+  actualizarRespuestasAbiertas(
+    encuestaId: number | string,
+    payload: { respuestas: { preguntaId: number; respuestaAbierta: string }[] }
+  ): Observable<any> {
+    return this.http.patch(`${API_URL}/${encuestaId}/abiertas`, payload);
+  }
+  
 }

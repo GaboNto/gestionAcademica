@@ -106,7 +106,13 @@
             <mat-icon>visibility</mat-icon>
             Ver
           </button>
+
+          <button mat-stroked-button color="accent" (click)="editarEncuesta(e)">
+            <mat-icon>edit</mat-icon>
+            Editar
+          </button>
         </div>
+
 
         <div class="item-date">
           <mat-icon>calendar_today</mat-icon>
@@ -1425,6 +1431,75 @@
   </mat-card>
 
   <!-- ============= MODAL DETALLE ENCUESTA ============= -->
+
+  <!-- ============= MODAL EDICIÓN PREGUNTAS ABIERTAS ============= -->
+<mat-card class="elev detail-card custom-modal" *ngIf="encuestaEnEdicion">
+  <mat-card-header>
+    <mat-card-title>
+      Editar respuestas abiertas
+    </mat-card-title>
+    <mat-card-subtitle>
+      {{ mapTipoLabel(encuestaEnEdicion.tipo) }} — 
+      {{ encuestaEnEdicion.fecha | date: 'dd/MM/yyyy' }}
+    </mat-card-subtitle>
+
+    <button mat-icon-button class="close-btn" (click)="cancelarEdicion()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </mat-card-header>
+
+  <mat-card-content>
+    <p class="summary-info">
+      Solo se pueden editar las <strong>preguntas abiertas</strong>.  
+      Las preguntas de escala (1 a 5, Sí/No, etc.) quedan bloqueadas.
+    </p>
+
+    <div class="table-wrapper" *ngIf="respuestasAbiertasEditables.length; else noAbiertas">
+      <table class="detail-plain-table">
+        <thead>
+          <tr>
+            <th>Pregunta</th>
+            <th>Respuesta abierta</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let r of respuestasAbiertasEditables">
+            <td>
+              {{ mapPreguntaDescripcion(r.pregunta?.descripcion || ('Pregunta ' + r.preguntaId)) }}
+            </td>
+            <td>
+              <mat-form-field appearance="outline" class="full-width">
+                <textarea
+                  matInput
+                  rows="3"
+                  [(ngModel)]="r.respuestaAbierta">
+                </textarea>
+              </mat-form-field>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <ng-template #noAbiertas>
+      <p>No hay preguntas abiertas para editar en esta encuesta.</p>
+    </ng-template>
+  </mat-card-content>
+
+  <mat-card-actions align="end">
+    <button mat-stroked-button type="button" (click)="cancelarEdicion()">
+      <mat-icon>cancel</mat-icon>
+      Cancelar
+    </button>
+
+    <button mat-flat-button color="primary" type="button" (click)="guardarEdicionAbiertas()">
+      <mat-icon>save</mat-icon>
+      Guardar cambios
+    </button>
+  </mat-card-actions>
+</mat-card>
+
+
   <mat-card class="elev detail-card custom-modal" *ngIf="selectedEncuesta">
     <mat-card-header>
       <mat-card-title>Detalle Encuesta</mat-card-title>

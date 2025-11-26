@@ -1,20 +1,10 @@
 ﻿import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import {
-  FormBuilder,
-  FormGroup,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
+import {FormBuilder,FormGroup,ReactiveFormsModule,Validators,} from '@angular/forms';
 import { FormsModule } from '@angular/forms';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { HttpClientModule, HttpErrorResponse } from '@angular/common/http';
-import {
-  EncuestasApiService,
-  ApiEncuesta,
-} from '../../services/encuestas-api.service';
-
-// Angular Material
+import {EncuestasApiService,ApiEncuesta} from '../../services/encuestas-api.service';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -75,6 +65,19 @@ export class EncuestasComponent implements OnInit {
   // InyecciÃ³n moderna
   private fb = inject(FormBuilder);
 
+  private preguntasAbiertasEditablesKeys: string[] = [
+    // ESTUDIANTIL
+    'secIII_C.comentariosCentro',
+    'secIV_S.mejoraRolTallerista',
+    'secV.mejoraCoordinacion',
+    'comentariosAdicionales',
+
+    // COLABORADORES / JEFES
+    'sugerencias',
+    'cumplePerfilEgreso',
+    'comentariosAdicionales',
+  ];
+
   constructor(
     private snackBar: MatSnackBar,
     private encuestasApi: EncuestasApiService
@@ -83,6 +86,7 @@ export class EncuestasComponent implements OnInit {
   // UI / estado
   public tipoRegistroActivo: TipoEncuesta | null = null;
   public selectedEncuesta: EncuestaRegistro | null = null;
+  public encuestaEnEdicion: EncuestaRegistro | null = null;
   public isLoading: boolean = false;
 
   registroForm!: FormGroup;
@@ -140,6 +144,7 @@ export class EncuestasComponent implements OnInit {
     // --- COLABORADORES / JEFES UTP ---
 
     // SECCION I
+
     'secI.e1_planificacion': 'El profesor(a) en practica se rige por un sistema de planificacion que incluye calendarizaciones y planificacion semanal, la cual entrega en la fecha acordada.',
     'secI.e2_estructuraClase': 'Durante la realizacion de la clase sigue una estructura definida.',
     'secI.e3_secuenciaActividades': 'En las actividades que realiza hay una secuencia con introduccion, desarrollo y conclusion.',
@@ -202,6 +207,7 @@ export class EncuestasComponent implements OnInit {
     // ESTUDIANTIL - Sec III C (percepcion centro)
     'secIII_C.gratoAmbiente': 'Percibe un grato ambiente en el centro educativo.',
     'secIII_C.recomendarCentro': 'Recomendaria este centro educativo a otros practicantes?',
+    'secIII_C.comentariosCentro': 'Comentarios adicionales sobre el centro educativo.',
 
     // ESTUDIANTIL - Sec IV T (tallerista)
     'secIV_T.presentacionCentro': 'Presento adecuadamente el centro educativo al estudiante en practica.',
@@ -221,6 +227,7 @@ export class EncuestasComponent implements OnInit {
     'secIV_S.evaluaGlobal': 'Evalua globalmente el desempeno del practicante.',
     'secIV_S.resuelveProblemas': 'Ayuda a resolver problemas presentados en el centro.',
     'secIV_S.orientaGestionDos': 'Propone mejoras para el rol del tallerista/supervisor.',
+    'secIV_S.mejoraRolTallerista': 'Sugiere mejoras para el rol del tallerista/supervisor.',
 
     // ESTUDIANTIL - Sec V (coordinacion practicas)
     'secV.induccionesAcordes': 'Las inducciones iniciales fueron acordes a la practica.',
@@ -321,7 +328,7 @@ ngOnInit(): void {
     });
   }
 
-  // ---------- CARGA CATÃLOGOS ----------
+  // ---------- CARGA CATALOGOS ----------
   loadCatalogos(): void {
     this.isLoading = true;
     forkJoin({
@@ -535,16 +542,59 @@ ngOnInit(): void {
     this.tipoRegistroActivo = null;
   }
 
+  editarEncuesta(encuesta: EncuestaRegistro): void {
+    this.encuestaEnEdicion = JSON.parse(JSON.stringify(encuesta));
+    this.selectedEncuesta = null;
+  }
+
+  cancelarEdicion(): void {
+    this.encuestaEnEdicion = null;
+  }
+
+
   cerrarDetalles(): void {
     this.selectedEncuesta = null;
   }
+
+  guardarEdicionAbiertas(): void {
+  if (!this.encuestaEnEdicion) return;
+
+  const respuestas = this.respuestasAbiertasEditables.map(r => ({
+    preguntaId: r.preguntaId,
+    respuestaAbierta: r.respuestaAbierta ?? ''
+  }));
+
+  this.isLoading = true;
+
+  this.encuestasApi
+    .actualizarRespuestasAbiertas(this.encuestaEnEdicion.id, { respuestas })
+    .subscribe({
+      next: () => {
+        this.mostrarOk('Respuestas abiertas actualizadas correctamente.');
+        this.encuestaEnEdicion = null;
+        this.loadEncuestas();
+      },
+      error: (err: HttpErrorResponse) => {
+        console.error('Error al actualizar respuestas abiertas', err);
+        const msg =
+          err?.error?.message ??
+          `Error ${err.status} al actualizar respuestas.`;
+        this.mostrarError(msg);
+        this.isLoading = false;
+      },
+      complete: () => {
+        this.isLoading = false;
+      },
+    });
+}
+
 
   mapTipoLabel(tipo: TipoEncuesta | string): string {
     const found = this.tiposEncuesta.find((t) => t.value === tipo);
     return found ? found.label : (tipo as string);
   }
 
-    getNombreEstudiantePorRut(rut: string | null | undefined): string {
+  getNombreEstudiantePorRut(rut: string | null | undefined): string {
     if (!rut) return '';
     const est = this.estudiantes.find((e) => e.rut === rut);
     return est ? est.nombre : '';
@@ -556,13 +606,29 @@ ngOnInit(): void {
     return Object.keys(encuesta.metadata).filter((k) => !ocultar.has(k));
   }
 
+  get respuestasAbiertasEditables() {
+  if (!this.encuestaEnEdicion) return [];
+
+    return this.encuestaEnEdicion.respuestas.filter((r) => {
+      if (r.respuestaAbierta === undefined || r.respuestaAbierta === null) {
+        return false;
+      }
+
+      const key = r.pregunta?.descripcion;
+      if (!key) return false;
+
+      return this.preguntasAbiertasEditablesKeys.includes(key);
+    });
+  }
+
+
   private computeSemestre(fecha: Date | null | undefined): number | '' {
     if (!fecha || isNaN(fecha.getTime())) return '';
     const month = fecha.getMonth(); // 0-based
     return month <= 6 ? 1 : 2; // enero (0) a julio (6) es semestre 1
   }
 
-  // ---------- ENVÃO ----------
+  // ---------- ENVIO ----------
   onSubmitRegistro(): void {
     if (!this.registroForm) return;
     if (!this.tipoRegistroActivo) {
