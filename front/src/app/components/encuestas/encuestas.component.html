@@ -1499,7 +1499,7 @@
               </td>
 
               <td>
-                {{ r.alternativa?.descripcion || r.respuestaAbierta }}
+                {{ mapRespuestaValor(r.alternativa?.descripcion ?? r.respuestaAbierta) }}
               </td>
             </tr>
           </tbody>
