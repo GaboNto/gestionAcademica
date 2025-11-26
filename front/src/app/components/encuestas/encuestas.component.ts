@@ -35,7 +35,7 @@ export interface EncuestaRegistro {
   id: string;
   tipo: TipoEncuesta;
   fecha: Date;
-  origenArchivo: string;
+  origenArchivo?: string;
   metadata: { [key: string]: any };
   respuestas: {
     preguntaId: number;
@@ -292,21 +292,24 @@ ngOnInit(): void {
         this.encuestas = data.map((item) => {
           const { respuestas, tipo, ...rest } = item;
 
-          const tipoInferido: TipoEncuesta =
-            (tipo as TipoEncuesta) ??
-            ((item as any).nombre_estudiante
-              ? 'ESTUDIANTIL'
-              : 'COLABORADORES_JEFES');
+      const tipoInferido: TipoEncuesta =
+        (tipo as TipoEncuesta) ??
+        ((item as any).nombre_estudiante
+          ? 'ESTUDIANTIL'
+          : 'COLABORADORES_JEFES');
 
-          return {
-            id: (item.id ?? Math.random()).toString(),
-            tipo: tipoInferido,
-            fecha: item.fecha ? new Date(item.fecha) : new Date(),
-            origenArchivo: (item as any).origenArchivo ?? 'API (BD)',
-            metadata: rest,
-            respuestas: (respuestas as any[]) || [],
-          } as EncuestaRegistro;
-        });
+      const fechaObj = item.fecha ? new Date(item.fecha) : new Date();
+      const semestreCalc = this.computeSemestre(fechaObj);
+
+      return {
+        id: (item.id ?? Math.random()).toString(),
+        tipo: tipoInferido,
+        fecha: fechaObj,
+        origenArchivo: (item as any).origenArchivo ?? '',
+        metadata: { ...rest, fecha: fechaObj, semestre: semestreCalc },
+        respuestas: (respuestas as any[]) || [],
+      } as EncuestaRegistro;
+    });
 
         this.isLoading = false;
       },
@@ -552,9 +555,14 @@ ngOnInit(): void {
 
   getDetailColumns(encuesta: EncuestaRegistro | null): string[] {
     if (!encuesta || !encuesta.metadata) return [];
-    return Object.keys(encuesta.metadata).filter((k) =>
-      !['respuestas', 'tipo'].includes(k)
-    );
+    const ocultar = new Set(['respuestas', 'tipo', 'id', 'semestreId']);
+    return Object.keys(encuesta.metadata).filter((k) => !ocultar.has(k));
+  }
+
+  private computeSemestre(fecha: Date | null | undefined): number | '' {
+    if (!fecha || isNaN(fecha.getTime())) return '';
+    const month = fecha.getMonth(); // 0-based
+    return month <= 6 ? 1 : 2; // enero (0) a julio (6) es semestre 1
   }
 
   // ---------- ENVÃO ----------
@@ -719,6 +727,7 @@ ngOnInit(): void {
     });
   }
 }
+
 
 
 

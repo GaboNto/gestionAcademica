@@ -1456,7 +1456,6 @@
 
     <mat-card-content>
       <p class="summary-info">
-        <strong>Origen:</strong> {{ selectedEncuesta.origenArchivo }} |
         <strong>Respuestas:</strong> {{ selectedEncuesta.respuestas.length }}
       </p>
 
@@ -1471,7 +1470,14 @@
           <tbody>
             <tr *ngFor="let key of getDetailColumns(selectedEncuesta!)">
               <td><strong>{{ key }}</strong></td>
-              <td>{{ selectedEncuesta!.metadata[key] }}</td>
+              <td>
+                <ng-container *ngIf="key === 'fecha'; else plain">
+                  {{ selectedEncuesta!.metadata[key] | date: 'yyyy-MM-dd' }}
+                </ng-container>
+                <ng-template #plain>
+                  {{ selectedEncuesta!.metadata[key] }}
+                </ng-template>
+              </td>
             </tr>
           </tbody>
         </table>
