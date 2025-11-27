@@ -15,7 +15,7 @@
     <mat-card class="elev registration-card">
       <mat-card-header>
         <div mat-card-avatar class="card-icon-container">
-          <mat-icon>school</mat-icon>
+          <mat-icon>perm_identity</mat-icon>
         </div>
         <mat-card-title>Percepción estudiantil sobre el proceso de práctica</mat-card-title>
         <mat-card-subtitle>Evaluaciones de la experiencia de práctica</mat-card-subtitle>
@@ -64,8 +64,10 @@
       Filtros de búsqueda
     </mat-card-title>
   </mat-card-header>
+
   <mat-card-content>
-    <div class="filters-grid">
+    <div class="filters-row">
+      <!-- BÚSQUEDA -->
       <mat-form-field appearance="outline" class="search-field">
         <mat-label>Buscar encuestas</mat-label>
         <input
@@ -76,29 +78,37 @@
         />
         <mat-icon matSuffix>search</mat-icon>
       </mat-form-field>
+
+      <!-- ORDEN -->
+      <div class="order-inline">
+        <span class="order-label">Ordenar por:</span>
+
+        <button
+          mat-stroked-button
+          class="order-chip"
+          (click)="ordenarPor('fecha')"
+          [class.active]="orden.campo === 'fecha'">
+          <mat-icon class="order-icon">
+            {{ orden.campo === 'fecha' ? (orden.asc ? 'arrow_upward' : 'arrow_downward') : 'swap_vert' }}
+          </mat-icon>
+          Fecha
+        </button>
+
+        <button
+          mat-stroked-button
+          class="order-chip"
+          (click)="ordenarPor('nombre')"
+          [class.active]="orden.campo === 'nombre'">
+          <mat-icon class="order-icon">
+            {{ orden.campo === 'nombre' ? (orden.asc ? 'arrow_upward' : 'arrow_downward') : 'swap_vert' }}
+          </mat-icon>
+          Nombre
+        </button>
+      </div>
     </div>
   </mat-card-content>
 </mat-card>
 
-<!-- ORDENADOR -->
-<mat-card class="elev order-card">
-  <mat-card-content class="order-controls">
-    <button mat-stroked-button (click)="ordenarPor('fecha')">
-      Ordenar por Fecha
-      <mat-icon>{{ orden.campo === 'fecha' ? (orden.asc ? 'arrow_upward' : 'arrow_downward') : '' }}</mat-icon>
-    </button>
-
-    <button mat-stroked-button (click)="ordenarPor('nombre')">
-      Ordenar por Nombre
-      <mat-icon>{{ orden.campo === 'nombre' ? (orden.asc ? 'arrow_upward' : 'arrow_downward') : '' }}</mat-icon>
-    </button>
-
-    <button mat-stroked-button (click)="ordenarPor('tipo')">
-      Ordenar por Tipo
-      <mat-icon>{{ orden.campo === 'tipo' ? (orden.asc ? 'arrow_upward' : 'arrow_downward') : '' }}</mat-icon>
-    </button>
-  </mat-card-content>
-</mat-card>
 
 
   <!-- LISTA DE ENCUESTAS -->
@@ -109,7 +119,7 @@
       <div *ngFor="let e of encuestasFiltradas" class="registered-item">
         <div class="item-content">
           <mat-icon class="item-icon">
-            {{ e.tipo === 'ESTUDIANTIL' ? 'school' : 'groups' }}
+            {{ e.tipo === 'ESTUDIANTIL' ? 'perm_identity' : 'groups' }}
           </mat-icon>
 
           <div class="item-info">
@@ -1028,7 +1038,7 @@
                         class="scale-option">
                         {{ op.value }}
                       </mat-radio-button>
-                      <mat-radio-button value="NA" class="scale-option">N/O</mat-radio-button>
+                      <mat-radio-button value="NSA" class="scale-option">N/O</mat-radio-button>
                     </mat-radio-group>
                   </div>
                 </div>
@@ -1493,10 +1503,7 @@
   </mat-card-header>
 
   <mat-card-content>
-    <p class="summary-info">
-      Solo se pueden editar las <strong>preguntas abiertas</strong>.  
-      Las preguntas de escala (1 a 5, Sí/No, etc.) quedan bloqueadas.
-    </p>
+
 
     <div class="table-wrapper" *ngIf="respuestasAbiertasEditables.length; else noAbiertas">
       <table class="detail-plain-table">
@@ -1564,10 +1571,7 @@
       <div class="table-wrapper">
         <table class="detail-plain-table">
           <thead>
-            <tr>
-              <th>Campo</th>
-              <th>Valor</th>
-            </tr>
+
           </thead>
           <tbody>
             <tr *ngFor="let key of getDetailColumns(selectedEncuesta!)">
