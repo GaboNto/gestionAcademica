@@ -80,6 +80,25 @@
   </mat-card-content>
 </mat-card>
 
+<!-- ORDENADOR -->
+<mat-card class="elev order-card">
+  <mat-card-content class="order-controls">
+    <button mat-stroked-button (click)="ordenarPor('fecha')">
+      Ordenar por Fecha
+      <mat-icon>{{ orden.campo === 'fecha' ? (orden.asc ? 'arrow_upward' : 'arrow_downward') : '' }}</mat-icon>
+    </button>
+
+    <button mat-stroked-button (click)="ordenarPor('nombre')">
+      Ordenar por Nombre
+      <mat-icon>{{ orden.campo === 'nombre' ? (orden.asc ? 'arrow_upward' : 'arrow_downward') : '' }}</mat-icon>
+    </button>
+
+    <button mat-stroked-button (click)="ordenarPor('tipo')">
+      Ordenar por Tipo
+      <mat-icon>{{ orden.campo === 'tipo' ? (orden.asc ? 'arrow_upward' : 'arrow_downward') : '' }}</mat-icon>
+    </button>
+  </mat-card-content>
+</mat-card>
 
 
   <!-- LISTA DE ENCUESTAS -->

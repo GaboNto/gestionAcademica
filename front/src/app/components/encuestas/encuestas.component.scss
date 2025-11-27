@@ -354,6 +354,23 @@
     }
   }
 
+  .order-card {
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.order-controls {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.order-controls button {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
   .registered-item {
     grid-template-columns: minmax(0, 1fr);
     align-items: flex-start;
