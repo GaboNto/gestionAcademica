@@ -1,9 +1,5 @@
-import {
-  Injectable,
-  InternalServerErrorException,
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common';
+// Servicio de negocio para encuestas (NestJS + Prisma + Excel)
+import {Injectable,InternalServerErrorException,NotFoundException,BadRequestException} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import ExcelJS from 'exceljs';
 import { Response } from 'express';
@@ -15,8 +11,10 @@ export class EncuestasService {
   constructor(private readonly prisma: PrismaService) {}
 
   // -----------------------
-  //  LIST / DETAIL
+  //  LISTA / DETALLE
   // -----------------------
+
+  // Retorna todas las encuestas (estudiantes + colaboradores) normalizadas con "tipo"
   async findAll(): Promise<any[]> {
     try {
       const encEst = await this.prisma.encuestaEstudiante.findMany({
@@ -53,6 +51,7 @@ export class EncuestasService {
     }
   }
 
+  // Trae una encuesta por ID, buscando primero en estudiantes y luego en colaboradores
   async findOne(id: number): Promise<any> {
     if (!id || Number.isNaN(id)) throw new BadRequestException('ID inválido');
 
@@ -86,8 +85,9 @@ export class EncuestasService {
   }
 
   // -----------------------
-  //  CREATE (simple + guarda RespuestaSeleccionada)
-  //  Payload esperado: { tipo: 'ESTUDIANTIL' | 'COLABORADORES_JEFES', data: {...} }
+  //  CREATE
+  //  Payload: { tipo: 'ESTUDIANTIL' | 'COLABORADORES_JEFES', data: {...} }
+  //  Crea la encuesta y guarda todas las respuestas en RespuestaSeleccionada
   // -----------------------
   async create(payload: { tipo: TipoEncuesta; data: any }): Promise<any> {
     try {
@@ -100,7 +100,7 @@ export class EncuestasService {
       const { tipo, data } = payload;
 
       if (tipo === 'ESTUDIANTIL') {
-        // Mantenemos la lógica original (no la rompemos), sólo la envolvemos en una transacción
+        // Crea encuesta de estudiante + respuestas en una transacción
         return this.prisma.$transaction(async (tx) => {
           const created = await tx.encuestaEstudiante.create({
             data: {
@@ -111,13 +111,12 @@ export class EncuestasService {
               fecha: data.fechaEvaluacion
                 ? new Date(data.fechaEvaluacion)
                 : new Date(),
-              // 👇 IMPORTANTE: aquí sigues usando mejoraCoordinacion (que en el front mapeas desde comentariosAdicionales)
+              // observación se llena con mejoraCoordinacion (mapeada desde el front)
               observacion: data.mejoraCoordinacion ?? null,
               semestreId: data.semestreId ?? undefined,
             },
           });
 
-          // Guardar todas las respuestas en RespuestaSeleccionada
           await this.saveRespuestasGenericas(tx, {
             tipo,
             encuestaId: created.id,
@@ -129,11 +128,12 @@ export class EncuestasService {
       }
 
       if (tipo === 'COLABORADORES_JEFES') {
+        // Crea encuesta de colaborador + respuestas en una transacción
         return this.prisma.$transaction(async (tx) => {
           const createData: any = {
             nombre_colaborador: data.nombreColaborador ?? null,
             nombre_colegio: data.centroEducativo ?? null,
-            // 👇 IMPORTANTE: observación = Comentarios adicionales sobre la práctica
+            // observación = comentarios adicionales sobre la práctica
             observacion: data.comentariosAdicionalesPractica ?? null,
             semestreId: data.semestreId ?? undefined,
           };
@@ -146,7 +146,6 @@ export class EncuestasService {
             data: createData,
           });
 
-          // Guardar todas las respuestas en RespuestaSeleccionada
           await this.saveRespuestasGenericas(tx, {
             tipo,
             encuestaId: created.id,
@@ -166,7 +165,8 @@ export class EncuestasService {
   }
 
   // -----------------------
-  //  EXPORT TO EXCEL (estudiantes)
+  //  EXPORT TO EXCEL (encuestas estudiantes)
+  //  Genera un Excel con cabeceras básicas y resumen de respuestas
   // -----------------------
   async exportEncuestasEstudiantesExcel(response: Response): Promise<void> {
     try {
@@ -249,8 +249,10 @@ export class EncuestasService {
   }
 
   // -----------------------
-  //  CATALOGOS (for selects)
+  //  CATÁLOGOS (para selects en el front)
   // -----------------------
+
+  // Estudiantes (rut + nombre)
   async getCatalogoEstudiantes(): Promise<{ rut: string; nombre: string }[]> {
     try {
       const estudiantes = await this.prisma.estudiante.findMany({
@@ -265,6 +267,7 @@ export class EncuestasService {
     }
   }
 
+  // Centros educativos (básico)
   async getCatalogoCentros(): Promise<
     { id: number; nombre: string; comuna?: string; region?: string }[]
   > {
@@ -287,6 +290,7 @@ export class EncuestasService {
     }
   }
 
+  // Colaboradores (profesores)
   async getCatalogoColaboradores(): Promise<{ id: number; nombre: string }[]> {
     try {
       const cols = await this.prisma.colaborador.findMany({
@@ -306,6 +310,7 @@ export class EncuestasService {
     }
   }
 
+  // Tutores / supervisores
   async getCatalogoTutores(): Promise<{ id: number; nombre: string }[]> {
     try {
       const tutors = await this.prisma.tutor.findMany({
@@ -344,6 +349,7 @@ export class EncuestasService {
     }
   }
 
+  // Crea/encuentra preguntas y alternativas según el payload y guarda RespuestaSeleccionada
   private async saveRespuestasGenericas(
     tx: any,
     opts: {
@@ -357,7 +363,7 @@ export class EncuestasService {
     const raw: Record<string, any> = {};
 
     if (tipo === 'ESTUDIANTIL') {
-      // secciones de la encuesta de estudiantes
+      // Secciones de la encuesta de estudiantes
       this.flattenRespuestas('secI', data.secI, raw);
       this.flattenRespuestas('secII_A', data.secII_A, raw);
       this.flattenRespuestas('secII_B', data.secII_B, raw);
@@ -368,7 +374,7 @@ export class EncuestasService {
       this.flattenRespuestas('secIV_S', data.secIV_S, raw);
       this.flattenRespuestas('secV', data.secV, raw);
 
-      // campo abierto general
+      // Campo abierto general
       if (data.comentariosAdicionales) {
         raw['comentariosAdicionales'] = data.comentariosAdicionales;
       }
@@ -408,7 +414,7 @@ export class EncuestasService {
       const valStr = String(valor).trim();
       const valLower = valStr.toLowerCase();
 
-      // Heurística: qué consideramos pregunta abierta
+      // Heurística para decidir si la respuesta es abierta o cerrada
       const esAbierta =
         keyLower.includes('comentario') ||
         keyLower.includes('sugerencia') ||
@@ -418,7 +424,7 @@ export class EncuestasService {
         (typeof valor === 'string' &&
           !['1', '2', '3', '4', '5', 'na', 'si', 'no'].includes(valLower));
 
-      // 1. Buscamos o creamos la Pregunta por descripcion = clave
+      // 1. Buscar o crear Pregunta por descripción (clave)
       let pregunta = await tx.pregunta.findFirst({
         where: { descripcion: clave },
       });
@@ -426,7 +432,7 @@ export class EncuestasService {
       if (!pregunta) {
         pregunta = await tx.pregunta.create({
           data: {
-            descripcion: clave, // ej: "secI.e1_planificacion"
+            descripcion: clave,
             tipo: esAbierta ? 'ABIERTA' : 'CERRADA',
           },
         });
@@ -443,7 +449,7 @@ export class EncuestasService {
           respuestaAbierta: valStr,
         });
       } else {
-        // 2B. Respuesta cerrada (1–5, SI/NO, NA...)
+        // 2B. Respuesta cerrada (escala, sí/no, NA, etc.)
         let alternativa = await tx.alternativa.findFirst({
           where: {
             preguntaId: pregunta.id,
@@ -479,7 +485,9 @@ export class EncuestasService {
       data: respuestasToCreate,
     });
   }
-    async actualizarRespuestasAbiertas(
+
+  // Actualiza solo respuestas abiertas de una encuesta (estudiante o colaborador)
+  async actualizarRespuestasAbiertas(
     encuestaId: number,
     body: { respuestas: { preguntaId: number; respuestaAbierta: string }[] },
   ) {
@@ -489,7 +497,7 @@ export class EncuestasService {
       return { updated: 0 };
     }
 
-    // Primero vemos si el id corresponde a estudiante o colaborador
+    // Detecta si el id corresponde a estudiante o colaborador
     const encuestaEst = await this.prisma.encuestaEstudiante.findUnique({
       where: { id: encuestaId },
       select: { id: true },
@@ -526,6 +534,4 @@ export class EncuestasService {
 
     return { updated: respuestas.length };
   }
-
-  
 }

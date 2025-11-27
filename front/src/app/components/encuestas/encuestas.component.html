@@ -1543,7 +1543,6 @@
   </mat-card-actions>
 </mat-card>
 
-
   <mat-card class="elev detail-card custom-modal" *ngIf="selectedEncuesta">
     <mat-card-header>
       <mat-card-title>Detalle Encuesta</mat-card-title>
@@ -1592,7 +1591,6 @@
         y <strong>5</strong> es <em>muy satisfecho</em>.
       </p>
 
-
       <div class="table-wrapper" *ngIf="selectedEncuesta?.respuestas?.length; else noRespuestas">
         <table class="detail-plain-table">
           <thead>
@@ -1618,11 +1616,6 @@
 <ng-template #noRespuestas>
   <p>No hay respuestas registradas para esta encuesta.</p>
 </ng-template>
-
-
-
-
-      
     </mat-card-content>
   </mat-card>
 </div>
