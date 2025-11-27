@@ -426,7 +426,7 @@ ngOnInit(): void {
         evaluaGlobal: [''],
         resuelveProblemas: [''],
         orientaGestionDos: [''],
-        mejoraRolTallerista: [''], // aquÃ­ dentro del grupo
+        mejoraRolTallerista: [''],
       }),
 
       secV: this.fb.group({
@@ -602,33 +602,51 @@ ngOnInit(): void {
 
   terminoBusqueda: string = '';
 
-get encuestasFiltradas() {
-  if (!this.encuestas || !this.encuestas.length) return [];
+get encuestasFiltradas(): any[] {
+  if (!this.terminoBusqueda || !this.terminoBusqueda.trim()) {
+    return this.encuestas;
+  }
 
-  const termino = this.terminoBusqueda?.trim().toLowerCase();
-  if (!termino) return this.encuestas;
+  const termino = this.terminoBusqueda.trim().toLowerCase();
 
   return this.encuestas.filter((e) => {
-    const tipo = (e.tipo || '').toString().toLowerCase();
-
     const meta = e.metadata || {};
-    const nombreEstudiante = (meta['nombre_estudiante'] || '').toString().toLowerCase();
-    const nombreCentro =
-      (meta['nombre_centro'] || meta['nombre_colegio'] || '').toString().toLowerCase();
+
+    // Para encuestas estudiantiles
+    const rutEstudiante = (meta['nombre_estudiante'] || '').toString().toLowerCase();
+    const nombreEstudiante = (
+      this.getNombreEstudiantePorRut(meta['nombre_estudiante']) || ''
+    ).toString().toLowerCase();
+
+    // Para encuestas de colaboradores
     const nombreColaborador = (meta['nombre_colaborador'] || '').toString().toLowerCase();
 
-    // fecha como string por si viene como Date / ISO
-    const fecha = (e.fecha ? new Date(e.fecha).toISOString().slice(0, 10) : '').toLowerCase();
+    // También puedes considerar el nombre del centro
+    const nombreCentro = (
+      meta['nombre_centro'] ||
+      meta['nombre_colegio'] ||
+      ''
+    ).toString().toLowerCase();
+
+    // Tipo en texto (Estudiantil / Colaboradores y Jefes UTP)
+    const tipoLabel = (this.mapTipoLabel(e.tipo) || '').toLowerCase();
+
+    // Fecha en string
+    const fechaStr = e.fecha
+      ? new Date(e.fecha).toISOString().slice(0, 10).toLowerCase()
+      : '';
 
     return (
-      tipo.includes(termino) ||
+      rutEstudiante.includes(termino) ||
       nombreEstudiante.includes(termino) ||
-      nombreCentro.includes(termino) ||
       nombreColaborador.includes(termino) ||
-      fecha.includes(termino)
+      nombreCentro.includes(termino) ||
+      tipoLabel.includes(termino) ||
+      fechaStr.includes(termino)
     );
   });
 }
+
 
 onFiltersChange() {
 }
