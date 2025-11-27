@@ -129,11 +129,11 @@ export class EstudiantesComponent implements OnInit {
       APROBADO: 'Aprobado',
       REPROBADO: 'Reprobado',
     };
-    return estado ? map[estado] : 'Sin pr·ctica';
+    return estado ? map[estado] : 'Sin pr√°ctica';
   }
 
   formatearFecha(value?: string | null): string {
-    if (!value) return 'ó';
+    if (!value) return '-';
     const date = new Date(value);
     return isNaN(date.getTime()) ? value : date.toLocaleDateString('es-CL');
   }
@@ -154,14 +154,14 @@ export class EstudiantesComponent implements OnInit {
     y += 6;
     doc.text(`RUT: ${detalle.rut}`, 10, y);
     y += 6;
-    doc.text(`Carrera/Plan: ${detalle.plan || 'ó'}`, 10, y);
+    doc.text(`Carrera/Plan: ${detalle.plan || '-'}`, 10, y);
     y += 6;
-    doc.text(`Correo: ${detalle.email || 'ó'}`, 10, y);
+    doc.text(`Correo: ${detalle.email || '-'}`, 10, y);
     y += 6;
-    doc.text(`TelÈfono: ${detalle.fono || 'ó'}`, 10, y);
+    doc.text(`Tel√©fono: ${detalle.fono || '-'}`, 10, y);
     y += 8;
 
-    doc.text('Historial de pr·cticas:', 10, y);
+    doc.text('Historial de pr√°cticas:', 10, y);
     y += 6;
     if (detalle.practicas && detalle.practicas.length) {
       detalle.practicas.forEach((p) => {
@@ -181,7 +181,7 @@ export class EstudiantesComponent implements OnInit {
         }
       });
     } else {
-      doc.text('Sin pr·cticas registradas', 12, y);
+      doc.text('Sin pr√°cticas registradas', 12, y);
       y += 6;
     }
 
@@ -198,7 +198,7 @@ export class EstudiantesComponent implements OnInit {
         y += 6;
       });
       if (detalle.actividades.length > 10) {
-        doc.text(`... ${detalle.actividades.length - 10} m·s`, 12, y);
+        doc.text(`... ${detalle.actividades.length - 10} m√°s`, 12, y);
         y += 6;
       }
     } else {
@@ -208,4 +208,4 @@ export class EstudiantesComponent implements OnInit {
 
     doc.save(`estudiante_${detalle.rut}.pdf`);
   }
-}
+}

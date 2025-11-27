@@ -33,7 +33,7 @@
             </mat-form-field>
 
             <mat-form-field appearance="outline">
-              <mat-label>Estado de práctica</mat-label>
+              <mat-label>Estado de prÃ¡ctica</mat-label>
               <mat-select [(ngModel)]="estadoSeleccionado">
                 <mat-option value="all">Todos</mat-option>
                 <mat-option value="EN_CURSO">En curso</mat-option>
@@ -82,12 +82,12 @@
               <mat-chip color="primary" selected>{{ estadoLabel(s.estadoPractica) }}</mat-chip>
             </div>
             <div class="row-body">
-              <div><b>Carrera:</b> {{ s.plan || '—' }}</div>
-              <div><b>Correo:</b> {{ s.email || '—' }}</div>
-              <div><b>Teléfono:</b> {{ s.fono || '—' }}</div>
+              <div><b>Carrera:</b> {{ s.plan || '-' }}</div>
+              <div><b>Correo:</b> {{ s.email || '-' }}</div>
+              <div><b>TelÃ©fono:</b> {{ s.fono || '-' }}</div>
             </div>
             <div class="row-foot" *ngIf="s.ultimaPractica">
-              Última práctica: {{ formatearFecha(s.ultimaPractica?.fecha_inicio) }} -
+              Ãšltima prÃ¡ctica: {{ formatearFecha(s.ultimaPractica?.fecha_inicio) }} -
               {{ formatearFecha(s.ultimaPractica?.fecha_termino) }}
             </div>
           </div>
@@ -112,7 +112,7 @@
             <div class="detail-head">
               <div>
                 <h2>{{ detalle.nombre }}</h2>
-                <p>{{ detalle.rut }} · {{ detalle.plan || 'Sin plan' }}</p>
+                <p>{{ detalle.rut }} Â· {{ detalle.plan || 'Sin plan' }}</p>
               </div>
               <div class="detail-actions">
                 <button mat-raised-button color="primary" (click)="exportarPdf()">
@@ -125,22 +125,22 @@
             <div class="detail-section">
               <h4>Contacto</h4>
               <div class="grid2">
-                <div><b>Correo:</b> {{ detalle.email || '—' }}</div>
-                <div><b>Teléfono:</b> {{ detalle.fono || '—' }}</div>
-                <div><b>Dirección:</b> {{ detalle.direccion || '—' }}</div>
-                <div><b>Ingreso:</b> {{ detalle.anio_ingreso || '—' }}</div>
+                <div><b>Correo:</b> {{ detalle.email || '-' }}</div>
+                <div><b>TelÃ©fono:</b> {{ detalle.fono || '-' }}</div>
+                <div><b>DirecciÃ³n:</b> {{ detalle.direccion || '-' }}</div>
+                <div><b>Ingreso:</b> {{ detalle.anio_ingreso || '-' }}</div>
               </div>
             </div>
 
             <div class="detail-section">
-              <h4>Historial de prácticas</h4>
-              <div *ngIf="!detalle.practicas?.length" class="muted">Sin prácticas registradas.</div>
+              <h4>Historial de prÃ¡cticas</h4>
+              <div *ngIf="!detalle.practicas?.length" class="muted">Sin prÃ¡cticas registradas.</div>
               <div *ngFor="let p of detalle.practicas" class="pill-row">
                 <div>
-                  <strong>{{ estadoLabel(p.estado) }}</strong> ·
+                  <strong>{{ estadoLabel(p.estado) }}</strong> Â·
                   {{ formatearFecha(p.fecha_inicio) }} - {{ formatearFecha(p.fecha_termino) }}
                 </div>
-                <div class="muted">Centro: {{ p.centro?.nombre || '—' }}</div>
+                <div class="muted">Centro: {{ p.centro?.nombre || '-' }}</div>
               </div>
             </div>
 
@@ -149,7 +149,7 @@
               <div *ngIf="!detalle.actividades?.length" class="muted">Sin actividades asociadas.</div>
               <div *ngFor="let a of detalle.actividades" class="pill-row">
                 <div>
-                  <strong>{{ a.nombre_actividad }}</strong> · {{ formatearFecha(a.fecha) }}
+                  <strong>{{ a.nombre_actividad }}</strong> Â· {{ formatearFecha(a.fecha) }}
                 </div>
                 <div class="muted">{{ a.lugar || 'Sin lugar' }}</div>
               </div>
@@ -159,4 +159,4 @@
       </mat-card>
     </div>
   </div>
-</div>
+</div>
