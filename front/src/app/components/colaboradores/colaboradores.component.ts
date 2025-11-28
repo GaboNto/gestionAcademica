@@ -1,5 +1,5 @@
-﻿import { Component, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+﻿import { Component, inject, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 
 // Angular Material
@@ -61,6 +61,19 @@ export class ColaboradoresComponent implements OnInit {
 
   // Formulario reactivo
   formularioColaborador!: FormGroup;
+  
+  // Verificar si el usuario es jefatura (solo lectura)
+  get esJefatura(): boolean {
+    if (!isPlatformBrowser(this.platformId)) return false;
+    try {
+      const roleStr = localStorage.getItem('app.selectedRole');
+      if (!roleStr) return false;
+      const role = JSON.parse(roleStr);
+      return role?.id === 'jefatura';
+    } catch {
+      return false;
+    }
+  }
 
   // ===== paginación (back) =====
   pageIndex = 0;
@@ -197,8 +210,9 @@ export class ColaboradoresComponent implements OnInit {
   }
 
   // Interfaz de usuario
-  alternarFormulario() { 
-    if (this.soloLecturaVinculacion) return;
+  alternarFormulario() {
+    // Si es jefatura, no permitir abrir el formulario
+    if (this.esJefatura) return; 
     this.mostrarFormulario = !this.mostrarFormulario;
     if (!this.mostrarFormulario) {
       this.estaEditando = false;
@@ -291,7 +305,8 @@ export class ColaboradoresComponent implements OnInit {
 
   // Eliminar
   eliminar(c: Colaborador) {
-    if (this.soloLecturaVinculacion) return;
+    // Si es jefatura, no permitir eliminar
+    if (this.esJefatura) return;
     this.colaboradorAEliminar = c;
     this.mostrarConfirmarEliminar = true;
   }
@@ -387,7 +402,8 @@ export class ColaboradoresComponent implements OnInit {
 
   // Funciones de ediciÃ³n
   editarColaborador(colaborador: Colaborador) {
-    if (this.soloLecturaVinculacion) return;
+    // Si es jefatura, no permitir editar
+    if (this.esJefatura) return;
     this.estaEditando = true;
     this.colaboradorEditando = colaborador;
     this.colaboradorSeleccionado = null; // Cerrar modal

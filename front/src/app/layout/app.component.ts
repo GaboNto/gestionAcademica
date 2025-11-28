@@ -123,11 +123,14 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   /** Construye el menú del sidebar según funciones reales por rol */
   private buildNav(id: RoleId): NavItem[] {
     if (id === 'jefatura') {
-      // Reportes completos + Generar cartas + Supervisión general + Estudiantes en práctica + Usuarios
+      // Reportes completos + Generar cartas + Supervisión general + Estudiantes en práctica + Usuarios + Tutores + Colaboradores + Actividades (solo lectura)
       return [
         { label: 'Dashboard',          icon: 'dashboard',    route: '/dashboard' },
         { label: 'Usuarios',           icon: 'manage_accounts', route: '/usuarios' },
         { label: 'Estudiantes en práctica', icon: 'school',  route: '/estudiantes-en-practica' },
+        { label: 'Tutores',            icon: 'supervisor_account', route: '/tutores' },
+        { label: 'Colaboradores',      icon: 'groups',       route: '/colaboradores' },
+        { label: 'Actividades',        icon: 'assignment',   route: '/actividades-estudiantes' },
         { label: 'Supervisión general',icon: 'insights',     route: '/supervision' },
         { label: 'Reportes completos', icon: 'analytics',    route: '/reportes' },
         { label: 'Generar solicitud',  icon: 'description',  route: '/carta' }, // crea la ruta si aún no existe

@@ -11,7 +11,8 @@ import { EstudianteModule } from './estudiante/estudiante.module';
 import { CartaModule } from './carta/carta.module';
 import { TutorModule } from './tutor/tutor.module';
 import { PracticasModule } from './practicas/practicas.module';
-import { EncuestasModule } from './encuestas/encuestas.module';
+import { ActividadPracticaModule } from './actividad-practica/actividad-practica.module';
+
 
 @Module({
   imports: [
@@ -23,7 +24,7 @@ import { EncuestasModule } from './encuestas/encuestas.module';
     CartaModule,                 // Nuevo
     TutorModule,                 // Tutores (Supervisor / Tallerista)
     PracticasModule,             // Gestión de prácticas
-    EncuestasModule,
+    ActividadPracticaModule,
   ],
   controllers: [AppController],
   providers: [AppService],
