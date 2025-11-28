@@ -450,10 +450,8 @@ export class ActividadesEstudiantesComponent implements OnInit {
         archivoParaEnviar
       ).subscribe({
         next: (actividadActualizada) => {
-          const index = this.actividades.findIndex(a => a.id === actividadActualizada.id);
-          if (index !== -1) {
-            this.actividades[index] = actividadActualizada;
-          }
+          // Recargar las actividades para asegurar que los datos estén sincronizados
+          this.cargarActividades();
           this.snack.open(
             `✓ ${actividadActualizada.nombre_actividad} actualizada correctamente`,
             'Cerrar',
@@ -464,8 +462,6 @@ export class ActividadesEstudiantesComponent implements OnInit {
               panelClass: ['success-snackbar'],
             }
           );
-          this.cargando = false;
-          this.actualizarPaginacion();
           this.alternarFormulario();
         },
         error: (err) => {
@@ -535,6 +531,26 @@ export class ActividadesEstudiantesComponent implements OnInit {
    */
   getArchivoUrl(archivoPath: string | undefined): string | null {
     return this.actividadesService.getArchivoUrl(archivoPath);
+  }
+
+  /**
+   * Descargar archivo adjunto al hacer clic en el icono de evidencias
+   */
+  descargarArchivo(archivoPath: string): void {
+    const url = this.getArchivoUrl(archivoPath);
+    if (!url) {
+      this.snack.open('No se pudo obtener la URL del archivo', 'Cerrar', { duration: 3000 });
+      return;
+    }
+
+    // Crear un enlace temporal y hacer clic para descargar
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'archivos_adjuntos.zip';
+    link.target = '_blank';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   }
 
   cerrarDetalles(): void {

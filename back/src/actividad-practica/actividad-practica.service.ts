@@ -82,6 +82,7 @@ export class ActividadPracticaService {
   async update(id: number, dto: UpdateActividadPracticaDto) {
     const data: any = {};
 
+    if (dto.titulo !== undefined) data.nombre_actividad = dto.titulo;
     if (dto.ubicacion !== undefined) data.lugar = dto.ubicacion;
     if (dto.horario !== undefined) data.horario = dto.horario;
     if (dto.estudiante !== undefined) data.estudiantes = dto.estudiante;

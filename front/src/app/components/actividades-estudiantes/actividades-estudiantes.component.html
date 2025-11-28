@@ -97,7 +97,7 @@
 
               <mat-form-field appearance="outline" class="FormField">
                 <mat-label>Estudiantes</mat-label>
-                <input matInput formControlName="estudiantes" placeholder="Ej: Ana Torres, Carlos Sanchez, ..." />
+                <input matInput formControlName="estudiantes" placeholder="Ingrese estudiantes" />
               </mat-form-field>
             </div>
 
@@ -189,7 +189,7 @@
         <div class="TableHeader">
           <div class="HeaderCell HeaderCell--name">NOMBRE ACTIVIDAD</div>
           <div class="HeaderCell HeaderCell--date">FECHA</div>
-          <div class="HeaderCell HeaderCell--time">HORA</div>
+          <div class="HeaderCell HeaderCell--time">HORARIO</div>
           <div class="HeaderCell HeaderCell--location">UBICACIÓN</div>
           <div class="HeaderCell HeaderCell--students">ESTUDIANTES</div>
           <div class="HeaderCell HeaderCell--evidence">EVIDENCIAS</div>
@@ -205,7 +205,7 @@
             <div class="DateText">{{ formatDate(actividad.fecha) }}</div>
           </div>
           <div class="TableCell TableCell--time">
-            <div class="TimeText">{{ formatTime(actividad.fecha) }}</div>
+            <div class="TimeText">{{ actividad.horario || '—' }}</div>
           </div>
           <div class="TableCell TableCell--location">
             <div class="LocationText">{{ actividad.lugar || '—' }}</div>
@@ -215,7 +215,14 @@
           </div>
           <div class="TableCell TableCell--evidence">
             <div class="EvidenceText">
-              <mat-icon *ngIf="actividad.archivo_adjunto">attach_file</mat-icon>
+              <button 
+                mat-icon-button 
+                *ngIf="actividad.archivo_adjunto" 
+                (click)="descargarArchivo(actividad.archivo_adjunto!)"
+                title="Descargar archivos adjuntos"
+                style="padding: 0; width: 24px; height: 24px;">
+                <mat-icon style="font-size: 20px; width: 20px; height: 20px;">attach_file</mat-icon>
+              </button>
               <span *ngIf="!actividad.archivo_adjunto">—</span>
             </div>
           </div>
@@ -287,11 +294,6 @@
             </div>
 
             <div class="DetailItem">
-              <label>Hora:</label>
-              <span>{{ formatTime(actividadSeleccionada.fecha) }}</span>
-            </div>
-
-            <div class="DetailItem">
               <label>Horario:</label>
               <span>{{ actividadSeleccionada.horario || 'No especificado' }}</span>
             </div>
@@ -304,16 +306,6 @@
             <div class="DetailItem">
               <label>Estudiantes:</label>
               <span>{{ actividadSeleccionada.estudiantes || 'No especificados' }}</span>
-            </div>
-
-            <div class="DetailItem" *ngIf="actividadSeleccionada.archivo_adjunto">
-              <label>Archivos adjuntos:</label>
-              <span>
-                <a [href]="getArchivoUrl(actividadSeleccionada.archivo_adjunto)!" [download]="'archivos_adjuntos.zip'" target="_blank" rel="noopener noreferrer">
-                  <mat-icon style="vertical-align: middle; font-size: 18px; width: 18px; height: 18px;">download</mat-icon>
-                  Descargar ZIP con archivos
-                </a>
-              </span>
             </div>
           </div>
         </div>
