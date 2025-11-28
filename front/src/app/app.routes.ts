@@ -92,13 +92,6 @@ export const routes: Routes = [
       import('./components/actividades-estudiantes/actividades-estudiantes.component').then(m => m.ActividadesEstudiantesComponent),
   },
 
-  // Actividades para jefatura (solo lectura)
-  {
-    path: 'actividades',
-    loadComponent: () =>
-      import('./components/actividades-jefatura/actividades-jefatura.component').then(m => m.ActividadesJefaturaComponent),
-  },
-
   // Ruta por defecto → redirige a inicio
   { path: '**', redirectTo: '', pathMatch: 'full' },
 ];
