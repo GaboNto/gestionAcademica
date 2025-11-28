@@ -85,17 +85,15 @@ export class DashboardComponent implements OnInit {
         ...comunes
       ];
     }
-//Sprint 1 (revisado)
+
     if (id === 'vinculacion') {
       return [
-        { title: 'Centros educativos', icon: 'location_city', route: '/centros-educativos', desc: 'Centros educacionales registrados' },
-        { title: 'Colaboradores', icon: 'groups', route: '/colaboradores', desc: 'Colaboradores registrados' },
-        { title: 'Encuestas', icon: 'assignment', route: '/encuestas', desc: 'Formularios y evaluación' },
-        { title: 'Estudiantes', icon: 'school', route: '/estudiantes', desc: 'Estudiantes registrados' },
+        { title: 'Colegios', icon: 'location_city', route: '/colegios', desc: 'Administración de centros educacionales' },
+        { title: 'Colaboradores', icon: 'groups', route: '/colaboradores', desc: 'Alta, filtros y perfiles' },
         ...comunes
       ];
     }
- //Sprint 1 (revisado)
+ //Sprint 1 (solo este esta revisado)
     if (id === 'practicas') {
       return [
         { title: 'Estudiantes', icon: 'school', route: '/estudiantes', desc: 'Seguimiento asignado' },
