@@ -27,14 +27,14 @@
       <div class="FiltersGrid">
         <mat-form-field appearance="outline" class="SearchField">
           <mat-label>Buscar</mat-label>
-          <input matInput [(ngModel)]="terminoBusqueda" placeholder="Nombre, RUT o colegio..." />
+          <input matInput [(ngModel)]="terminoBusqueda" (ngModelChange)="onFiltersChange()" placeholder="Nombre, RUT o colegio..." />
           <mat-icon matSuffix>search</mat-icon>
         </mat-form-field>
         
         <!-- Nuevo filtro: Nivel (Plan) -->
         <mat-form-field appearance="outline" class="FilterField">
           <mat-label>Nivel</mat-label>
-          <mat-select [(ngModel)]="nivelSeleccionado">
+          <mat-select [(ngModel)]="nivelSeleccionado" (ngModelChange)="onFiltersChange()">
             <mat-option value="all">Todos los niveles</mat-option>
             @for (n of niveles; track n) {
               <mat-option [value]="n">{{ n }}</mat-option>
@@ -44,7 +44,7 @@
 
         <mat-form-field appearance="outline" class="FilterField">
           <mat-label>Tipo de Centro Educativo</mat-label>
-          <mat-select [(ngModel)]="colegioSeleccionado">
+          <mat-select [(ngModel)]="colegioSeleccionado" (ngModelChange)="onFiltersChange()">
             <mat-select-trigger>
               {{ colegioSeleccionado === 'all' ? 'Todos los tipos' : (colegioSeleccionado | lowercase) }}
             </mat-select-trigger>
@@ -297,8 +297,8 @@
   </div>
 
   <!-- LISTADO DE ASIGNACIONES -->
-  <div class="AssignmentsList">
-    @for (assignment of asignacionesFiltradas(); track assignment.id) {
+  <div class="AssignmentsList" *ngIf="totalItems > 0">
+    @for (assignment of asignacionesPaginadas; track assignment.id) {
       <mat-card class="AssignmentCard Elev">
         <mat-card-content>
           <div class="AssignmentContent">
@@ -373,8 +373,19 @@
     }
   </div>
 
+  <!-- PAGINADOR -->
+  <div class="list-paginator" *ngIf="totalItems > 0">
+    <mat-paginator
+      [length]="totalItems"
+      [pageIndex]="pageIndex"
+      [pageSize]="pageSize"
+      [pageSizeOptions]="pageSizeOptions"
+      (page)="onPageChange($event)">
+    </mat-paginator>
+  </div>
+
   <!-- MENSAJE VACÍO -->
-  @if (!asignacionesFiltradas().length) {
+  @if (totalItems === 0) {
     <mat-card class="EmptyCard Elev">
       <mat-card-content class="EmptyContent">
         <mat-icon>assignment_turned_in</mat-icon>

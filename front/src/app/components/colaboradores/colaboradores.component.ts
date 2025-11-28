@@ -1,5 +1,5 @@
-﻿import { Component, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+﻿import { Component, inject, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 
 // Angular Material
@@ -61,6 +61,19 @@ export class ColaboradoresComponent implements OnInit {
 
   // Formulario reactivo
   formularioColaborador!: FormGroup;
+  
+  // Verificar si el usuario es jefatura (solo lectura)
+  get esJefatura(): boolean {
+    if (!isPlatformBrowser(this.platformId)) return false;
+    try {
+      const roleStr = localStorage.getItem('app.selectedRole');
+      if (!roleStr) return false;
+      const role = JSON.parse(roleStr);
+      return role?.id === 'jefatura';
+    } catch {
+      return false;
+    }
+  }
 
   // ===== paginación (back) =====
   pageIndex = 0;
@@ -258,7 +271,7 @@ export class ColaboradoresComponent implements OnInit {
     this.colaboradoresService.crear(datosParaEnviar).subscribe({
       next: () => {
         this.snack.open(
-          `âœ“ ${datosParaEnviar.nombre} agregado correctamente`, 
+          `${datosParaEnviar.nombre} agregado correctamente`, 
           'Cerrar', 
           { 
             duration: 4000,
@@ -302,7 +315,7 @@ export class ColaboradoresComponent implements OnInit {
       this.colaboradoresService.eliminar(this.colaboradorAEliminar.id).subscribe({
         next: () => {
           this.snack.open(
-            `âœ“ ${this.colaboradorAEliminar!.nombre} eliminado exitosamente`, 
+            `${this.colaboradorAEliminar!.nombre} eliminado exitosamente`, 
             'Cerrar', 
             { 
               duration: 4000,

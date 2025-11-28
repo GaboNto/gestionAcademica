@@ -11,6 +11,9 @@ import { EstudianteModule } from './estudiante/estudiante.module';
 import { CartaModule } from './carta/carta.module';
 import { TutorModule } from './tutor/tutor.module';
 import { PracticasModule } from './practicas/practicas.module';
+import { ActividadPracticaModule } from './actividad-practica/actividad-practica.module';
+import { ActividadesModule } from './actividades/actividades.module';
+
 import { EncuestasModule } from './encuestas/encuestas.module';
 
 @Module({
@@ -23,6 +26,8 @@ import { EncuestasModule } from './encuestas/encuestas.module';
     CartaModule,                 // Nuevo
     TutorModule,                 // Tutores (Supervisor / Tallerista)
     PracticasModule,             // Gestión de prácticas
+    ActividadPracticaModule,
+    ActividadesModule,           // Listado de actividades (solo lectura para jefatura)
     EncuestasModule,
   ],
   controllers: [AppController],

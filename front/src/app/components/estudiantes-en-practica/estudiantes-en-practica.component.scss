@@ -384,6 +384,15 @@
 }
 
 /* Mensaje vacío */
+/* Paginador */
+.list-paginator {
+  padding: 8px 16px;
+  border-top: 1px solid #e5e7eb;
+  background: #fafafa;
+  border-radius: 0 0 14px 14px;
+  margin-top: 0;
+}
+
 .EmptyCard {
   margin-top: 24px;
   text-align: center;

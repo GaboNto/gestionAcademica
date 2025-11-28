@@ -179,6 +179,15 @@
 
 .DetailsBtn:hover { background-color: #f8fafc; border-color: #9ca3af; color: #374151; }
 
+/* Paginador */
+.list-paginator {
+  padding: 8px 16px;
+  border-top: 1px solid #e5e7eb;
+  background: #fafafa;
+  border-radius: 0 0 14px 14px;
+  margin-top: 0;
+}
+
 /* Mensaje vacío */
 .EmptyCard { margin-top: 24px; text-align: center; background: #f8fafc; }
 

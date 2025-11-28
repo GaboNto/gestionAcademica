@@ -13,6 +13,7 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 
 // Servicios
 import {
@@ -70,7 +71,8 @@ interface Practica {
     MatDatepickerModule,
     MatNativeDateModule,
     MatSnackBarModule,
-    MatAutocompleteModule
+    MatAutocompleteModule,
+    MatPaginatorModule
   ]
 })
 export class PracticasComponent {
@@ -85,6 +87,12 @@ export class PracticasComponent {
   terminoBusqueda = '';
   colegioSeleccionado: 'all' | string = 'all';
   nivelSeleccionado: 'all' | string = 'all';
+  
+  // ===== paginación =====
+  pageIndex = 0;
+  pageSize = 5;
+  totalItems = 0;
+  readonly pageSizeOptions = [5, 10, 20, 50];
 
   // Estado para modal de detalles
   practicaSeleccionada: Practica | null = null;
@@ -255,6 +263,7 @@ export class PracticasComponent {
       next: (practicas) => {
         this.practicas = practicas.map((p: any) => this.transformarPractica(p));
         this.recalcularNivelesDesdeDatos();
+        this.actualizarPaginacion();
         
         // Extraer RUTs de estudiantes con prácticas EN_CURSO
         const rutConPracticasEnCurso = new Set<string>();
@@ -333,6 +342,7 @@ export class PracticasComponent {
         this.practicas = practicas.map((p: any) => this.transformarPractica(p));
         this.recalcularNivelesDesdeDatos();
         this.actualizarEstudiantesDisponibles();
+        this.actualizarPaginacion();
       },
       error: (err) => {
         console.error('Error al cargar prácticas:', err);
@@ -425,7 +435,7 @@ export class PracticasComponent {
   practicas: Practica[] = [];
 
   // FILTROS
-  asignacionesFiltradas(): Practica[] {
+  get asignacionesFiltradas(): Practica[] {
     const termino = this.terminoBusqueda.toLowerCase().trim();
 
     return this.practicas.filter(practica => {
@@ -445,6 +455,35 @@ export class PracticasComponent {
 
       return coincideBusqueda && coincideColegio && coincideNivel;
     });
+  }
+
+  // ===== items paginados de los filtrados =====
+  get asignacionesPaginadas(): Practica[] {
+    const filtradas = this.asignacionesFiltradas;
+    const startIndex = this.pageIndex * this.pageSize;
+    const endIndex = startIndex + this.pageSize;
+    return filtradas.slice(startIndex, endIndex);
+  }
+
+  // Actualizar paginación cuando cambian los filtros o datos
+  actualizarPaginacion(): void {
+    this.totalItems = this.asignacionesFiltradas.length;
+    // Asegurar que pageIndex no exceda el número de páginas disponibles
+    const maxPage = Math.max(0, Math.ceil(this.totalItems / this.pageSize) - 1);
+    if (this.pageIndex > maxPage) {
+      this.pageIndex = maxPage;
+    }
+  }
+
+  onPageChange(event: PageEvent): void {
+    this.pageIndex = event.pageIndex;
+    this.pageSize = event.pageSize;
+    this.actualizarPaginacion();
+  }
+
+  onFiltersChange(): void {
+    this.pageIndex = 0;
+    this.actualizarPaginacion();
   }
 
   private recalcularNivelesDesdeDatos() {

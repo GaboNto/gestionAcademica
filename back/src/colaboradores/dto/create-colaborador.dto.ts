@@ -1,8 +1,11 @@
 import { IsEmail, IsNumber, IsOptional, IsString, Length, IsArray } from 'class-validator';
+import { IsRut } from 'src/validador/rut.validador';
 
 export class CreateColaboradorDto {
+
   @IsString()
   @Length(3, 20)
+  @IsRut({ message: 'El RUT no es válido' })
   rut: string;
 
   @IsString()
@@ -21,7 +24,6 @@ export class CreateColaboradorDto {
   @IsOptional() @IsString()
   cargo?: string;
 
-  // Nuevo: permitir múltiples cargos
   @IsOptional() @IsArray()
   @IsString({ each: true })
   cargos?: string[];

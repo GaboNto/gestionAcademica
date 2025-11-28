@@ -3,6 +3,7 @@ import { CreateColaboradorDto } from './dto/create-colaborador.dto';
 import { UpdateColaboradorDto } from './dto/update-colaborador.dto';
 import { QueryColaboradorDto } from './dto/query-colaborador.dto';
 import { PrismaService } from 'prisma/prisma.service';
+import { normalizeRut } from 'src/validador/rut.util';
 
 @Injectable()
 export class ColaboradoresService {
@@ -23,6 +24,7 @@ export class ColaboradoresService {
     return this.prisma.colaborador.create({
       data: {
         ...rest,
+        rut: normalizeRut(dto.rut),
         ...(cargosList.length ? { cargos: { create: cargosList } } : {}),
       },
       include: { cargos: true },
@@ -88,6 +90,10 @@ export class ColaboradoresService {
         : [];
 
       const { cargo, cargos, ...rest } = dto as any;
+      
+      if (rest.rut !== undefined) {
+        rest.rut = normalizeRut(rest.rut);
+      }
 
       return await this.prisma.colaborador.update({
         where: { id },
@@ -104,7 +110,6 @@ export class ColaboradoresService {
     }
   }
 
-  // Si prefieres borrado lógico, cambia por update({data:{activo:false}})
   async remove(id: number) {
     try {
       return await this.prisma.colaborador.delete({ where: { id } });

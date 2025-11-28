@@ -7,7 +7,7 @@
 
     <div class="Spacer"></div>
 
-    <button mat-flat-button color="primary" (click)="alternarFormulario()" class="BtnAdd">
+    <button mat-flat-button color="primary" (click)="alternarFormulario()" class="BtnAdd" *ngIf="!esJefatura">
       <mat-icon>{{ mostrarFormulario ? 'close' : 'person_add' }}</mat-icon>
       {{ mostrarFormulario ? 'Cerrar' : 'Agregar tutor' }}
     </button>
@@ -31,7 +31,7 @@
     </mat-card-content>
   </mat-card>
 
-  <div class="FormContainer" [class.FormOpen]="mostrarFormulario">
+  <div class="FormContainer" [class.FormOpen]="mostrarFormulario" *ngIf="!esJefatura">
     @if (mostrarFormulario) {
       <mat-card class="Elev FormCard">
         <mat-card-header class="FormHeader">
@@ -157,10 +157,10 @@
                 <button mat-icon-button color="accent" (click)="verDetalles(t)" title="Ver más información">
                   <mat-icon>visibility</mat-icon>
                 </button>
-                <button mat-icon-button color="primary" (click)="editarTutor(t)" title="Editar">
+                <button mat-icon-button color="primary" (click)="editarTutor(t)" title="Editar" *ngIf="!esJefatura">
                   <mat-icon>edit</mat-icon>
                 </button>
-                <button mat-icon-button color="warn" (click)="eliminar(t)" title="Eliminar">
+                <button mat-icon-button color="warn" (click)="eliminar(t)" title="Eliminar" *ngIf="!esJefatura">
                   <mat-icon>delete</mat-icon>
                 </button>
               </div>
@@ -243,7 +243,7 @@
 
         <div class="DialogActions">
           <button mat-stroked-button (click)="cerrarDetalles()">Cerrar</button>
-          <button mat-raised-button color="primary" (click)="editarTutor(tutorSeleccionado!)">
+          <button mat-raised-button color="primary" (click)="editarTutor(tutorSeleccionado!)" *ngIf="!esJefatura">
             <mat-icon>edit</mat-icon>
             Editar tutor
           </button>

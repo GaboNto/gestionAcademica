@@ -161,6 +161,7 @@
               matInput
               [matDatepicker]="dp3"
               formControlName="periodoFin"
+              [min]="minFechaFin"
               required
             />
             <mat-datepicker-toggle
@@ -180,28 +181,34 @@
         <mat-divider class="sep"></mat-divider>
 
         <!-- Configuración de carta -->
-        <div class="grid g2">
-          <mat-form-field appearance="outline">
-            <mat-label>Referencia de la carta</mat-label>
-            <input
-              matInput
-              formControlName="referencia"
-              placeholder="SOLICITUD DE AUTORIZACIÓN PARA PRÁCTICA"
-            />
-            <mat-hint>Se usará en la línea REF. del documento</mat-hint>
-          </mat-form-field>
+        <div class="grid g2 note-grid">
+          <div class="field-block">
+            <mat-form-field appearance="outline">
+              <mat-label>Referencia de la carta</mat-label>
+              <input
+                matInput
+                formControlName="referencia"
+                placeholder="SOLICITUD DE AUTORIZACION PARA PRACTICA"
+              />
+            </mat-form-field>
+            <small class="field-note">
+              Se usará en la línea REF. del documento
+            </small>
+          </div>
 
-          <mat-form-field appearance="outline">
-            <mat-label>Folio (opcional)</mat-label>
-            <input
-              matInput
-              formControlName="folioManual"
-              placeholder="Se usará en PHG N° ..."
-            />
-            <mat-hint>
+          <div class="field-block">
+            <mat-form-field appearance="outline">
+              <mat-label>Folio (opcional)</mat-label>
+              <input
+                matInput
+                formControlName="folioManual"
+                placeholder="Se usará en PHG N° ..."
+              />
+            </mat-form-field>
+            <small class="field-note">
               Si lo dejas vacío, se usará el folio autogenerado del sistema.
-            </mat-hint>
-          </mat-form-field>
+            </small>
+          </div>
         </div>
 
         <div class="grid g2">
