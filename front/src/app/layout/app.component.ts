@@ -130,7 +130,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
         { label: 'Estudiantes en práctica', icon: 'school',  route: '/estudiantes-en-practica' },
         { label: 'Tutores',            icon: 'supervisor_account', route: '/tutores' },
         { label: 'Colaboradores',      icon: 'groups',       route: '/colaboradores' },
-        { label: 'Actividades',        icon: 'assignment',   route: '/actividades' },
+        { label: 'Actividades',        icon: 'assignment',   route: '/actividades-estudiantes' },
         { label: 'Supervisión general',icon: 'insights',     route: '/supervision' },
         { label: 'Reportes completos', icon: 'analytics',    route: '/reportes' },
         { label: 'Generar solicitud',  icon: 'description',  route: '/carta' }, // crea la ruta si aún no existe
