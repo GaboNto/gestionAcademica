@@ -1,7 +1,545 @@
-h2 {
-  margin: 12px 0 16px;
+/* ===== LAYOUT GENERAL ===== */
+
+.container.section {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
-p {
+/* ===== HEADER SUPERIOR ===== */
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.headline h1 {
+  margin: 0;
+  font-size: 1.9rem;
+  font-weight: 600;
+}
+
+.headline .muted {
+  margin: 0.25rem 0 0;
+  font-size: 0.9rem;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.spacer {
+  flex: 1;
+}
+
+.header button[mat-flat-button] {
+  border-radius: 999px;
+  padding-inline: 1.4rem;
+}
+
+/* ===== TARJETAS DE REGISTRO (ARRIBA) ===== */
+
+.registration-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.2rem;
+}
+
+.registration-card {
+  border-radius: 1rem;
+  padding-bottom: 0.25rem;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border 0.15s ease;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.registration-card mat-card-header {
+  align-items: flex-start;
+}
+
+.card-icon-container {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  background: rgba(25, 118, 210, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-icon-container mat-icon {
+  font-size: 22px;
+}
+
+.green-card .card-icon-container {
+  background: rgba(46, 125, 50, 0.08);
+}
+
+.registration-card mat-card-title {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.registration-card mat-card-subtitle {
+  font-size: 0.85rem;
+}
+
+.registration-card mat-card-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0.5rem 1rem 1rem;
+}
+
+.registration-card button {
+  border-radius: 999px;
+}
+
+.registration-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+}
+
+/* ===== FILTROS Y ORDEN ===== */
+
+.filters-card,
+.registered-list-card {
+  border-radius: 1rem;
+}
+
+.filters-card mat-card-header mat-card-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.filters-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+  margin-top: 0.25rem;
+}
+
+.search-field {
+  flex: 1;
+  min-width: 280px;
+}
+
+/* contenedor de los botones de orden */
+.order-inline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  margin-top: -12px;
+  justify-content: flex-end;
+}
+
+.order-label {
+  font-size: 0.85rem;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+/* estilo tipo “chip” para los botones de orden */
+.order-chip {
+  border-radius: 999px;
+  padding: 0.25rem 0.9rem;
+  font-size: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.order-icon {
+  font-size: 16px;
+  height: 16px;
+  width: 16px;
+}
+
+/* activo */
+.order-chip.active {
+  background: #e3f2fd;
+  border-color: #90caf9;
+  color: #1565c0;
+}
+
+/* ===== LISTA DE ENCUESTAS ===== */
+
+.registered-list-card {
+  padding: 1.25rem 1.5rem 1.5rem;
+  border-radius: 1rem;
+}
+
+.registered-list-card mat-card-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+/* Ítem de la lista */
+.registered-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.75rem 1.5rem;
+  align-items: flex-start;
+  padding: 1.1rem 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  transition: background 0.15s ease;
+}
+
+.registered-item:hover {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.registered-item:last-child {
+  border-bottom: none;
+}
+
+/* Contenido principal izquierda */
+.item-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+/* Ícono del tipo (estudiante / colaborador) */
+.item-icon {
+  font-size: 2rem;
+  width: 36px;
+  height: 36px;
+  color: #1976d2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(25, 118, 210, 0.08);
+  border-radius: 8px;
+}
+
+/* Textos */
+.item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.item-title {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.item-metadata {
+  font-size: 0.85rem;
+  color: #444;
+  line-height: 1.2rem;
+}
+
+/* Botones Ver / Editar (columna derecha, arriba) */
+.item-actions {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  gap: 0.4rem;
+}
+
+.item-actions button {
+  border-radius: 999px !important;
+  padding: 0 1rem;
+  height: 36px;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.item-actions mat-icon {
+  font-size: 18px;
+}
+
+/* Fecha debajo de los botones, alineada a la derecha */
+.item-date {
+  grid-column: 2 / 3;
+  justify-self: end;
+  margin-right: 3rem;
+  margin-top: -1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.85rem;
   color: #555;
+}
+
+.item-date mat-icon {
+  font-size: 18px;
+}
+
+/* Estado vacío */
+
+.empty-state {
+  padding: 1.25rem 0 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.empty-state mat-icon {
+  font-size: 1.5rem;
+}
+
+/* ===== MODALES (REGISTRO / DETALLE / EDICIÓN) ===== */
+
+.custom-modal {
+  position: fixed;
+  top: 3rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 96%;
+  max-width: 1300px;
+  max-height: 90vh;
+  margin: 0 auto;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  border-radius: 1.2rem;
+  background: #ffffff;
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+}
+
+/* Header del modal pegado arriba cuando se hace scroll */
+.custom-modal .mat-mdc-card-header,
+.custom-modal mat-card-header {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.custom-modal .mat-card-header {
+  padding-bottom: 0.5rem;
+}
+
+.custom-modal .close-btn {
+  margin-left: auto;
+}
+
+/* Contenido interno (registro + detalle) con scroll */
+.custom-modal mat-card-content,
+.custom-modal .modal-content {
+  padding-top: 0.5rem;
+  padding-bottom: 0.75rem;
+  overflow-y: auto;
+  max-height: calc(90vh - 140px);
+}
+
+/* Para el formulario de registro usamos además layout en columna */
+.custom-modal .modal-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* ===== OVERLAY GENERAL CUANDO HAY MODAL ===== */
+
+.container.section::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 900;
+  transition: opacity 0.2s ease;
+}
+
+.container.section:has(.custom-modal)::before {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ===== FORMULARIOS ===== */
+
+.form-title {
+  margin: 1.5rem 0 0.75rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+/* mat-form-field ocupando todo el ancho de su celda */
+.field,
+.full-width,
+.custom-modal .mat-form-field {
+  width: 100%;
+}
+
+/* Preguntas y escalas */
+
+.question-list-group {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 0.75rem 0 0.25rem;
+}
+
+/* Pregunta a la izquierda, escala a la derecha */
+.question-row {
+  display: grid;
+  grid-template-columns: minmax(0, 2.2fr) minmax(0, 1.2fr);
+  gap: 1rem;
+  align-items: center;
+}
+
+.question-label {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.answer-scale {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.scale-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.scale-option {
+  min-width: 38px;
+}
+
+/* campos select / textarea */
+
+.answer-field {
+  width: 100%;
+}
+
+/* Comentarios/áreas de texto en una fila completa */
+.full-width {
+  grid-column: 1 / -1;
+}
+
+/* Bloque perfil de egreso */
+
+.perfil-egreso {
+  margin: 1.5rem 0;
+  padding: 1rem 1.25rem;
+  border-radius: 0.8rem;
+  background: #f5f7fb;
+  border: 1px solid rgba(25, 118, 210, 0.12);
+}
+
+.perfil-egreso h3 {
+  margin-top: 0;
+  margin-bottom: 0.4rem;
+}
+
+.perfil-egreso p,
+.perfil-egreso li {
+  font-size: 0.9rem;
+}
+
+/* Tablas de detalle */
+
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.detail-plain-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.detail-plain-table th,
+.detail-plain-table td {
+  padding: 0.5rem 0.6rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.detail-plain-table th {
+  text-align: left;
+  font-weight: 600;
+}
+
+/* Info de resumen */
+
+.summary-info,
+.detail-scale-info {
+  font-size: 0.85rem;
+  color: rgba(0, 0, 0, 0.74);
+}
+
+/* Acciones en tarjetas */
+
+mat-card-actions {
+  padding: 0.75rem 1.5rem 1rem;
+}
+
+/* ===== RESPONSIVE ===== */
+
+@media (max-width: 960px) {
+  .registration-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .form-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .question-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .registered-item {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .custom-modal {
+    width: 96%;
+    top: 2rem;
+  }
+
+  .item-date {
+    grid-column: 1 / -1;
+    justify-self: flex-start;
+    margin-right: 0;
+    margin-top: 0.25rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .container.section {
+    padding-inline: 1rem;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .spacer {
+    display: none;
+  }
+
+  .order-inline {
+    justify-content: flex-start;
+  }
+
+  .item-actions {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
 }

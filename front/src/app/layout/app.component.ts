@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, AfterViewInit, PLATFORM_ID } from '@angular/core';
+import { Component, inject, OnInit, AfterViewInit, PLATFORM_ID, OnDestroy, ViewChild } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Router, RouterModule, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
@@ -36,9 +36,14 @@ interface NavItem { label: string; icon: string; route: string; }
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
-export class AppComponent implements OnInit, AfterViewInit {
+export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   private router = inject(Router);
   private platformId = inject(PLATFORM_ID);
+  @ViewChild(MatSidenav) sidenav?: MatSidenav;
+  private closeSidenavListener = () => {
+    this.isSidenavOpened = false;
+    this.sidenav?.close();
+  };
 
   isSidenavOpened = true;
   appTitle = 'Sistema de Prácticas';
@@ -53,6 +58,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   ngOnInit(): void {
     this.applyRole('practicas'); // fallback visual para SSR
     if (isPlatformBrowser(this.platformId)) {
+      window.addEventListener('app:close-sidenav', this.closeSidenavListener);
       this.loadRoleFromStorage();
       // Suscribirse a cambios de navegación para detectar cuando se selecciona un nuevo rol
       this.router.events
@@ -90,11 +96,18 @@ export class AppComponent implements OnInit, AfterViewInit {
   }
 
   // ------- UI -------
+  onSidenavChange(opened: boolean) { this.isSidenavOpened = opened; }
   toggleSidenav(sidenav: MatSidenav) { sidenav.toggle(); }
 
   logout() {
     if (isPlatformBrowser(this.platformId)) localStorage.removeItem('app.selectedRole');
     this.router.navigateByUrl('/');
+  }
+
+  ngOnDestroy(): void {
+    if (isPlatformBrowser(this.platformId)) {
+      window.removeEventListener('app:close-sidenav', this.closeSidenavListener);
+    }
   }
 
   // ------- Helpers -------
@@ -124,8 +137,11 @@ export class AppComponent implements OnInit, AfterViewInit {
     if (id === 'vinculacion') {
       // Registrar encuestas
       return [
-        { label: 'Dashboard',  icon: 'dashboard',  route: '/dashboard' },
-        { label: 'Encuestas',  icon: 'assignment', route: '/encuestas'  },
+        { label: 'Dashboard',          icon: 'dashboard',          route: '/dashboard' },
+        { label: 'Encuestas',          icon: 'assignment',         route: '/encuestas' },
+        { label: 'Estudiantes',        icon: 'school',             route: '/estudiantes' },
+        { label: 'Colaboradores',      icon: 'groups',             route: '/colaboradores' },
+        { label: 'Centros educativos', icon: 'domain',             route: '/centros-educativos' },
       ];
     }
 
