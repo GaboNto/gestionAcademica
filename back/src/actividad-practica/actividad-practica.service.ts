@@ -23,8 +23,8 @@ export class ActividadPracticaService {
     const actividad = await this.prisma.actividad.create({
       data: {
         nombre_actividad: dto.titulo,
-        lugar: dto.descripcion,
-        horario: dto.tallerista,
+        lugar: dto.ubicacion,
+        horario: dto.horario,
         estudiantes: dto.estudiante,
         fecha,
         mes, 
@@ -82,9 +82,8 @@ export class ActividadPracticaService {
   async update(id: number, dto: UpdateActividadPracticaDto) {
     const data: any = {};
 
-    if (dto.titulo !== undefined) data.nombre_actividad = dto.titulo;
-    if (dto.descripcion !== undefined) data.lugar = dto.descripcion;
-    if (dto.tallerista !== undefined) data.horario = dto.tallerista;
+    if (dto.ubicacion !== undefined) data.lugar = dto.ubicacion;
+    if (dto.horario !== undefined) data.horario = dto.horario;
     if (dto.estudiante !== undefined) data.estudiantes = dto.estudiante;
     if (dto.evidenciaUrl !== undefined) data.archivo_adjunto = dto.evidenciaUrl;
 
