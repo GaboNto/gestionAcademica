@@ -1,6 +1,14 @@
-<mat-sidenav-container class="shell">
+<mat-sidenav-container
+  class="shell"
+  [class.shell--open]="isSidenavOpened"
+  [style.--side-offset.px]="isSidenavOpened ? 260 : 0">
   <!-- SIDEBAR -->
-  <mat-sidenav #sidenav class="side" mode="side" [opened]="isSidenavOpened">
+  <mat-sidenav
+    #sidenav
+    class="side"
+    mode="side"
+    [opened]="isSidenavOpened"
+    (openedChange)="onSidenavChange($event)">
     <!-- Usuario -->
     <div class="side__header">
       <div class="avatar"><mat-icon>{{ user.icon }}</mat-icon></div>

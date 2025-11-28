@@ -433,7 +433,7 @@ export class ColaboradoresComponent {
     this.colaboradoresService.actualizar(colaboradorOriginal.id, datosParaEnviar).subscribe({
       next: () => {
         this.snack.open(
-          `âœ“ ${datosParaEnviar.nombre} actualizado exitosamente`, 
+          `Colaborador "${datosParaEnviar.nombre}" actualizado exitosamente`, 
           'Cerrar', 
           { 
             duration: 4000,
