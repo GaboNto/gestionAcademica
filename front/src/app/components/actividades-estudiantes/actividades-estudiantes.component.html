@@ -205,7 +205,7 @@
             <div class="DateText">{{ formatDate(actividad.fecha) }}</div>
           </div>
           <div class="TableCell TableCell--time">
-            <div class="TimeText">{{ formatTime(actividad.fecha) }}</div>
+            <div class="TimeText">{{ formatHorario(actividad) }}</div>
           </div>
           <div class="TableCell TableCell--location">
             <div class="LocationText">{{ actividad.lugar || '—' }}</div>
@@ -288,7 +288,7 @@
 
             <div class="DetailItem">
               <label>Hora:</label>
-              <span>{{ formatTime(actividadSeleccionada.fecha) }}</span>
+              <span>{{ formatHorario(actividadSeleccionada) }}</span>
             </div>
 
             <div class="DetailItem">
