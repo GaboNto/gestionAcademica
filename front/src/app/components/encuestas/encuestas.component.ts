@@ -499,6 +499,7 @@ export class EncuestasComponent implements OnInit {
   // ---------- UI / FORM CONTROL ----------
   // Inicializa el formulario según el tipo de encuesta
   iniciarRegistro(tipo: TipoEncuesta): void {
+    this.requestCloseSidenav();
     this.tipoRegistroActivo = tipo;
     this.selectedEncuesta = null;
 
@@ -548,6 +549,12 @@ export class EncuestasComponent implements OnInit {
       const ctrl = this.registroForm.get(c);
       if (ctrl) ctrl.disable();
     });
+  }
+
+  private requestCloseSidenav(): void {
+    if (typeof window !== 'undefined' && typeof window.dispatchEvent === 'function') {
+      window.dispatchEvent(new CustomEvent('app:close-sidenav'));
+    }
   }
 
   // Cierra modal de registro y resetea formulario
