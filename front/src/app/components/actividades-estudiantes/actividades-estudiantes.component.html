@@ -309,7 +309,7 @@
             <div class="DetailItem" *ngIf="actividadSeleccionada.archivo_adjunto">
               <label>Archivos adjuntos:</label>
               <span>
-                <a [href]="actividadSeleccionada.archivo_adjunto" [download]="'archivos_adjuntos.zip'" target="_blank" rel="noopener noreferrer">
+                <a [href]="getArchivoUrl(actividadSeleccionada.archivo_adjunto)!" [download]="'archivos_adjuntos.zip'" target="_blank" rel="noopener noreferrer">
                   <mat-icon style="vertical-align: middle; font-size: 18px; width: 18px; height: 18px;">download</mat-icon>
                   Descargar ZIP con archivos
                 </a>
@@ -352,4 +352,3 @@
     </div>
   </div>
 </div>
-
