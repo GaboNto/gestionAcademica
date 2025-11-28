@@ -1,4 +1,4 @@
-﻿import { Component, inject, PLATFORM_ID } from '@angular/core';
+﻿import { Component, inject} from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 
@@ -11,7 +11,6 @@ import { MatInputModule }  from '@angular/material/input';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { OnInit, PLATFORM_ID } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
 
 // Servicios y tipos
 import { ColaboradoresService, Colaborador } from '../../services/colaboradores.service';
