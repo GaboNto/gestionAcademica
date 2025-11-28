@@ -1,4 +1,4 @@
-ï»¿// Componente principal de gestiÃ³n de encuestas (estudiantiles y colaboradores)
+// Componente principal de gestión de encuestas (estudiantiles y colaboradores)
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
@@ -20,7 +20,7 @@ import { RouterLink } from '@angular/router';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { forkJoin } from 'rxjs';
 
-// Tipos de encuesta manejados por el mÃ³dulo
+// Tipos de encuesta manejados por el módulo
 export type TipoEncuesta = 'ESTUDIANTIL' | 'COLABORADORES_JEFES';
 
 // Estructura interna para mostrar encuestas en la UI
@@ -65,7 +65,7 @@ export interface EncuestaRegistro {
   providers: [EncuestasApiService],
 })
 export class EncuestasComponent implements OnInit {
-  // InyecciÃ³n moderna de FormBuilder
+  // Inyección moderna de FormBuilder
   private fb = inject(FormBuilder);
 
   // Claves de preguntas abiertas que se pueden editar posteriormente
@@ -97,7 +97,7 @@ export class EncuestasComponent implements OnInit {
   registroForm!: FormGroup;
   encuestas: EncuestaRegistro[] = [];
 
-  // CatÃ¡logos para selects
+  // Catálogos para selects
   estudiantes: { rut: string; nombre: string }[] = [];
   centros: { id: number; nombre: string; comuna?: string; region?: string }[] =
     [];
@@ -137,7 +137,7 @@ export class EncuestasComponent implements OnInit {
   ];
 
   tiposEncuesta = [
-    { value: 'ESTUDIANTIL' as TipoEncuesta, label: 'PercepciÃ³n estudiantil' },
+    { value: 'ESTUDIANTIL' as TipoEncuesta, label: 'Percepción estudiantil' },
     {
       value: 'COLABORADORES_JEFES' as TipoEncuesta,
       label: 'Colaboradores / Jefes UTP',
@@ -242,7 +242,7 @@ export class EncuestasComponent implements OnInit {
     'secV.mejoraCoordinacion':'Sugiere mejoras para la coordinacion de practicas.',
   };
 
-  // Diccionarios para mostrar textos descriptivos en vez de cÃ³digos
+  // Diccionarios para mostrar textos descriptivos en vez de códigos
   private escala5Texto: Record<string, string> = {
     NA: 'No aplica',
     '1': 'Muy insatisfecho',
@@ -340,7 +340,7 @@ export class EncuestasComponent implements OnInit {
     });
   }
 
-  // ---------- CARGA CATÃLOGOS ----------
+  // ---------- CARGA CATÁLOGOS ----------
   // Carga en paralelo estudiantes, centros, colaboradores y tutores
   loadCatalogos(): void {
     this.isLoading = true;
@@ -358,9 +358,9 @@ export class EncuestasComponent implements OnInit {
         this.isLoading = false;
       },
       error: (err) => {
-        console.error('Error cargando catÃ¡logos', err);
+        console.error('Error cargando catálogos', err);
         this.mostrarError(
-          'No fue posible cargar catÃ¡logos (estudiantes/centros).'
+          'No fue posible cargar catálogos (estudiantes/centros).'
         );
         this.isLoading = false;
       },
@@ -497,7 +497,7 @@ export class EncuestasComponent implements OnInit {
   }
 
   // ---------- UI / FORM CONTROL ----------
-  // Inicializa el formulario segÃºn el tipo de encuesta
+  // Inicializa el formulario según el tipo de encuesta
   iniciarRegistro(tipo: TipoEncuesta): void {
     this.requestCloseSidenav();
     this.tipoRegistroActivo = tipo;
@@ -565,17 +565,19 @@ export class EncuestasComponent implements OnInit {
 
   // Abre modal de detalle de una encuesta
   verDetalles(encuesta: EncuestaRegistro): void {
+    this.requestCloseSidenav();
     this.selectedEncuesta = encuesta;
     this.tipoRegistroActivo = null;
   }
 
-  // Abre modal de ediciÃ³n de preguntas abiertas (clonando objeto)
+  // Abre modal de edición de preguntas abiertas (clonando objeto)
   editarEncuesta(encuesta: EncuestaRegistro): void {
+    this.requestCloseSidenav();
     this.encuestaEnEdicion = JSON.parse(JSON.stringify(encuesta));
     this.selectedEncuesta = null;
   }
 
-  // Cierra ediciÃ³n sin guardar
+  // Cierra edición sin guardar
   cancelarEdicion(): void {
     this.encuestaEnEdicion = null;
   }
@@ -633,13 +635,13 @@ export class EncuestasComponent implements OnInit {
 
   terminoBusqueda: string = '';
 
-  // ConfiguraciÃ³n de orden actual en tabla de encuestas
+  // Configuración de orden actual en tabla de encuestas
   orden = {
     campo: 'fecha' as 'fecha' | 'nombre' | 'tipo',
     asc: false,
   };
 
-  // Cambia campo y direcciÃ³n de orden
+  // Cambia campo y dirección de orden
   ordenarPor(campo: 'fecha' | 'nombre' | 'tipo') {
     if (this.orden.campo === campo) {
       this.orden.asc = !this.orden.asc;
@@ -744,19 +746,19 @@ export class EncuestasComponent implements OnInit {
     return lista;
   }
 
-  // Hook para cambios de filtro (extensible si se usa paginaciÃ³n, etc.)
+  // Hook para cambios de filtro (extensible si se usa paginación, etc.)
   onFiltersChange() {
-    // Si quisieras, podrÃ­as resetear pÃ¡gina o algo aquÃ­. Por ahora no hace falta.
+    // Si quisieras, podrías resetear página o algo aquí. Por ahora no hace falta.
   }
 
-  // Columnas de metadatos a mostrar en tabla de detalle (oculta campos tÃ©cnicos)
+  // Columnas de metadatos a mostrar en tabla de detalle (oculta campos técnicos)
   getDetailColumns(encuesta: EncuestaRegistro | null): string[] {
     if (!encuesta || !encuesta.metadata) return [];
     const ocultar = new Set(['respuestas', 'tipo', 'id', 'semestreId']);
     return Object.keys(encuesta.metadata).filter((k) => !ocultar.has(k));
   }
 
-  // Retorna solo respuestas abiertas que son editables segÃºn configuraciÃ³n
+  // Retorna solo respuestas abiertas que son editables según configuración
   get respuestasAbiertasEditables() {
     if (!this.encuestaEnEdicion) return [];
 
@@ -772,15 +774,15 @@ export class EncuestasComponent implements OnInit {
     });
   }
 
-  // Calcula semestre (1 o 2) segÃºn la fecha de la encuesta
+  // Calcula semestre (1 o 2) según la fecha de la encuesta
   private computeSemestre(fecha: Date | null | undefined): number | '' {
     if (!fecha || isNaN(fecha.getTime())) return '';
     const month = fecha.getMonth(); // 0-based
     return month <= 6 ? 1 : 2; // enero (0) a julio (6) es semestre 1
   }
 
-  // ---------- ENVÃO ----------
-  // EnvÃ­a el formulario a la API segÃºn el tipo de encuesta
+  // ---------- ENVÍO ----------
+  // Envía el formulario a la API según el tipo de encuesta
   onSubmitRegistro(): void {
     if (!this.registroForm) return;
     if (!this.tipoRegistroActivo) {
@@ -926,7 +928,7 @@ export class EncuestasComponent implements OnInit {
   }
 
   // ---------- SNACKBARS ----------
-  // Mensaje informativo de Ã©xito
+  // Mensaje informativo de éxito
   private mostrarOk(mensaje: string): void {
     this.snackBar.open(mensaje, 'Cerrar', {
       duration: 3000,
@@ -942,3 +944,4 @@ export class EncuestasComponent implements OnInit {
     });
   }
 }
+
