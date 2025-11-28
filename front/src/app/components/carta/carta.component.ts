@@ -1,6 +1,7 @@
 // carta.component.ts
 import { Component, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
 // --- LÍNEA CORREGIDA ---
 import {
   ReactiveFormsModule,
@@ -37,6 +38,12 @@ import {
 import { jsPDF } from 'jspdf';
 import { PdfDialogComponent } from './pdf-dialog.component'; // Asegúrate que la ruta sea correcta
 
+interface PdfAsset {
+  dataUrl: string;
+  width: number;
+  height: number;
+}
+
 @Component({
   selector: 'app-carta',
   standalone: true,
@@ -65,9 +72,20 @@ export class CartaComponent {
   private dialog = inject(MatDialog);
   private snack = inject(MatSnackBar);
   private cdr = inject(ChangeDetectorRef);
+  private http = inject(HttpClient);
+  private logosCargados = false;
+  private logoUtaImg: PdfAsset | null = null;
+  private logoFehImg: PdfAsset | null = null;
+
+  private readonly TIPOS_PRACTICA_FALLBACK = [
+    'Apoyo a la Docencia I',
+    'Apoyo a la Docencia II',
+    'Apoyo a la Docencia III',
+    'Practica Profesional',
+  ];
 
   // --- Catálogos ---
-  tiposPractica: string[] = [];
+  tiposPractica: string[] = [...this.TIPOS_PRACTICA_FALLBACK];
   centros: ApiCentro[] = [];
   estudiantes: ApiEstudiante[] = [];
   supervisores: ApiSupervisor[] = [];
@@ -116,6 +134,10 @@ export class CartaComponent {
   private readonly JEFATURA_NOMBRE = 'Dr. IGNACIO JARA PARRA';
   private readonly JEFATURA_CARGO = 'Jefe de Carrera';
 
+  get minFechaFin(): Date | null {
+    return this.form.value.periodoInicio ?? null;
+  }
+
   // --- Helpers de selección (para evitar casts repetidos) ---
   get alumnosSeleccionados(): ApiEstudiante[] {
     const ids = this.form.value.estudiantesIds ?? [];
@@ -163,11 +185,6 @@ export class CartaComponent {
     const ciudad = this.centroSeleccionado?.comuna || 'Arica';
     const fecha = this.fechaHoy();
 
-    const tipo = this.form.value.tipoPractica;
-    const refDesdeForm = this.form.value.referencia?.trim();
-    const refLabel = (refDesdeForm || this.referenciaPorTipo(tipo)).toUpperCase();
-
-    // Folio: se puede sobreescribir en el formulario
     const folioManual = this.form.value.folioManual?.trim();
     const folioUsado = folioManual || folioBack || '';
 
@@ -176,7 +193,7 @@ export class CartaComponent {
         ? `\n\nPHG N° ${folioUsado}.-\n`
         : '\n\n';
 
-    return `REF.: ${refLabel}\n\n${ciudad.toUpperCase()}, ${fecha}.-${folioTxt}`;
+    return `${ciudad.toUpperCase()}, ${fecha}.-${folioTxt}`;
   }
 
   private saludo(): string {
@@ -268,7 +285,7 @@ Universidad de Tarapacá`;
   //         GENERACIÓN DE PDF
   // ===========================================
 
-  private crearYMostrarPDF(texto: string, titulo: string, esPrevio: boolean): void {
+  private async crearYMostrarPDF(texto: string, titulo: string, esPrevio: boolean): Promise<void> {
     const doc = new jsPDF({ unit: 'pt', format: 'letter' }); // 612 x 792 pt (carta)
     const margin = { left: 56, top: 64, right: 56, bottom: 64 };
     const pageWidth = doc.internal.pageSize.getWidth();
@@ -278,27 +295,30 @@ Universidad de Tarapacá`;
     // ==========================
     //  LOGOS [UTA] ........ [FEH]
     // ==========================
-    const logoWidth = 90;
-    const logoHeight = 40;
+    const utaWidth = 90;
+    const fehWidth = 72; // más pequeño para que no se vea estirado
+    const logoHeightFallback = 40;
     const yLogos = 32;
 
-    const logoUta = new Image();
-    logoUta.src = 'assets/img/uta.png'; // Nota: convertir uta.svg a PNG en esta ruta
-
-    const logoFeh = new Image();
-    logoFeh.src = 'assets/img/feh.png'; // Nota: convertir feh.svg a PNG en esta ruta
-
-    doc.addImage(logoUta, 'PNG', margin.left, yLogos, logoWidth, logoHeight);
-    doc.addImage(
-      logoFeh,
-      'PNG',
-      pageWidth - margin.right - logoWidth,
+    await this.ensureLogos();
+    const leftLogoHeight = this.drawLogo(
+      doc,
+      this.logoUtaImg,
+      margin.left,
       yLogos,
-      logoWidth,
-      logoHeight
+      utaWidth
     );
+    const rightLogoHeight = this.drawLogo(
+      doc,
+      this.logoFehImg,
+      pageWidth - margin.right - fehWidth,
+      yLogos,
+      fehWidth
+    );
+    const usedLogoHeight =
+      Math.max(leftLogoHeight, rightLogoHeight) || logoHeightFallback;
 
-    let y = yLogos + logoHeight + 32; // espacio en blanco bajo los logos
+    let y = yLogos + usedLogoHeight + 32; // espacio en blanco bajo los logos
 
     // ==========================
     //  MARCA DE AGUA (solo previa)
@@ -361,12 +381,14 @@ Universidad de Tarapacá`;
       y += height + 8;
     }
 
-    const dataUrl = doc.output('datauristring');
-    this.dialog.open(PdfDialogComponent, {
-      data: { dataUrl, title: titulo },
+    const pdfBlob = doc.output('blob');
+    const pdfUrl = URL.createObjectURL(pdfBlob);
+    const ref = this.dialog.open(PdfDialogComponent, {
+      data: { dataUrl: pdfUrl, title: titulo },
       width: '980px',
       maxHeight: '95vh',
     });
+    ref.afterClosed().subscribe(() => URL.revokeObjectURL(pdfUrl));
   }
 
   // ===========================================
@@ -391,7 +413,19 @@ Universidad de Tarapacá`;
       }
     });
 
-    this.data.getTiposPractica().subscribe((t) => (this.tiposPractica = t));
+    this.data.getTiposPractica().subscribe({
+      next: (t) => {
+        if (Array.isArray(t) && t.length) {
+          this.tiposPractica = t;
+        }
+      },
+      error: () => {
+        this.tiposPractica = [...this.TIPOS_PRACTICA_FALLBACK];
+        this.snack.open('No se pudieron cargar los tipos de práctica', 'OK', {
+          duration: 3000,
+        });
+      },
+    });
     this.data.getCentros('').subscribe((cs) => (this.centros = cs));
 
     this.data.getEstudiantes('').subscribe((es) => {
@@ -408,6 +442,14 @@ Universidad de Tarapacá`;
     this.form.get('centroId')!.valueChanges.subscribe((id: number | null) => {
       this.centroSeleccionado = this.centros.find((c) => c.id === id) ?? null;
       this.cdr.markForCheck();
+    });
+
+    this.form.get('periodoInicio')!.valueChanges.subscribe((inicio: Date | null) => {
+      const finCtrl = this.form.get('periodoFin');
+      const finVal = finCtrl?.value as Date | null;
+      if (inicio && finVal && new Date(finVal).getTime() <= new Date(inicio).getTime()) {
+        finCtrl?.setValue(null);
+      }
     });
   }
 
@@ -431,6 +473,77 @@ Universidad de Tarapacá`;
 
   // --- Acciones de Botones (Actualizadas) ---
 
+  private async ensureLogos(): Promise<void> {
+    if (this.logosCargados) {
+      return;
+    }
+    const [uta, feh] = await Promise.all([
+      this.loadAssetAsDataUrl('assets/img/uta.png'),
+      this.loadAssetAsDataUrl('assets/img/feh.png'),
+    ]);
+    this.logoUtaImg = uta;
+    this.logoFehImg = feh;
+    this.logosCargados = true;
+  }
+
+  private resolveAssetPath(path: string): string {
+    try {
+      return new URL(path, document.baseURI).toString();
+    } catch {
+      return path;
+    }
+  }
+
+  private drawLogo(
+    doc: jsPDF,
+    logo: PdfAsset | null,
+    x: number,
+    y: number,
+    width: number
+  ): number {
+    if (!logo?.dataUrl) {
+      return 0;
+    }
+    const aspect = logo.width > 0 ? logo.height / logo.width : 0.5;
+    const scaledHeight = Math.max(1, width * aspect);
+    doc.addImage(logo.dataUrl, 'PNG', x, y, width, scaledHeight);
+    return scaledHeight;
+  }
+
+  private async loadAssetAsDataUrl(assetPath: string): Promise<PdfAsset | null> {
+    const url = this.resolveAssetPath(assetPath);
+    return new Promise((resolve) => {
+      this.http.get(url, { responseType: 'blob' }).subscribe({
+        next: (blob) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            const dataUrl = reader.result as string;
+            const image = new Image();
+            image.onload = () =>
+              resolve({
+                dataUrl,
+                width: image.width,
+                height: image.height,
+              });
+            image.onerror = () =>
+              resolve({
+                dataUrl,
+                width: 0,
+                height: 0,
+              });
+            image.src = dataUrl;
+          };
+          reader.onerror = () => resolve(null);
+          reader.readAsDataURL(blob);
+        },
+        error: (error) => {
+          console.warn('Error cargando asset para PDF', url, error);
+          resolve(null);
+        },
+      });
+    });
+  }
+
   /** Muestra una vista previa del PDF sin guardar */
   previa(): void {
     if (this.form.invalid) {
@@ -442,11 +555,13 @@ Universidad de Tarapacá`;
       );
       return;
     }
-    this.crearYMostrarPDF(
-      this.documentoPlano(false),
-      'Vista previa de carta',
-      true
-    );
+    const docPlano = this.documentoPlano(false);
+    this.crearYMostrarPDF(docPlano, 'Vista previa de carta', true).catch((err) => {
+      console.error('No se pudo generar la vista previa', err);
+      this.snack.open('No se pudo generar la vista previa', 'OK', {
+        duration: 2400,
+      });
+    });
   }
 
   /** Guarda en la BD y (si es exitoso) genera el PDF con folio */
@@ -473,13 +588,15 @@ Universidad de Tarapacá`;
     this.data.crearCarta(dto).subscribe({
       next: (respuesta: any) => {
         // 2. Si es exitoso, usar el 'folio' devuelto para generar el PDF
-        const folio = respuesta.folio || 'S/F'; // Tomamos el folio del backend
+        const folio = respuesta?.folio ?? 'S/F'; // Tomamos el folio del backend
 
-        this.crearYMostrarPDF(
-          this.documentoPlano(true, folio),
-          `Carta folio ${folio}`,
-          false
-        );
+        const docPlano = this.documentoPlano(true, folio);
+        this.crearYMostrarPDF(docPlano, `Carta folio ${folio}`, false).catch((err) => {
+          console.error('Carta guardada, pero no se pudo generar el PDF', err);
+          this.snack.open('Carta guardada, pero no se pudo generar el PDF', 'OK', {
+            duration: 3000,
+          });
+        });
 
         this.snack.open(`Carta guardada con folio ${folio} `, 'OK', {
           duration: 2400,
