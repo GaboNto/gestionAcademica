@@ -338,16 +338,13 @@ export class ActividadesEstudiantesComponent implements OnInit {
     try {
       const zip = new JSZip();
 
-      // Agregar cada archivo al ZIP
       for (const file of this.archivosSeleccionados) {
         const fileData = await this.leerArchivoComoArrayBuffer(file);
         zip.file(file.name, fileData);
       }
 
-      // Generar el ZIP como Blob
       const zipBlob = await zip.generateAsync({ type: 'blob' });
 
-      // Convertir el ZIP a File para poder enviarlo
       const zipFile = new File([zipBlob], `archivos_actividad_${Date.now()}.zip`, {
         type: 'application/zip'
       });
