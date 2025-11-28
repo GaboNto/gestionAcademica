@@ -23,6 +23,8 @@ import {
   UpdateCentroPayload,
 } from '../../services/centros-api.service';
 import { TrabajadoresApiService } from '../../services/trabajadores-api.service';
+import { OnInit } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 
 // === tipos compatibles con tu enum Prisma ===
 type TipoCentro = 'PARTICULAR' | 'PARTICULAR_SUBVENCIONADO' | 'SLEP' | 'NO_CONVENCIONAL';
@@ -63,10 +65,10 @@ type CentroDetalle = CentroEducativo & {
     MatSnackBarModule,
     MatDatepickerModule,
     MatNativeDateModule,
-    MatPaginatorModule,
+  MatPaginatorModule,
   ],
 })
-export class CentrosEducativosComponent {
+export class CentrosEducativosComponent implements OnInit {
   private snack = inject(MatSnackBar);
   private platformId = inject(PLATFORM_ID);
 
@@ -79,6 +81,7 @@ export class CentrosEducativosComponent {
   isEditing = false;
   sortAZ = true;
   isLoading = false;
+  soloLecturaVinculacion = false;
 
   // ===== paginación (back) =====
   pageIndex = 0;        
@@ -157,6 +160,26 @@ export class CentrosEducativosComponent {
     this.load(); 
   }
 
+  ngOnInit(): void {
+    this.soloLecturaVinculacion = this.esRolVinculacionSoloLectura();
+    if (this.soloLecturaVinculacion) {
+      this.showForm = false;
+      this.isEditing = false;
+    }
+  }
+
+  private esRolVinculacionSoloLectura(): boolean {
+    if (!isPlatformBrowser(this.platformId)) return false;
+    try {
+      const saved = localStorage.getItem('app.selectedRole');
+      if (!saved) return false;
+      const parsed = JSON.parse(saved);
+      return parsed?.id === 'vinculacion';
+    } catch {
+      return false;
+    }
+  }
+
   // ===== carga lista desde backend con paginación =====
   load(page?: number) {
     this.isLoading = true;
@@ -230,6 +253,7 @@ export class CentrosEducativosComponent {
 
   // ===== helpers UI =====
   toggleForm() {
+    if (this.soloLecturaVinculacion) return;
     this.showForm = !this.showForm;
     if (!this.showForm) this.resetForm();
   }
@@ -276,6 +300,7 @@ export class CentrosEducativosComponent {
 
   // ===== CRUD centro =====
   addOrUpdateCentro() {
+    if (this.soloLecturaVinculacion) return;
     const c = this.newCentroEducativo;
 
     if (!c.nombre?.trim() || !c.tipo || !c.region || !c.comuna || !c.convenio) {
@@ -331,6 +356,7 @@ export class CentrosEducativosComponent {
   }
 
   editCentro(c: CentroEducativo) {
+    if (this.soloLecturaVinculacion) return;
     this.isEditing = true;
     this.editId = c.id;
     this.showForm = true;
@@ -340,6 +366,7 @@ export class CentrosEducativosComponent {
 
   // ===== Confirmación de eliminación =====
   askDelete(c: CentroEducativo) {
+    if (this.soloLecturaVinculacion) return;
     this.pendingDelete = c;
   }
 
@@ -348,6 +375,7 @@ export class CentrosEducativosComponent {
   }
 
   confirmDelete() {
+    if (this.soloLecturaVinculacion) return;
     if (!this.pendingDelete) return;
     const id = this.pendingDelete.id;
 
@@ -401,6 +429,7 @@ export class CentrosEducativosComponent {
 
   // ===== Añadir/Editar contactos (modal) =====
   openContacts(c: CentroEducativo) {
+    if (this.soloLecturaVinculacion) return;
     this.contactsForCentro = c;
 
     this.contactoDirectorId = null;
@@ -456,6 +485,7 @@ export class CentrosEducativosComponent {
   }
 
   saveContactsForCentro() {
+    if (this.soloLecturaVinculacion) return;
     if (!this.contactsForCentro) return;
     const centroId = this.contactsForCentro.id;
 

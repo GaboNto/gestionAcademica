@@ -1,4 +1,4 @@
-<div class="container section">
+﻿<div class="container section">
   <!-- HEADER -->
   <div class="header">
     <div class="headline">
@@ -7,7 +7,7 @@
     </div>
     <div class="spacer"></div>
 
-    <button mat-flat-button color="primary" (click)="toggleForm()" class="btn-add">
+    <button mat-flat-button color="primary" (click)="toggleForm()" class="btn-add" *ngIf="!soloLecturaVinculacion">
       <mat-icon>{{ showForm ? 'close' : 'add_business' }}</mat-icon>
       {{ showForm ? 'Cerrar' : 'Agregar centro' }}
     </button>
@@ -41,7 +41,7 @@
   </div>
 
   <!-- FORMULARIO (crear/editar) -->
-  <div class="form-container" [class.form-open]="showForm">
+  <div class="form-container" [class.form-open]="showForm" *ngIf="!soloLecturaVinculacion">
     <mat-card class="elev form-card" *ngIf="showForm">
       <mat-card-header class="form-header">
         <div class="form-title-section">
@@ -205,18 +205,18 @@
             </div>
           </div>
 
-          <!-- Col 4: Acciones -->
+          <!-- Col 4: acciones -->
           <div class="col col-actions">
             <button mat-icon-button (click)="viewCentro(c)" title="Ver detalles">
               <mat-icon>visibility</mat-icon>
             </button>
-            <button mat-icon-button color="primary" (click)="editCentro(c)" title="Editar">
+            <button mat-icon-button color="primary" (click)="editCentro(c)" title="Editar" *ngIf="!soloLecturaVinculacion">
               <mat-icon>edit</mat-icon>
             </button>
-            <button mat-icon-button color="accent" (click)="openContacts(c)" title="Añadir contactos">
+            <button mat-icon-button color="accent" (click)="openContacts(c)" title="Añadir contactos" *ngIf="!soloLecturaVinculacion">
               <mat-icon>person_add</mat-icon>
             </button>
-            <button mat-icon-button color="warn" (click)="askDelete(c)" title="Eliminar">
+            <button mat-icon-button color="warn" (click)="askDelete(c)" title="Eliminar" *ngIf="!soloLecturaVinculacion">
               <mat-icon>delete</mat-icon>
             </button>
           </div>
@@ -287,10 +287,10 @@
           <div class="detail-item" *ngIf="selectedCentroEducativo.trabajadores?.length">
             <label>Trabajadores:</label>
             <div *ngFor="let t of selectedCentroEducativo.trabajadores">
-              • {{ t.rol || '—' }} — {{ t.nombre }}
+              â€¢ {{ t.rol || 'â€”' }} â€” {{ t.nombre }}
               <span *ngIf="t.rut">({{ t.rut }})</span>
-              <span *ngIf="t.correo">— {{ t.correo }}</span>
-              <span *ngIf="t.telefono">— {{ t.telefono }}</span>
+              <span *ngIf="t.correo">â€” {{ t.correo }}</span>
+              <span *ngIf="t.telefono">â€” {{ t.telefono }}</span>
             </div>
           </div>
         </div>
@@ -298,15 +298,15 @@
 
       <div class="dialog-actions">
         <button mat-stroked-button (click)="closeDetails()">Cerrar</button>
-        <button mat-raised-button color="primary" (click)="editCentro(selectedCentroEducativo!)">
+        <button mat-raised-button color="primary" (click)="editCentro(selectedCentroEducativo!)" *ngIf="!soloLecturaVinculacion">
           <mat-icon>edit</mat-icon> Editar
         </button>
       </div>
     </div>
   </div>
 
-  <!-- DIALOG CONFIRMAR ELIMINACIÓN -->
-  <div class="confirm-dialog" *ngIf="pendingDelete">
+  <!-- DIALOG CONFIRMAR eliminación -->
+  <div class="confirm-dialog" *ngIf="!soloLecturaVinculacion && pendingDelete">
     <div class="dialog-overlay" (click)="cancelDelete()" tabindex="0"></div>
     <div class="dialog-content confirm-card" (keydown.escape)="cancelDelete()">
       <div class="confirm-header">
@@ -328,8 +328,8 @@
     </div>
   </div>
 
-  <!-- DIALOG AÑADIR/EDITAR CONTACTOS -->
-  <div class="details-dialog" *ngIf="contactsForCentro">
+  <!-- DIALOG Añadir/Editar contactos -->
+  <div class="details-dialog" *ngIf="!soloLecturaVinculacion && contactsForCentro">
     <div class="dialog-overlay" (click)="closeContacts()"></div>
 
     <div class="dialog-content">
@@ -394,3 +394,8 @@
     </div>
   </div>
 </div>
+
+
+
+
+

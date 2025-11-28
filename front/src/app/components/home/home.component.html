@@ -1,74 +1,125 @@
 <!-- HERO -->
 <section class="hero">
-  <div class="container">
-    <h1 class="hero__title">Sistema de Gestión de Prácticas Pedagógicas</h1>
-    <p class="hero__subtitle">Carrera de Pedagogía en Historia, Geografía y Ciencias Sociales</p>
-    <p class="hero__note">Acceso simplificado para pruebas de diseño</p>
+  <div class="container hero__content">
+    <div>
+      <p class="hero__badge">Pedagogía en Historia, Geografía y Cs. Sociales</p>
+      <h1 class="hero__title">Sistema de Gestión de Prácticas Pedagógicas</h1>
+      <p class="hero__subtitle">
+        Administra estudiantes, centros de práctica, encuestas y reportes desde un solo lugar.
+      </p>
+    </div>
+
+    <div class="hero__summary">
+      <div class="hero__summary-item">
+        <span class="hero__summary-number">3</span>
+        <span class="hero__summary-label">Perfiles</span>
+      </div>
+      <div class="hero__summary-divider"></div>
+      <div class="hero__summary-item">
+        <span class="hero__summary-number">1</span>
+        <span class="hero__summary-label">Sistema integrado</span>
+      </div>
+    </div>
   </div>
 </section>
 
-<!-- TARJETAS -->
-<section class="container section">
+<!-- ROLES -->
+<section class="container section roles">
+  <header class="roles__header">
+    <div>
+      <h2 class="roles__title">Selecciona tu perfil de acceso</h2>
+      <p class="roles__subtitle">
+        Elige el rol con el que deseas ingresar al sistema para ver las herramientas disponibles.
+      </p>
+    </div>
+  </header>
+
   <div class="role-grid">
     <!-- Coordinadora de Prácticas -->
-    <mat-card class="role-card">
-      <div class="icon blue"><mat-icon>school</mat-icon></div>
-      <h3 class="title">Coordinadora de Prácticas</h3>
-      <p class="name">Carolina Quintana</p>
-      <p class="desc">
-        Registra estudiantes, colegios y gestiona el proceso de prácticas.
+    <mat-card class="role-card role-card--blue mat-elevation-z4">
+      <div class="role-card__header">
+        <div class="role-card__icon">
+          <mat-icon>school</mat-icon>
+        </div>
+        <div class="role-card__info">
+          <h3 class="role-card__title">Coordinadora de Prácticas</h3>
+          <p class="role-card__name">Carolina Quintana</p>
+          <span class="role-card__tag">Gestión operativa</span>
+        </div>
+      </div>
+
+      <p class="role-card__desc">
+        Administra estudiantes, centros de práctica y asignaciones, asegurando el correcto desarrollo del proceso.
       </p>
 
-      <h4 class="perm-title">Permisos:</h4>
-      <ul class="perm-list">
-        <li>Gestionar centros educativos</li>
-        <li>Gestionar estudiantes</li>
-        <li>Asignar prácticas</li>
-        <li>Gestionar colaboradores</li>
-        <li>Ver reportes e historial</li>
-      </ul>
 
-      <button mat-raised-button class="cta blue" (click)="selectRole('practicas')">
+
+      <button
+        mat-raised-button
+        color="primary"
+        class="role-card__cta role-card__cta--blue"
+        (click)="selectRole('practicas')"
+      >
+        <mat-icon>login</mat-icon>
         Acceder como Coordinadora de Prácticas
       </button>
     </mat-card>
 
     <!-- Coordinadora de Vinculación -->
-    <mat-card class="role-card">
-      <div class="icon green"><mat-icon>groups</mat-icon></div>
-      <h3 class="title">Coordinadora de Vinculación</h3>
-      <p class="name">Claudia Palomo</p>
-      <p class="desc">
-        Registra y administra los resultados de las encuestas.
+    <mat-card class="role-card role-card--green mat-elevation-z4">
+      <div class="role-card__header">
+        <div class="role-card__icon">
+          <mat-icon>groups</mat-icon>
+        </div>
+        <div class="role-card__info">
+          <h3 class="role-card__title">Coordinadora de Vinculación</h3>
+          <p class="role-card__name">Claudia Palomo</p>
+          <span class="role-card__tag">Evaluación de práctica</span>
+        </div>
+      </div>
+
+      <p class="role-card__desc">
+        Registra y administra los resultados de encuestas a estudiantes y colaboradores para mejorar el proceso.
       </p>
 
-      <h4 class="perm-title">Permisos:</h4>
-      <ul class="perm-list">
-        <li>Registrar encuestas</li>
-      </ul>
 
-      <button mat-raised-button class="cta green" (click)="selectRole('vinculacion')">
+
+      <button
+        mat-raised-button
+        color="accent"
+        class="role-card__cta role-card__cta--green"
+        (click)="selectRole('vinculacion')"
+      >
+        <mat-icon>login</mat-icon>
         Acceder como Coordinadora de Vinculación
       </button>
     </mat-card>
 
     <!-- Jefatura de Carrera -->
-    <mat-card class="role-card">
-      <div class="icon purple"><mat-icon>description</mat-icon></div>
-      <h3 class="title">Jefatura de Carrera</h3>
-      <p class="name">Johana Rojas</p>
-      <p class="desc">
-        Visualiza reportes globales y gestiona cartas de presentación.
+    <mat-card class="role-card role-card--purple mat-elevation-z4">
+      <div class="role-card__header">
+        <div class="role-card__icon">
+          <mat-icon>description</mat-icon>
+        </div>
+        <div class="role-card__info">
+          <h3 class="role-card__title">Jefatura de Carrera</h3>
+          <p class="role-card__name">Johana Rojas</p>
+          <span class="role-card__tag">Gestión académica</span>
+        </div>
+      </div>
+
+      <p class="role-card__desc">
+        Accede a reportes globales, indicadores de calidad y gestiona cartas de presentación para los centros.
       </p>
 
-      <h4 class="perm-title">Permisos:</h4>
-      <ul class="perm-list">
-        <li>Reportes completos</li>
-        <li>Generar cartas</li>
-        <li>Supervisión general</li>
-      </ul>
 
-      <button mat-raised-button class="cta purple" (click)="selectRole('jefatura')">
+      <button
+        mat-raised-button
+        color="primary"
+        class="role-card__cta role-card__cta--purple"
+        (click)="selectRole('jefatura')"
+      >
+        <mat-icon>login</mat-icon>
         Acceder como Jefatura de Carrera
       </button>
     </mat-card>

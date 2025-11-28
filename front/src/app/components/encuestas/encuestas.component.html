@@ -15,7 +15,7 @@
     <mat-card class="elev registration-card">
       <mat-card-header>
         <div mat-card-avatar class="card-icon-container">
-          <mat-icon>school</mat-icon>
+          <mat-icon>perm_identity</mat-icon>
         </div>
         <mat-card-title>Percepción estudiantil sobre el proceso de práctica</mat-card-title>
         <mat-card-subtitle>Evaluaciones de la experiencia de práctica</mat-card-subtitle>
@@ -55,15 +55,71 @@
     </mat-card>
   </div>
 
+
+<!-- FILTROS DE BÚSQUEDA -->
+<mat-card class="elev filters-card">
+  <mat-card-header>
+    <mat-card-title>
+      <mat-icon>search</mat-icon>
+      Filtros de búsqueda
+    </mat-card-title>
+  </mat-card-header>
+
+  <mat-card-content>
+    <div class="filters-row">
+      <!-- BÚSQUEDA -->
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Buscar encuestas</mat-label>
+        <input
+          matInput
+          [(ngModel)]="terminoBusqueda"
+          (ngModelChange)="onFiltersChange()"
+          placeholder="Estudiante, centro, tipo, colaborador, fecha..."
+        />
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+
+      <!-- ORDEN -->
+      <div class="order-inline">
+        <span class="order-label">Ordenar por:</span>
+
+        <button
+          mat-stroked-button
+          class="order-chip"
+          (click)="ordenarPor('fecha')"
+          [class.active]="orden.campo === 'fecha'">
+          <mat-icon class="order-icon">
+            {{ orden.campo === 'fecha' ? (orden.asc ? 'arrow_upward' : 'arrow_downward') : 'swap_vert' }}
+          </mat-icon>
+          Fecha
+        </button>
+
+        <button
+          mat-stroked-button
+          class="order-chip"
+          (click)="ordenarPor('nombre')"
+          [class.active]="orden.campo === 'nombre'">
+          <mat-icon class="order-icon">
+            {{ orden.campo === 'nombre' ? (orden.asc ? 'arrow_upward' : 'arrow_downward') : 'swap_vert' }}
+          </mat-icon>
+          Nombre
+        </button>
+      </div>
+    </div>
+  </mat-card-content>
+</mat-card>
+
+
+
   <!-- LISTA DE ENCUESTAS -->
   <mat-card class="elev registered-list-card">
     <mat-card-title>Encuestas registradas</mat-card-title>
 
-    <div *ngIf="encuestas.length; else noEncuestas">
-      <div *ngFor="let e of encuestas" class="registered-item">
+    <div *ngIf="encuestasFiltradas.length; else noEncuestas">
+      <div *ngFor="let e of encuestasFiltradas" class="registered-item">
         <div class="item-content">
           <mat-icon class="item-icon">
-            {{ e.tipo === 'ESTUDIANTIL' ? 'school' : 'groups' }}
+            {{ e.tipo === 'ESTUDIANTIL' ? 'perm_identity' : 'groups' }}
           </mat-icon>
 
           <div class="item-info">
@@ -106,7 +162,13 @@
             <mat-icon>visibility</mat-icon>
             Ver
           </button>
+
+          <button mat-stroked-button color="accent" (click)="editarEncuesta(e)">
+            <mat-icon>edit</mat-icon>
+            Editar
+          </button>
         </div>
+
 
         <div class="item-date">
           <mat-icon>calendar_today</mat-icon>
@@ -749,7 +811,6 @@
                         class="scale-option">
                         {{ op.value }}
                       </mat-radio-button>
-                      <mat-radio-button value="NA" class="scale-option">N/O</mat-radio-button>
                     </mat-radio-group>
                   </div>
                 </div>
@@ -766,7 +827,6 @@
                         class="scale-option">
                         {{ op.value }}
                       </mat-radio-button>
-                      <mat-radio-button value="NA" class="scale-option">N/O</mat-radio-button>
                     </mat-radio-group>
                   </div>
                 </div>
@@ -781,7 +841,6 @@
                         class="scale-option">
                         {{ op.value }}
                       </mat-radio-button>
-                      <mat-radio-button value="NA" class="scale-option">N/O</mat-radio-button>
                     </mat-radio-group>
                   </div>
                 </div>
@@ -798,7 +857,6 @@
                         class="scale-option">
                         {{ op.value }}
                       </mat-radio-button>
-                      <mat-radio-button value="NA" class="scale-option">N/O</mat-radio-button>
                     </mat-radio-group>
                   </div>
                 </div>
@@ -813,7 +871,6 @@
                         class="scale-option">
                         {{ op.value }}
                       </mat-radio-button>
-                      <mat-radio-button value="NA" class="scale-option">N/O</mat-radio-button>
                     </mat-radio-group>
                   </div>
                 </div>
@@ -830,7 +887,6 @@
                         class="scale-option">
                         {{ op.value }}
                       </mat-radio-button>
-                      <mat-radio-button value="NA" class="scale-option">N/O</mat-radio-button>
                     </mat-radio-group>
                   </div>
                 </div>
@@ -847,7 +903,6 @@
                         class="scale-option">
                         {{ op.value }}
                       </mat-radio-button>
-                      <mat-radio-button value="NA" class="scale-option">N/O</mat-radio-button>
                     </mat-radio-group>
                   </div>
                 </div>
@@ -864,7 +919,6 @@
                         class="scale-option">
                         {{ op.value }}
                       </mat-radio-button>
-                      <mat-radio-button value="NA" class="scale-option">N/O</mat-radio-button>
                     </mat-radio-group>
                   </div>
                 </div>
@@ -907,7 +961,6 @@
                         class="scale-option">
                         {{ op.value }}
                       </mat-radio-button>
-                      <mat-radio-button value="NA" class="scale-option">N/O</mat-radio-button>
                     </mat-radio-group>
                   </div>
                 </div>
@@ -924,7 +977,6 @@
                         class="scale-option">
                         {{ op.value }}
                       </mat-radio-button>
-                      <mat-radio-button value="NA" class="scale-option">N/O</mat-radio-button>
                     </mat-radio-group>
                   </div>
                 </div>
@@ -941,7 +993,6 @@
                         class="scale-option">
                         {{ op.value }}
                       </mat-radio-button>
-                      <mat-radio-button value="NA" class="scale-option">N/O</mat-radio-button>
                     </mat-radio-group>
                   </div>
                 </div>
@@ -959,7 +1010,6 @@
                         class="scale-option">
                         {{ op.value }}
                       </mat-radio-button>
-                      <mat-radio-button value="NA" class="scale-option">N/O</mat-radio-button>
                     </mat-radio-group>
                   </div>
                 </div>
@@ -976,7 +1026,6 @@
                         class="scale-option">
                         {{ op.value }}
                       </mat-radio-button>
-                      <mat-radio-button value="NA" class="scale-option">N/O</mat-radio-button>
                     </mat-radio-group>
                   </div>
                 </div>
@@ -1424,7 +1473,70 @@
     </form>
   </mat-card>
 
-  <!-- ============= MODAL DETALLE ENCUESTA ============= -->
+  <!-- ============= MODAL EDICIÓN PREGUNTAS ABIERTAS ============= -->
+<mat-card class="elev detail-card custom-modal" *ngIf="encuestaEnEdicion">
+  <mat-card-header>
+    <mat-card-title>
+      Editar respuestas abiertas
+    </mat-card-title>
+    <mat-card-subtitle>
+      {{ mapTipoLabel(encuestaEnEdicion.tipo) }} — 
+      {{ encuestaEnEdicion.fecha | date: 'dd/MM/yyyy' }}
+    </mat-card-subtitle>
+
+    <button mat-icon-button class="close-btn" (click)="cancelarEdicion()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </mat-card-header>
+
+  <mat-card-content>
+
+
+    <div class="table-wrapper" *ngIf="respuestasAbiertasEditables.length; else noAbiertas">
+      <table class="detail-plain-table">
+        <thead>
+          <tr>
+            <th>Pregunta</th>
+            <th>Respuesta abierta</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let r of respuestasAbiertasEditables">
+            <td>
+              {{ mapPreguntaDescripcion(r.pregunta?.descripcion || ('Pregunta ' + r.preguntaId)) }}
+            </td>
+            <td>
+              <mat-form-field appearance="outline" class="full-width">
+                <textarea
+                  matInput
+                  rows="3"
+                  [(ngModel)]="r.respuestaAbierta">
+                </textarea>
+              </mat-form-field>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <ng-template #noAbiertas>
+      <p>No hay preguntas abiertas para editar en esta encuesta.</p>
+    </ng-template>
+  </mat-card-content>
+
+  <mat-card-actions align="end">
+    <button mat-stroked-button type="button" (click)="cancelarEdicion()">
+      <mat-icon>cancel</mat-icon>
+      Cancelar
+    </button>
+
+    <button mat-flat-button color="primary" type="button" (click)="guardarEdicionAbiertas()">
+      <mat-icon>save</mat-icon>
+      Guardar cambios
+    </button>
+  </mat-card-actions>
+</mat-card>
+
   <mat-card class="elev detail-card custom-modal" *ngIf="selectedEncuesta">
     <mat-card-header>
       <mat-card-title>Detalle Encuesta</mat-card-title>
@@ -1446,10 +1558,7 @@
       <div class="table-wrapper">
         <table class="detail-plain-table">
           <thead>
-            <tr>
-              <th>Campo</th>
-              <th>Valor</th>
-            </tr>
+
           </thead>
           <tbody>
             <tr *ngFor="let key of getDetailColumns(selectedEncuesta!)">
@@ -1472,7 +1581,6 @@
         <strong>Escala:</strong> Valores del 1 al 5, donde <strong>1</strong> es <em>muy insatisfecho</em> 
         y <strong>5</strong> es <em>muy satisfecho</em>.
       </p>
-
 
       <div class="table-wrapper" *ngIf="selectedEncuesta?.respuestas?.length; else noRespuestas">
         <table class="detail-plain-table">
@@ -1499,11 +1607,6 @@
 <ng-template #noRespuestas>
   <p>No hay respuestas registradas para esta encuesta.</p>
 </ng-template>
-
-
-
-
-      
     </mat-card-content>
   </mat-card>
 </div>
