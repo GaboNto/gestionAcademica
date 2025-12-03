@@ -229,6 +229,20 @@
       </button>
     </mat-card-header>
 
+
+  <mat-card-actions align="end" style="padding-top: 0;">
+    <button
+      mat-stroked-button
+      color="primary"
+      type="button"
+      (click)="downloadEstadisticasEstudiantilesExcel()"
+    >
+      <mat-icon>download</mat-icon>
+      Exportar estadísticas a Excel
+    </button>
+  </mat-card-actions>
+
+
     <mat-card-content>
       <!-- Acordeón: cada grupo (I, II, III...) se despliega al hacer clic -->
       <mat-accordion>

@@ -19,6 +19,8 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { RouterLink } from '@angular/router';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { forkJoin } from 'rxjs';
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
 
 // Tipos de encuesta manejados por el módulo
 export type TipoEncuesta = 'ESTUDIANTIL' | 'COLABORADORES_JEFES';
@@ -79,6 +81,74 @@ interface EstadisticaPregunta {
 export class EncuestasComponent implements OnInit {
   // Inyección moderna de FormBuilder
   private fb = inject(FormBuilder);
+
+  // Opcional: sanitizar nombres de hoja (máx 31 caracteres y sin caracteres raros)
+private sanitizeSheetName(name: string): string {
+  let clean = name.replace(/[\\\/\?\*\[\]\:]/g, ' ');
+  if (clean.length > 31) {
+    clean = clean.slice(0, 31);
+  }
+  return clean || 'Hoja';
+}
+
+downloadEstadisticasEstudiantilesExcel(): void {
+  if (!this.estadisticasEstudiantiles || !this.estadisticasEstudiantiles.length) {
+    this.mostrarError('No hay estadísticas para exportar.');
+    return;
+  }
+
+  // Por si aún no se han calculado
+  if (!this.totalEncuestasEstudiantiles) {
+    this.computeEstadisticasEstudiantiles();
+  }
+
+  const wb = XLSX.utils.book_new();
+
+  // Una hoja por grupo (I, II, III, etc.)
+  this.estadisticasEstudiantiles.forEach((grupo) => {
+    const columnas = this.getColumnasPorEscala(grupo.escala);
+
+    // Encabezados
+    const header = [
+      'Aspecto a evaluar',
+      ...columnas.map((c) => c.label),
+      'Total encuestas',
+    ];
+
+    const data: any[][] = [];
+    data.push(header);
+
+    // Filas de datos
+    grupo.preguntas.forEach((p) => {
+      const row: any[] = [p.label];
+
+      columnas.forEach((col) => {
+        const conteo = (p.conteos && p.conteos[col.value]) || 0;
+        row.push(conteo);
+      });
+
+      row.push(p.totalEncuestas);
+      data.push(row);
+    });
+
+    const ws = XLSX.utils.aoa_to_sheet(data);
+    XLSX.utils.book_append_sheet(
+      wb,
+      ws,
+      this.sanitizeSheetName(grupo.titulo)
+    );
+  });
+
+  // Archivo final
+  const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+  const blob = new Blob([wbout], {
+    type:
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8',
+  });
+
+  saveAs(blob, 'estadisticas_encuestas_estudiantiles.xlsx');
+}
+
 
   // Claves de preguntas abiertas que se pueden editar posteriormente
   private preguntasAbiertasEditablesKeys: string[] = [
