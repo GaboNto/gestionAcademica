@@ -1,11 +1,11 @@
 ﻿// Componente principal de gestión de encuestas (estudiantiles y colaboradores)
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { FormsModule } from '@angular/forms';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { HttpClientModule, HttpErrorResponse } from '@angular/common/http';
-import { EncuestasApiService, ApiEncuesta} from '../../services/encuestas-api.service';
+import { EncuestasApiService, ApiEncuesta } from '../../services/encuestas-api.service';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -37,6 +37,18 @@ export interface EncuestaRegistro {
     respuestaAbierta?: string;
   }[];
 }
+
+// Estadísticas por pregunta (para tablas tipo Excel)
+type TipoEscala = 'ESCALA5' | 'SI_NO' | 'PARTICIPACION' | 'NORMATIVAS';
+
+interface EstadisticaPregunta {
+  key: string;
+  label: string;
+  escala: TipoEscala;
+  conteos: { [valor: string]: number };
+  totalEncuestas: number;
+}
+
 
 @Component({
   selector: 'app-encuestas',
@@ -82,6 +94,17 @@ export class EncuestasComponent implements OnInit {
     'comentariosAdicionales',
   ];
 
+  // === ESTADÍSTICAS ===
+  totalEncuestasEstudiantiles = 0;
+  tipoStatsVisible: TipoEncuesta | null = null;
+
+  estadisticasEstudiantiles: {
+  titulo: string;
+  escala: TipoEscala;
+  preguntas: EstadisticaPregunta[];
+}[] = [];
+
+
   constructor(
     private snackBar: MatSnackBar,
     private encuestasApi: EncuestasApiService
@@ -99,8 +122,7 @@ export class EncuestasComponent implements OnInit {
 
   // Catálogos para selects
   estudiantes: { rut: string; nombre: string }[] = [];
-  centros: { id: number; nombre: string; comuna?: string; region?: string }[] =
-    [];
+  centros: { id: number; nombre: string; comuna?: string; region?: string }[] = [];
   colaboradores: { id: number; nombre: string }[] = [];
   tutores: { id: number; nombre: string }[] = [];
 
@@ -149,54 +171,80 @@ export class EncuestasComponent implements OnInit {
     // --- COLABORADORES / JEFES UTP ---
 
     // SECCION I
-    'secI.e1_planificacion':'El profesor(a) en practica se rige por un sistema de planificacion que incluye calendarizaciones y planificacion semanal, la cual entrega en la fecha acordada.',
-    'secI.e2_estructuraClase':'Durante la realizacion de la clase sigue una estructura definida.',
-    'secI.e3_secuenciaActividades':'En las actividades que realiza hay una secuencia con introduccion, desarrollo y conclusion.',
-    'secI.e4_preguntasAplicacion':'Durante la clase realiza preguntas de aplicacion de contenidos para verificar lo que los estudiantes han aprendido.',
-    'secI.e5_estrategiasAtencion':'Utiliza distintas estrategias para captar la atencion de los estudiantes, ademas de demostrar dominio del contenido.',
-    'secI.e6_retroalimentacion':'Entrega retroalimentacion a los estudiantes luego de sus intervenciones en clases.',
-    'secI.e7_normasClase':'Establece las normas del curso o actividades a traves del dialogo y/o la negociacion con los estudiantes.',
-    'secI.e8_usoTecnologia':'Usa la tecnologia para comunicarse con los estudiantes y promover su uso en sus presentaciones.',
+    'secI.e1_planificacion':
+      'El profesor(a) en practica se rige por un sistema de planificacion que incluye calendarizaciones y planificacion semanal, la cual entrega en la fecha acordada.',
+    'secI.e2_estructuraClase':
+      'Durante la realizacion de la clase sigue una estructura definida.',
+    'secI.e3_secuenciaActividades':
+      'En las actividades que realiza hay una secuencia con introduccion, desarrollo y conclusion.',
+    'secI.e4_preguntasAplicacion':
+      'Durante la clase realiza preguntas de aplicacion de contenidos para verificar lo que los estudiantes han aprendido.',
+    'secI.e5_estrategiasAtencion':
+      'Utiliza distintas estrategias para captar la atencion de los estudiantes, ademas de demostrar dominio del contenido.',
+    'secI.e6_retroalimentacion':
+      'Entrega retroalimentacion a los estudiantes luego de sus intervenciones en clases.',
+    'secI.e7_normasClase':
+      'Establece las normas del curso o actividades a traves del dialogo y/o la negociacion con los estudiantes.',
+    'secI.e8_usoTecnologia':
+      'Usa la tecnologia para comunicarse con los estudiantes y promover su uso en sus presentaciones.',
 
     // SECCION II
-    'secII.i1_vinculacionPares':'Establece vinculacion con sus pares y docentes del establecimiento y participa en actividades extracurriculares.',
-    'secII.i2_capacidadGrupoTrabajo':'Capacidad de participar en un grupo de trabajo.',
-    'secII.i3_presentacionPersonal':'Presentacion personal acorde a lo requerido por el establecimiento, cumpliendo horarios.',
-    'secII.i4_autoaprendizaje':'Existe un proceso de autoaprendizaje e iniciativa personal frente a la superacion de debilidades.',
-    'secII.i5_formacionSuficiente':'La formacion recibida en la Universidad fue suficiente para el desempeno del profesor en su practica profesional.',
+    'secII.i1_vinculacionPares':
+      'Establece vinculacion con sus pares y docentes del establecimiento y participa en actividades extracurriculares.',
+    'secII.i2_capacidadGrupoTrabajo': 'Capacidad de participar en un grupo de trabajo.',
+    'secII.i3_presentacionPersonal':
+      'Presentacion personal acorde a lo requerido por el establecimiento, cumpliendo horarios.',
+    'secII.i4_autoaprendizaje':
+      'Existe un proceso de autoaprendizaje e iniciativa personal frente a la superacion de debilidades.',
+    'secII.i5_formacionSuficiente':
+      'La formacion recibida en la Universidad fue suficiente para el desempeno del profesor en su practica profesional.',
 
     // SECCION III
-    'secIII.v1_flujoInformacionSupervisor':'Durante la practica se mantuvo flujo de informacion con el supervisor/tallerista asignado.',
-    'secIII.v2_claridadRoles':'Existe claridad de los roles de supervisores o talleristas, profesores colaboradores y coordinadora de practica.',
-    'secIII.v3_verificacionAvance':'La coordinadora verifica los estados de avance de los procesos de practica.',
-    'secIII.v4_satisfaccionGeneral':'En general, se encuentra satisfecho con la informacion y el sistema de practicas de la carrera.',
+    'secIII.v1_flujoInformacionSupervisor':
+      'Durante la practica se mantuvo flujo de informacion con el supervisor/tallerista asignado.',
+    'secIII.v2_claridadRoles':
+      'Existe claridad de los roles de supervisores o talleristas, profesores colaboradores y coordinadora de practica.',
+    'secIII.v3_verificacionAvance':
+      'La coordinadora verifica los estados de avance de los procesos de practica.',
+    'secIII.v4_satisfaccionGeneral':
+      'En general, se encuentra satisfecho con la informacion y el sistema de practicas de la carrera.',
 
     // Preguntas abiertas COLABORADORES
-    sugerencias: 'Tiene sugerencias o recomendaciones respecto a las practicas, practicantes y coordinacion de ellas que puedan generar mejoras en el futuro?',
+    sugerencias:
+      'Tiene sugerencias o recomendaciones respecto a las practicas, practicantes y coordinacion de ellas que puedan generar mejoras en el futuro?',
     cumplePerfilEgreso: 'Cree que se cumple el perfil de egreso declarado?',
     comentariosAdicionales: 'Comentarios adicionales sobre la practica',
 
     // --- ESTUDIANTES ---
-    'secI.objetivos':'Los objetivos planteados para el nivel de practica desempenado.',
-    'secI.accionesEstablecimiento':'Las acciones realizadas en el desarrollo de esta practica en los establecimientos educacionales.',
-    'secI.accionesTaller':'Las acciones desarrolladas en las sesiones de taller en la universidad.',
-    'secI.satisfaccionGeneral':'El grado de satisfaccion general del proceso.',
+    'secI.objetivos': 'Los objetivos planteados para el nivel de practica desempenado.',
+    'secI.accionesEstablecimiento':
+      'Las acciones realizadas en el desarrollo de esta practica en los establecimientos educacionales.',
+    'secI.accionesTaller':
+      'Las acciones desarrolladas en las sesiones de taller en la universidad.',
+    'secI.satisfaccionGeneral': 'El grado de satisfaccion general del proceso.',
 
     // ESTUDIANTIL - Sec II A (colaboradores) escala 1-5
-    'secII_A.apoyoInsercion':'Apoyo la insercion al centro educativo en sus distintos niveles (espacios dentro del colegio, presentacion frente a estudiantes y colegas).',
-    'secII_A.apoyoGestion':'Apoyo permanentemente la gestion educativa (planificacion, ejecucion y evaluacion) dentro y fuera del aula.',
-    'secII_A.orientacionComportamiento':'Oriento el comportamiento y presentacion personal en el aula con un lenguaje formal y pertinente.',
-    'secII_A.comunicacionConstante':'Mantuvo una comunicacion constante y oportuna, respecto a las actividades del establecimiento educacional.',
-    'secII_A.retroalimentacionProceso':'Retroalimento el proceso de practica en sus distintas etapas, incentivando y facilitando la participacion del practicante.',
+    'secII_A.apoyoInsercion':
+      'Apoyo la insercion al centro educativo en sus distintos niveles (espacios dentro del colegio, presentacion frente a estudiantes y colegas).',
+    'secII_A.apoyoGestion':
+      'Apoyo permanentemente la gestion educativa (planificacion, ejecucion y evaluacion) dentro y fuera del aula.',
+    'secII_A.orientacionComportamiento':
+      'Oriento el comportamiento y presentacion personal en el aula con un lenguaje formal y pertinente.',
+    'secII_A.comunicacionConstante':
+      'Mantuvo una comunicacion constante y oportuna, respecto a las actividades del establecimiento educacional.',
+    'secII_A.retroalimentacionProceso':
+      'Retroalimento el proceso de practica en sus distintas etapas, incentivando y facilitando la participacion del practicante.',
 
     // ESTUDIANTIL - Sec II B (colaboradores) select SI/NO
-    'secII_B.interesRol':'Se evidencio un interes por su rol como colaborador/a?',
-    'secII_B.recomendarColaborador':'Usted recomendaria al colaborador/a para ser asignado en un futuro proceso de practica?',
+    'secII_B.interesRol': 'Se evidencio un interes por su rol como colaborador/a?',
+    'secII_B.recomendarColaborador':
+      'Usted recomendaria al colaborador/a para ser asignado en un futuro proceso de practica?',
 
     // ESTUDIANTIL - Sec III A (normativas)
-    'secIII_A.planEvacuacion': 'Plan Integral de Evacuacion y Seguridad Escolar Francisca Cooper (ex-DEYSE).',
+    'secIII_A.planEvacuacion':
+      'Plan Integral de Evacuacion y Seguridad Escolar Francisca Cooper (ex-DEYSE).',
     'secIII_A.proyectoEducativo': 'Proyecto Educativo Institucional.',
-    'secIII_A.reglamentoConvivencia':'Reglamento Interno de Convivencia Escolar.',
+    'secIII_A.reglamentoConvivencia': 'Reglamento Interno de Convivencia Escolar.',
     'secIII_A.planMejoramiento': 'Plan de Mejoramiento Educativo.',
 
     // ESTUDIANTIL - Sec III B (participacion)
@@ -209,37 +257,53 @@ export class EncuestasComponent implements OnInit {
     'secIII_B.graduaciones': 'Graduaciones.',
 
     // ESTUDIANTIL - Sec III C (percepcion centro)
-    'secIII_C.gratoAmbiente':'Percibe un grato ambiente en el centro educativo.',
-    'secIII_C.recomendarCentro':'Recomendaria este centro educativo a otros practicantes?',
-    'secIII_C.comentariosCentro':'Comentarios adicionales sobre el centro educativo.',
+    'secIII_C.gratoAmbiente': 'Percibe un grato ambiente en el centro educativo.',
+    'secIII_C.recomendarCentro':
+      'Recomendaria este centro educativo como centro de practicas?',
+    'secIII_C.comentariosCentro': 'Comentarios adicionales sobre el centro educativo.',
 
     // ESTUDIANTIL - Sec IV T (tallerista)
-    'secIV_T.presentacionCentro':'Presento adecuadamente el centro educativo al estudiante en practica.',
-    'secIV_T.facilitaComprension':'Facilito la comprension de las actividades a realizar en el centro.',
-    'secIV_T.planificaVisitas':'Planifico visitas y acompanamientos al centro educativo.',
-    'secIV_T.sesionesSemanales':'Realizo sesiones semanales de seguimiento.',
-    'secIV_T.evaluaPermanente':'Evalua de manera permanente el avance del practicante.',
-    'secIV_T.orientaDesempeno':'Oriento el desempeno del practicante con retroalimentacion concreta.',
-    'secIV_T.organizaActividades':'Organizo actividades que apoyan el proceso de practica.',
+    'secIV_T.presentacionCentro': 'Presento adecuadamente el centro educativo al estudiante en practica.',
+    'secIV_T.facilitaComprension':
+      'Facilito la comprension de las actividades a realizar en el centro.',
+    'secIV_T.planificaVisitas':
+      'Planifico visitas y acompanamientos al centro educativo.',
+    'secIV_T.sesionesSemanales': 'Realizo sesiones semanales de seguimiento.',
+    'secIV_T.evaluaPermanente': 'Evalua de manera permanente el avance del practicante.',
+    'secIV_T.orientaDesempeno':
+      'Oriento el desempeno del practicante con retroalimentacion concreta.',
+    'secIV_T.organizaActividades':
+      'Organizo actividades que apoyan el proceso de practica.',
 
     // ESTUDIANTIL - Sec IV S (supervisor)
-    'secIV_S.presentacionCentro':'Presento el centro educativo y sus responsables.',
-    'secIV_S.orientaGestion':'Orienta en la gestion y procesos administrativos del centro.',
-    'secIV_S.comunicacionConstante':'Mantiene comunicacion constante con el practicante.',
-    'secIV_S.orientaComportamiento':'Orienta sobre comportamiento y protocolo dentro del centro.',
-    'secIV_S.sesionesRetro':'Realiza sesiones de retroalimentacion periodicas.',
-    'secIV_S.evaluaGlobal':'Evalua globalmente el desempeno del practicante.',
-    'secIV_S.resuelveProblemas':'Ayuda a resolver problemas presentados en el centro.',
-    'secIV_S.orientaGestionDos':'Propone mejoras para el rol del tallerista/supervisor.',
-    'secIV_S.mejoraRolTallerista':'Sugiere mejoras para el rol del tallerista/supervisor.',
+    'secIV_S.presentacionCentro': 'Presento el centro educativo y sus responsables.',
+    'secIV_S.orientaGestion':
+      'Orienta en la gestion y procesos administrativos del centro.',
+    'secIV_S.comunicacionConstante':
+      'Mantiene comunicacion constante con el practicante.',
+    'secIV_S.orientaComportamiento':
+      'Orienta sobre comportamiento y protocolo dentro del centro.',
+    'secIV_S.sesionesRetro': 'Realiza sesiones de retroalimentacion periodicas.',
+    'secIV_S.evaluaGlobal': 'Evalua globalmente el desempeno del practicante.',
+    'secIV_S.resuelveProblemas':
+      'Ayuda a resolver problemas presentados en el centro.',
+    'secIV_S.orientaGestionDos':
+      'Propone mejoras para el rol del tallerista/supervisor.',
+    'secIV_S.mejoraRolTallerista':
+      'Sugiere mejoras para el rol del tallerista/supervisor.',
 
     // ESTUDIANTIL - Sec V (coordinacion practicas)
-    'secV.induccionesAcordes':'Las inducciones iniciales fueron acordes a la practica.',
-    'secV.informacionClara':'La informacion entregada por coordinacion fue clara.',
+    'secV.induccionesAcordes':
+      'Las inducciones iniciales fueron acordes a la practica.',
+    'secV.informacionClara':
+      'La informacion entregada por coordinacion fue clara.',
     'secV.respuestaDudas': 'Responde oportunamente las dudas planteadas.',
-    'secV.infoAcordeCentros':'La informacion de centros disponibles fue pertinente.',
-    'secV.gestionesMejora':'Se realizaron gestiones para mejorar mi experiencia en la practica.',
-    'secV.mejoraCoordinacion':'Sugiere mejoras para la coordinacion de practicas.',
+    'secV.infoAcordeCentros':
+      'La informacion de centros disponibles fue pertinente.',
+    'secV.gestionesMejora':
+      'Se realizaron gestiones para mejorar mi experiencia en la practica.',
+    'secV.mejoraCoordinacion':
+      'Sugiere mejoras para la coordinacion de practicas.',
   };
 
   // Diccionarios para mostrar textos descriptivos en vez de códigos
@@ -265,6 +329,33 @@ export class EncuestasComponent implements OnInit {
     R_NI: 'Se realizo, pero no fui invitado',
     NR: 'No se realizo',
   };
+
+  private columnasEscala5 = [
+    { value: '1', label: 'Muy insatisfecho' },
+    { value: '2', label: 'Insatisfecho' },
+    { value: '3', label: 'Ni insatisfecho ni satisfecho' },
+    { value: '4', label: 'Satisfecho' },
+    { value: '5', label: 'Muy satisfecho' },
+  ];
+
+  private columnasSiNo = [
+    { value: 'SI', label: 'Sí' },
+    { value: 'NO', label: 'No' },
+  ];
+
+  private columnasParticipacion = [
+    { value: 'A_P', label: 'Asistí y pude participar' },
+    { value: 'A_N', label: 'Asistí, pero no intervine' },
+    { value: 'R_NA', label: 'Se realizó, pero no asistí' },
+    { value: 'R_NI', label: 'Se realizó, pero no fui invitado' },
+    { value: 'NR', label: 'No se realizó' },
+  ];
+
+  private columnasNormativas = [
+  { value: 'SI', label: 'Sí' },
+  { value: 'NO', label: 'No' },
+  { value: 'NS', label: 'No existe / no sabe' },
+];
 
   // Devuelve el texto legible para una pregunta
   mapPreguntaDescripcion(desc: string): string {
@@ -313,9 +404,7 @@ export class EncuestasComponent implements OnInit {
 
           const tipoInferido: TipoEncuesta =
             (tipo as TipoEncuesta) ??
-            ((item as any).nombre_estudiante
-              ? 'ESTUDIANTIL'
-              : 'COLABORADORES_JEFES');
+            ((item as any).nombre_estudiante ? 'ESTUDIANTIL' : 'COLABORADORES_JEFES');
 
           const fechaObj = item.fecha ? new Date(item.fecha) : new Date();
           const semestreCalc = this.computeSemestre(fechaObj);
@@ -331,6 +420,8 @@ export class EncuestasComponent implements OnInit {
         });
 
         this.isLoading = false;
+        // Recalcular estadísticas cuando se cargan encuestas
+        this.computeEstadisticasEstudiantiles();
       },
       error: (err) => {
         console.error('Error al cargar encuestas', err);
@@ -744,9 +835,9 @@ export class EncuestasComponent implements OnInit {
     return lista;
   }
 
-  // Hook para cambios de filtro (extensible si se usa paginación, etc.)
+  // Hook para cambios de filtro
   onFiltersChange() {
-    // Si quisieras, podrías resetear página o algo aquí. Por ahora no hace falta.
+    // Por ahora no hace nada extra
   }
 
   // Columnas de metadatos a mostrar en tabla de detalle (oculta campos técnicos)
@@ -755,6 +846,21 @@ export class EncuestasComponent implements OnInit {
     const ocultar = new Set(['respuestas', 'tipo', 'id', 'semestreId']);
     return Object.keys(encuesta.metadata).filter((k) => !ocultar.has(k));
   }
+
+  getColumnasPorEscala(escala: TipoEscala) {
+  switch (escala) {
+    case 'ESCALA5':
+      return this.columnasEscala5;
+    case 'SI_NO':
+      return this.columnasSiNo;
+    case 'PARTICIPACION':
+      return this.columnasParticipacion;
+    case 'NORMATIVAS':
+      return this.columnasNormativas;
+  }
+}
+
+
 
   // Retorna solo respuestas abiertas que son editables según configuración
   get respuestasAbiertasEditables() {
@@ -779,6 +885,235 @@ export class EncuestasComponent implements OnInit {
     return month <= 6 ? 1 : 2; // enero (0) a julio (6) es semestre 1
   }
 
+  // Construye los conteos para una pregunta dada en un conjunto de encuestas ESTUDIANTILES
+  private buildEstadisticaPregunta(
+  encuestas: EncuestaRegistro[],
+  key: string,
+  escala: TipoEscala
+): EstadisticaPregunta {
+    const conteos: { [valor: string]: number } = {};
+    const totalEncuestas = encuestas.length;
+
+    for (const e of encuestas) {
+      const r = e.respuestas.find(
+        (res) => res.pregunta?.descripcion === key
+      );
+      if (!r) continue;
+
+      const raw =
+        r.alternativa?.descripcion ??
+        (typeof r.respuestaAbierta === 'string' ? r.respuestaAbierta.trim() : '');
+
+      if (!raw) continue;
+
+      const valor = String(raw);
+      conteos[valor] = (conteos[valor] || 0) + 1;
+    }
+
+    return {
+      key,
+      label: this.mapPreguntaDescripcion(key),
+      escala,
+      conteos,
+      totalEncuestas,
+    };
+  }
+
+
+  
+
+
+  // Devuelve el porcentaje de respuestas de una categoría (redondeado)
+getPorcentaje(pregunta: any, valor: string): number {
+  const total = pregunta?.totalEncuestas || 0;
+  if (!total) {
+    return 0;
+  }
+
+  const conteo = (pregunta.conteos && pregunta.conteos[valor]) || 0;
+  return Math.round((conteo * 100) / total);
+}
+
+
+  // Botón para mostrar / ocultar estadísticas
+  mostrarEstadisticas(tipo: TipoEncuesta): void {
+    // Si haces clic de nuevo en el mismo botón, se oculta (toggle)
+    if (this.tipoStatsVisible === tipo) {
+      this.tipoStatsVisible = null;
+      return;
+    }
+
+    this.tipoStatsVisible = tipo;
+
+    if (tipo === 'ESTUDIANTIL') {
+      // Recalcula las estadísticas de encuestas estudiantiles
+      this.computeEstadisticasEstudiantiles();
+    }
+    // Para COLABORADORES_JEFES en el futuro:
+    // else if (tipo === 'COLABORADORES_JEFES') {
+    //   this.computeEstadisticasColaboradores();
+    // }
+  }
+
+  // Calcula todas las estadísticas para la encuesta ESTUDIANTIL
+  private computeEstadisticasEstudiantiles(): void {
+    const encuestasEst = this.encuestas.filter(
+      (e) => e.tipo === 'ESTUDIANTIL'
+    );
+
+    this.totalEncuestasEstudiantiles = encuestasEst.length;
+    this.estadisticasEstudiantiles = [];
+
+    if (!encuestasEst.length) {
+      return;
+    }
+
+    // === GRUPO 1: Perspectiva general de la práctica ===
+    const grupoPerspectiva = {
+      titulo: 'I. Perspectiva general desarrollo de la práctica',
+      escala: 'ESCALA5' as const,
+      preguntas: [
+        'secI.objetivos',
+        'secI.accionesEstablecimiento',
+        'secI.accionesTaller',
+        'secI.satisfaccionGeneral',
+      ].map((key) =>
+        this.buildEstadisticaPregunta(encuestasEst, key, 'ESCALA5')
+      ),
+    };
+
+    // === GRUPO 2: Percepción sobre colaboradores ===
+    const grupoColaboradores = {
+      titulo: 'II. Percepción sobre colaboradores(as)',
+      escala: 'ESCALA5' as const,
+      preguntas: [
+        'secII_A.apoyoInsercion',
+        'secII_A.apoyoGestion',
+        'secII_A.orientacionComportamiento',
+        'secII_A.comunicacionConstante',
+        'secII_A.retroalimentacionProceso',
+      ].map((key) =>
+        this.buildEstadisticaPregunta(encuestasEst, key, 'ESCALA5')
+      ),
+    };
+
+    // === GRUPO 3: Experiencia con colaborador ===
+    const grupoExperienciaColaborador = {
+      titulo: 'III. Experiencia con colaborador(a)',
+      escala: 'SI_NO' as const,
+      preguntas: [
+        'secII_B.interesRol',
+        'secII_B.recomendarColaborador',
+      ].map((key) =>
+        this.buildEstadisticaPregunta(encuestasEst, key, 'SI_NO')
+      ),
+    };
+
+    // === GRUPO 4: Normativas del centro educativo ===
+  const grupoNormativas = {
+    titulo: 'IV. Normativas del centro educativo de práctica',
+    escala: 'NORMATIVAS' as TipoEscala,
+    preguntas: [
+      'secIII_A.planEvacuacion',
+      'secIII_A.proyectoEducativo',
+      'secIII_A.reglamentoConvivencia',
+      'secIII_A.planMejoramiento',
+    ].map((key) =>
+      this.buildEstadisticaPregunta(encuestasEst, key, 'NORMATIVAS')
+    ),
+  };
+
+  // === GRUPO 5: Participación en actividades del establecimiento ===
+  const grupoParticipacion = {
+    titulo: 'V. Participación en actividades del establecimiento',
+    escala: 'PARTICIPACION' as TipoEscala,
+    preguntas: [
+      'secIII_B.reunionesDepartamento',
+      'secIII_B.reunionesApoderados',
+      'secIII_B.fiestasPatrias',
+      'secIII_B.diaLibro',
+      'secIII_B.aniversarios',
+      'secIII_B.diaFamilia',
+      'secIII_B.graduaciones',
+    ].map((key) =>
+      this.buildEstadisticaPregunta(encuestasEst, key, 'PARTICIPACION')
+    ),
+  };
+
+  // === GRUPO 6: Percepción sobre el centro educativo ===
+  const grupoPercepcionCentro = {
+    titulo: 'VI. Percepción sobre el centro educativo',
+    escala: 'SI_NO' as TipoEscala,
+    preguntas: [
+      'secIII_C.gratoAmbiente',
+      'secIII_C.recomendarCentro',
+    ].map((key) =>
+      this.buildEstadisticaPregunta(encuestasEst, key, 'SI_NO')
+    ),
+  };
+
+  // === GRUPO 7: Percepción sobre el Tallerista ===
+  const grupoTallerista = {
+    titulo: 'VII. Percepción sobre el Tallerista',
+    escala: 'ESCALA5' as TipoEscala,
+    preguntas: [
+      'secIV_T.presentacionCentro',
+      'secIV_T.facilitaComprension',
+      'secIV_T.planificaVisitas',
+      'secIV_T.sesionesSemanales',
+      'secIV_T.evaluaPermanente',
+      'secIV_T.orientaDesempeno',
+      'secIV_T.organizaActividades',
+    ].map((key) =>
+      this.buildEstadisticaPregunta(encuestasEst, key, 'ESCALA5')
+    ),
+  };
+
+  // === GRUPO 8: Percepción sobre el Supervisor/a ===
+  const grupoSupervisor = {
+    titulo: 'VIII. Percepción sobre el Supervisor/a',
+    escala: 'ESCALA5' as TipoEscala,
+    preguntas: [
+      'secIV_S.presentacionCentro',
+      'secIV_S.orientaGestion',
+      'secIV_S.comunicacionConstante',
+      'secIV_S.orientaComportamiento',
+      'secIV_S.sesionesRetro',
+      'secIV_S.evaluaGlobal',
+      'secIV_S.resuelveProblemas',
+      'secIV_S.orientaGestionDos',
+    ].map((key) =>
+      this.buildEstadisticaPregunta(encuestasEst, key, 'ESCALA5')
+    ),
+  };
+
+  // === GRUPO 9: Sobre la Coordinación de Prácticas ===
+  const grupoCoordinacion = {
+    titulo: 'IX. Sobre la Coordinación de Prácticas',
+    escala: 'ESCALA5' as TipoEscala,
+    preguntas: [
+      'secV.induccionesAcordes',
+      'secV.informacionClara',
+      'secV.respuestaDudas',
+      'secV.infoAcordeCentros',
+      'secV.gestionesMejora',
+    ].map((key) =>
+      this.buildEstadisticaPregunta(encuestasEst, key, 'ESCALA5')
+    ),
+  };
+
+  this.estadisticasEstudiantiles = [
+    grupoPerspectiva,
+    grupoColaboradores,
+    grupoExperienciaColaborador,
+    grupoNormativas,
+    grupoParticipacion,
+    grupoPercepcionCentro,
+    grupoTallerista,
+    grupoSupervisor,
+    grupoCoordinacion,
+  ];
+}
   // ---------- ENVÍO ----------
   // Envía el formulario a la API según el tipo de encuesta
   onSubmitRegistro(): void {
@@ -886,6 +1221,7 @@ export class EncuestasComponent implements OnInit {
         this.mostrarOk('Encuesta registrada exitosamente.');
         this.loadEncuestas();
         this.cerrarRegistro();
+        this.computeEstadisticasEstudiantiles();
       },
       error: (err: HttpErrorResponse) => {
         console.error('Error al crear encuesta', err);

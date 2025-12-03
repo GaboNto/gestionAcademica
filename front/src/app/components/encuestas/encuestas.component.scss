@@ -488,6 +488,182 @@ mat-card-actions {
   padding: 0.75rem 1.5rem 1rem;
 }
 
+/* ===== ESTADÍSTICAS (tablas) ===== */
+
+.stats-card {
+  margin-top: 1rem;
+  border-radius: 1rem;
+}
+
+.stats-group {
+  margin-top: 1rem;
+}
+
+.stats-group + .stats-group {
+  margin-top: 2rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  padding-top: 1.2rem;
+}
+
+.stats-group-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem;
+}
+
+.stats-table th,
+.stats-table td {
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+.stats-table th:first-child,
+.stats-table td:first-child {
+  text-align: left;
+  min-width: 260px;
+}
+
+/* ====== GRÁFICOS DE BARRAS APILADAS ====== */
+
+.charts-container {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.chart-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.chart-row-label {
+  flex: 0 0 260px; /* ancho de la columna de texto */
+  font-size: 0.85rem;
+}
+
+.chart-row-bar {
+  flex: 1;
+  display: flex;
+  height: 24px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #f0f0f0;
+}
+
+.chart-segment {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+/* Texto solo si el segmento tiene espacio */
+.chart-segment-text {
+  padding: 0 4px;
+}
+
+/* Leyenda */
+.chart-legend {
+  margin-top: 0.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  font-size: 0.8rem;
+}
+
+.legend-color {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  margin-right: 4px;
+}
+
+/* ===== COLORES POR CATEGORÍA ===== */
+
+/* Escala 1–5: Muy insatisfecho … Muy satisfecho */
+.scale-1 {
+  background: #1f4e79; /* Muy insatisfecho */
+  color: #fff;
+}
+
+.scale-2 {
+  background: #ed7d31; /* Insatisfecho */
+  color: #000;
+}
+
+.scale-3 {
+  background: #a5a5a5; /* Ni insatisfecho ni satisfecho */
+  color: #000;
+}
+
+.scale-4 {
+  background: #ffc000; /* Satisfecho */
+  color: #000;
+}
+
+.scale-5 {
+  background: #4472c4; /* Muy satisfecho */
+  color: #fff;
+}
+
+/* Escala Sí / No */
+.scale-SI {
+  background: #4472c4;
+  color: #fff;
+}
+
+.scale-NO {
+  background: #ed7d31;
+  color: #000;
+}
+
+/* Normativas: Sí / No / No existe-no sabe */
+.scale-SI_NORM {
+  background: #4472c4;
+  color: #fff;
+}
+
+.scale-NO_NORM {
+  background: #ed7d31;
+  color: #000;
+}
+
+.scale-NS_NORM {
+  background: #7f7f7f;
+  color: #fff;
+}
+
+/* Participación actividades (ejemplo) */
+.scale-ASISTIO_PART {
+  background: #4472c4;
+  color: #fff;
+}
+
+.scale-ASISTIO_NO_PART {
+  background: #ed7d31;
+  color: #000;
+}
+
+.scale-SE_REALIZO_NO_ASISTI {
+  background: #a5a5a5;
+  color: #000;
+}
+
+.scale-NO_INVITADO {
+  background: #ffc000;
+  color: #000;
+}
+
+.scale-NO_SE_REALIZO {
+  background: #595959;
+  color: #fff;
+}
+
 /* ===== RESPONSIVE ===== */
 
 @media (max-width: 960px) {
