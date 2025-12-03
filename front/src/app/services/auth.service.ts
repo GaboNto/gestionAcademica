@@ -1,0 +1,49 @@
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable, tap } from 'rxjs';
+
+const API = 'http://localhost:3000/api/auth';
+
+export interface LoginResponse {
+  accessToken: string;
+  user: {
+    id: number;
+    email: string;
+    nombre: string;
+    role: 'jefatura' | 'vinculacion' | 'practicas';
+  };
+}
+
+@Injectable({ providedIn: 'root' })
+export class AuthService {
+  private http = inject(HttpClient);
+  private readonly TOKEN_KEY = 'app.token';
+  private readonly USER_KEY = 'app.user';
+
+  login(email: string, password: string): Observable<LoginResponse> {
+    return this.http
+      .post<LoginResponse>(`${API}/login`, { email, password })
+      .pipe(
+        tap((res) => {
+          localStorage.setItem(this.TOKEN_KEY, res.accessToken);
+          localStorage.setItem(this.USER_KEY, JSON.stringify(res.user));
+        }),
+      );
+  }
+
+  logout(): void {
+    localStorage.removeItem(this.TOKEN_KEY);
+    localStorage.removeItem(this.USER_KEY);
+  }
+
+  isLoggedIn(): boolean {
+    if (typeof localStorage === 'undefined') return false;
+    return !!localStorage.getItem(this.TOKEN_KEY);
+  }
+
+  getCurrentUser() {
+    if (typeof localStorage === 'undefined') return null;
+    const raw = localStorage.getItem(this.USER_KEY);
+    return raw ? JSON.parse(raw) : null;
+  }
+}

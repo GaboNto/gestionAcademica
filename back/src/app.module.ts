@@ -13,22 +13,23 @@ import { TutorModule } from './tutor/tutor.module';
 import { PracticasModule } from './practicas/practicas.module';
 import { ActividadPracticaModule } from './actividad-practica/actividad-practica.module';
 import { ActividadesModule } from './actividades/actividades.module';
-
+import { AuthModule } from './auth/auth.module';
 import { EncuestasModule } from './encuestas/encuestas.module';
 
 @Module({
   imports: [
-    PrismaModule,                // Global
+    PrismaModule,             
     ColaboradoresModule,
     CentrosModule,
     TrabajadorModule,
     EstudianteModule,
-    CartaModule,                 // Nuevo
-    TutorModule,                 // Tutores (Supervisor / Tallerista)
-    PracticasModule,             // Gestión de prácticas
+    CartaModule,                
+    TutorModule,               
+    PracticasModule,      
     ActividadPracticaModule,
-    ActividadesModule,           // Listado de actividades (solo lectura para jefatura)
+    ActividadesModule,          
     EncuestasModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],

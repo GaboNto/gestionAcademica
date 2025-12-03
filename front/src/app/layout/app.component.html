@@ -1,57 +1,64 @@
-<mat-sidenav-container
-  class="shell"
-  [class.shell--open]="isSidenavOpened"
-  [style.--side-offset.px]="isSidenavOpened ? 260 : 0">
-  <!-- SIDEBAR -->
-  <mat-sidenav
-    #sidenav
-    class="side"
-    mode="side"
-    [opened]="isSidenavOpened"
-    (openedChange)="onSidenavChange($event)">
-    <!-- Usuario -->
-    <div class="side__header">
-      <div class="avatar"><mat-icon>{{ user.icon }}</mat-icon></div>
-      <div class="who">
-        <div class="name">{{ user.name }}</div>
-        <div class="role">{{ user.roleLabel }}</div>
+<!-- LAYOUT COMPLETO -->
+<ng-container *ngIf="!isLoginRoute; else loginOnly">
+  <mat-sidenav-container
+    class="shell"
+    [class.shell--open]="isSidenavOpened"
+    [style.--side-offset.px]="isSidenavOpened ? 260 : 0">
+
+    <!-- SIDEBAR -->
+    <mat-sidenav
+      #sidenav
+      class="side"
+      mode="side"
+      [opened]="isSidenavOpened"
+      (openedChange)="onSidenavChange($event)">
+      <!-- Usuario -->
+      <div class="side__header">
+        <div class="avatar"><mat-icon>{{ user.icon }}</mat-icon></div>
+        <div class="who">
+          <div class="name">{{ user.name }}</div>
+          <div class="role">{{ user.roleLabel }}</div>
+        </div>
       </div>
-    </div>
 
+      <mat-divider></mat-divider>
 
-    <mat-divider></mat-divider>
+      <!-- Navegación -->
+      <mat-nav-list>
+        <a mat-list-item
+           *ngFor="let item of nav"
+           [routerLink]="item.route"
+           routerLinkActive="active"
+           [routerLinkActiveOptions]="{ exact: true }"
+           (click)="sidenav.mode === 'over' && sidenav.close()">
+          <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
+          <span matListItemTitle>{{ item.label }}</span>
+        </a>
+      </mat-nav-list>
+    </mat-sidenav>
 
-    <!-- Navegación -->
-    <mat-nav-list>
-      <a mat-list-item
-         *ngFor="let item of nav"
-         [routerLink]="item.route"
-         routerLinkActive="active"
-         [routerLinkActiveOptions]="{ exact: true }"
-         (click)="sidenav.mode === 'over' && sidenav.close()">
-        <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
-        <span matListItemTitle>{{ item.label }}</span>
-      </a>
-    </mat-nav-list>
+    <!-- CONTENIDO -->
+    <mat-sidenav-content class="content">
+      <mat-toolbar class="topbar" color="primary">
+        <button mat-icon-button class="menu-btn" (click)="toggleSidenav(sidenav)">
+          <mat-icon>menu</mat-icon>
+        </button>
+        <span class="title">{{ appTitle }}</span>
+        <span class="spacer"></span>
+        <button mat-button (click)="logout()">
+          <mat-icon>logout</mat-icon>
+          Cerrar sesión
+        </button>
+      </mat-toolbar>
 
-  </mat-sidenav>
+      <main class="page">
+        <router-outlet></router-outlet>
+      </main>
+    </mat-sidenav-content>
+  </mat-sidenav-container>
+</ng-container>
 
-  <!-- CONTENIDO -->
-  <mat-sidenav-content class="content">
-    <mat-toolbar class="topbar" color="primary">
-      <button mat-icon-button class="menu-btn" (click)="toggleSidenav(sidenav)">
-        <mat-icon>menu</mat-icon>
-      </button>
-      <span class="title">{{ appTitle }}</span>
-      <span class="spacer"></span>
-      <button mat-button (click)="logout()">
-        <mat-icon>logout</mat-icon>
-        Cerrar sesión
-      </button>
-    </mat-toolbar>
-
-    <main class="page">
-      <router-outlet></router-outlet>
-    </main>
-  </mat-sidenav-content>
-</mat-sidenav-container>
+<!-- SOLO LOGIN (cuando la ruta ES /login) -->
+<ng-template #loginOnly>
+  <router-outlet></router-outlet>
+</ng-template>

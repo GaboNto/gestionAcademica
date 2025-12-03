@@ -1,8 +1,9 @@
-import { Component, inject, OnInit, AfterViewInit, PLATFORM_ID, OnDestroy, ViewChild } from '@angular/core';
+import {Component,inject,OnInit,AfterViewInit,PLATFORM_ID,OnDestroy,ViewChild} from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Router, RouterModule, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
-
+import { Subscription } from 'rxjs';
+import { AuthService } from '../services/auth.service';
 import { MatSidenavModule, MatSidenav } from '@angular/material/sidenav';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatListModule } from '@angular/material/list';
@@ -16,60 +17,75 @@ type RoleId = 'jefatura' | 'vinculacion' | 'practicas';
 /** Estructura que guardas en localStorage desde Home */
 interface SavedRole {
   id: RoleId;
-  title: string;         // Etiqueta visible del rol (p.ej., “Jefatura de Carrera”)
-  name: string;          // Nombre de la persona
+  title: string;
+  name: string;
   icon?: string;
-  permissions: string[]; // Funciones que mostraremos en el sidebar
+  permissions: string[];
   color?: 'blue' | 'green' | 'purple';
 }
 
-interface NavItem { label: string; icon: string; route: string; }
+interface NavItem {
+  label: string;
+  icon: string;
+  route: string;
+}
 
 @Component({
   standalone: true,
   selector: 'app-root',
   imports: [
-    CommonModule, RouterModule,
-    MatSidenavModule, MatToolbarModule, MatListModule,
-    MatIconModule, MatButtonModule, MatDividerModule
+    CommonModule,
+    RouterModule,
+    MatSidenavModule,
+    MatToolbarModule,
+    MatListModule,
+    MatIconModule,
+    MatButtonModule,
+    MatDividerModule,
   ],
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss']
+  styleUrls: ['./app.component.scss'],
 })
 export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   private router = inject(Router);
   private platformId = inject(PLATFORM_ID);
+  private auth = inject(AuthService);
+
   @ViewChild(MatSidenav) sidenav?: MatSidenav;
+
+  private navigationSub?: Subscription;
   private closeSidenavListener = () => {
     this.isSidenavOpened = false;
     this.sidenav?.close();
   };
 
+  /** NUEVO: detectar si estamos en la ruta /login */
+  isLoginRoute = false;
+
   isSidenavOpened = true;
   appTitle = 'Sistema de Prácticas';
 
   user = { name: 'Invitado', roleLabel: 'Sin rol', icon: 'account_circle' };
-  /** Se muestra como “Funciones del rol” */
   rolePermissions: string[] = [];
-  /** Items visibles en el sidebar (según rol) */
   nav: NavItem[] = [];
 
-  /** SSR: primer render con algo neutral */
   ngOnInit(): void {
-    this.applyRole('practicas'); // fallback visual para SSR
+    this.applyRole('practicas'); // fallback para SSR
+
     if (isPlatformBrowser(this.platformId)) {
       window.addEventListener('app:close-sidenav', this.closeSidenavListener);
       this.loadRoleFromStorage();
-      // Suscribirse a cambios de navegación para detectar cuando se selecciona un nuevo rol
-      this.router.events
+
+      // detectar cambios de ruta + detectar si estamos en /login
+      this.navigationSub = this.router.events
         .pipe(filter(event => event instanceof NavigationEnd))
-        .subscribe(() => {
+        .subscribe((event: any) => {
+          this.isLoginRoute = event.url === '/login';
           this.loadRoleFromStorage();
         });
     }
   }
 
-  /** Cliente: asegura que tras la primera pintura se apliquen los items correctos */
   ngAfterViewInit(): void {
     if (isPlatformBrowser(this.platformId)) {
       queueMicrotask(() => this.loadRoleFromStorage());
@@ -79,10 +95,14 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   // ------- Lógica de rol -------
   private loadRoleFromStorage() {
     try {
-      const saved = localStorage.getItem('app.selectedRole');
+      const saved = isPlatformBrowser(this.platformId)
+        ? localStorage.getItem('app.selectedRole')
+        : null;
       if (!saved) return;
+
       const r = JSON.parse(saved) as SavedRole;
       if (!r?.id) return;
+
       this.applyRole(r.id, r);
     } catch {}
   }
@@ -96,73 +116,82 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   // ------- UI -------
-  onSidenavChange(opened: boolean) { this.isSidenavOpened = opened; }
-  toggleSidenav(sidenav: MatSidenav) { sidenav.toggle(); }
+  onSidenavChange(opened: boolean) {
+    this.isSidenavOpened = opened;
+  }
+
+  toggleSidenav(sidenav: MatSidenav) {
+    sidenav.toggle();
+  }
 
   logout() {
-    if (isPlatformBrowser(this.platformId)) localStorage.removeItem('app.selectedRole');
-    this.router.navigateByUrl('/');
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.removeItem('app.selectedRole');
+    }
+
+    this.auth.logout();
+    this.router.navigateByUrl('/login');
   }
 
   ngOnDestroy(): void {
     if (isPlatformBrowser(this.platformId)) {
       window.removeEventListener('app:close-sidenav', this.closeSidenavListener);
     }
+    this.navigationSub?.unsubscribe();
   }
 
   // ------- Helpers -------
   private mapRoleLabel(id: RoleId): string {
     switch (id) {
-      case 'jefatura':    return 'Jefatura de Carrera';
-      case 'vinculacion': return 'Coordinador/a de Vinculación';
-      case 'practicas':   return 'Coordinador/a de Prácticas';
-      default:            return 'Sin rol';
+      case 'jefatura':
+        return 'Jefatura de Carrera';
+      case 'vinculacion':
+        return 'Coordinador/a de Vinculación';
+      case 'practicas':
+        return 'Coordinador/a de Prácticas';
+      default:
+        return 'Sin rol';
     }
   }
 
-  /** Construye el menú del sidebar según funciones reales por rol */
   private buildNav(id: RoleId): NavItem[] {
     if (id === 'jefatura') {
-      // Reportes completos + Generar cartas + Supervisión general + Estudiantes en práctica + Usuarios + Tutores + Colaboradores + Actividades (solo lectura)
       return [
-        { label: 'Dashboard',          icon: 'dashboard',    route: '/dashboard' },
-        { label: 'Usuarios',           icon: 'manage_accounts', route: '/usuarios' },
-        { label: 'Estudiantes en práctica', icon: 'school',  route: '/estudiantes-en-practica' },
-        { label: 'Tutores',            icon: 'supervisor_account', route: '/tutores' },
-        { label: 'Colaboradores',      icon: 'groups',       route: '/colaboradores' },
-        { label: 'Actividades',        icon: 'assignment',   route: '/actividades-estudiantes' },
-        { label: 'Supervisión general',icon: 'insights',     route: '/supervision' },
-        { label: 'Reportes completos', icon: 'analytics',    route: '/reportes' },
-        { label: 'Generar solicitud',  icon: 'description',  route: '/carta' }, // crea la ruta si aún no existe
+        { label: 'Dashboard', icon: 'dashboard', route: '/dashboard' },
+        { label: 'Usuarios', icon: 'manage_accounts', route: '/usuarios' },
+        { label: 'Estudiantes en práctica', icon: 'school', route: '/estudiantes-en-practica' },
+        { label: 'Tutores', icon: 'supervisor_account', route: '/tutores' },
+        { label: 'Colaboradores', icon: 'groups', route: '/colaboradores' },
+        { label: 'Actividades', icon: 'assignment', route: '/actividades-estudiantes' },
+        { label: 'Supervisión general', icon: 'insights', route: '/supervision' },
+        { label: 'Reportes completos', icon: 'analytics', route: '/reportes' },
+        { label: 'Generar solicitud', icon: 'description', route: '/carta' },
       ];
     }
 
     if (id === 'vinculacion') {
-      // Registrar encuestas
       return [
-        { label: 'Dashboard',          icon: 'dashboard',          route: '/dashboard' },
-        { label: 'Encuestas',          icon: 'assignment',         route: '/encuestas' },
-        { label: 'Estudiantes',        icon: 'school',             route: '/estudiantes' },
-        { label: 'Colaboradores',      icon: 'groups',             route: '/colaboradores' },
-        { label: 'Centros educativos', icon: 'domain',             route: '/centros-educativos' },
+        { label: 'Dashboard', icon: 'dashboard', route: '/dashboard' },
+        { label: 'Encuestas', icon: 'assignment', route: '/encuestas' },
+        { label: 'Estudiantes', icon: 'school', route: '/estudiantes' },
+        { label: 'Colaboradores', icon: 'groups', route: '/colaboradores' },
+        { label: 'Centros educativos', icon: 'domain', route: '/centros-educativos' },
       ];
     }
 
     if (id === 'practicas') {
-      // Gestionar centros, estudiantes, prácticas, colaboradores, reportes/historial
       return [
-        { label: 'Dashboard',          icon: 'dashboard',          route: '/dashboard' },
-        { label: 'Estudiantes',        icon: 'school',             route: '/estudiantes' },
-        { label: 'Tutores',            icon: 'supervisor_account', route: '/tutores' },
-        { label: 'Colaboradores',      icon: 'groups',             route: '/colaboradores' },
-        { label: 'Centros educativos', icon: 'domain',             route: '/centros-educativos' },
-        { label: 'Prácticas',          icon: 'event_note',         route: '/practicas' },     // crea la ruta si aún no existe
-        { label: 'Actividades',        icon: 'assignment',         route: '/actividades-estudiantes' },
-        { label: 'Reportes/Historial', icon: 'timeline',           route: '/reportes' },     // crea la ruta si aún no existe
+        { label: 'Dashboard', icon: 'dashboard', route: '/dashboard' },
+        { label: 'Estudiantes', icon: 'school', route: '/estudiantes' },
+        { label: 'Tutores', icon: 'supervisor_account', route: '/tutores' },
+        { label: 'Colaboradores', icon: 'groups', route: '/colaboradores' },
+        { label: 'Centros educativos', icon: 'domain', route: '/centros-educativos' },
+        { label: 'Prácticas', icon: 'event_note', route: '/practicas' },
+        { label: 'Actividades', icon: 'assignment', route: '/actividades-estudiantes' },
+        { label: 'Reportes/Historial', icon: 'timeline', route: '/reportes' },
       ];
     }
 
-    // Fallback si no calza
     return [];
   }
 }
