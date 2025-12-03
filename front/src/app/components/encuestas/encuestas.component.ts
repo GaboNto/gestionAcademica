@@ -955,6 +955,13 @@ getPorcentaje(pregunta: any, valor: string): number {
     // }
   }
 
+
+  // Cierra la ventana/modal de estadísticas
+  cerrarEstadisticas(): void {
+    this.tipoStatsVisible = null;
+  }
+
+
   // Calcula todas las estadísticas para la encuesta ESTUDIANTIL
   private computeEstadisticasEstudiantiles(): void {
     const encuestasEst = this.encuestas.filter(

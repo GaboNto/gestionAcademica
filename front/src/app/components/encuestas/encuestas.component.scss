@@ -639,30 +639,32 @@ mat-card-actions {
 }
 
 /* Participación actividades (ejemplo) */
-.scale-ASISTIO_PART {
-  background: #4472c4;
+/* Participación actividades (códigos reales: A_P, A_N, R_NA, R_NI, NR) */
+.scale-A_P {
+  background: #4472c4;  /* Asistí y pude participar */
   color: #fff;
 }
 
-.scale-ASISTIO_NO_PART {
-  background: #ed7d31;
+.scale-A_N {
+  background: #ed7d31;  /* Asistí, pero no intervine */
   color: #000;
 }
 
-.scale-SE_REALIZO_NO_ASISTI {
-  background: #a5a5a5;
+.scale-R_NA {
+  background: #a5a5a5;  /* Se realizó, pero no asistí */
   color: #000;
 }
 
-.scale-NO_INVITADO {
-  background: #ffc000;
+.scale-R_NI {
+  background: #ffc000;  /* Se realizó, pero no fui invitado */
   color: #000;
 }
 
-.scale-NO_SE_REALIZO {
-  background: #595959;
+.scale-NR {
+  background: #595959;  /* No se realizó */
   color: #fff;
 }
+
 
 /* ===== RESPONSIVE ===== */
 
