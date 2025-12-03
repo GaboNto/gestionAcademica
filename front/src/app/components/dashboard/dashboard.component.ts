@@ -59,8 +59,8 @@ export class DashboardComponent implements OnInit {
   private mapRoleLabel(id: RoleId) {
     switch (id) {
       case 'jefatura':    return 'Jefatura de Carrera';
-      case 'vinculacion': return 'Coordinador/a de Vinculación';
-      case 'practicas':  return 'Coordinador/a de practicas';
+      case 'vinculacion': return 'Coordinador de Vinculación';
+      case 'practicas':  return 'Coordinador de practicas';
     }
   }
 
@@ -88,8 +88,10 @@ export class DashboardComponent implements OnInit {
 
     if (id === 'vinculacion') {
       return [
-        { title: 'Colegios', icon: 'location_city', route: '/colegios', desc: 'Administración de centros educacionales' },
         { title: 'Colaboradores', icon: 'groups', route: '/colaboradores', desc: 'Alta, filtros y perfiles' },
+        { title: 'Centros educativos', icon: 'domain', route: '/centros-educativos', desc: 'Listado de centros educativos' },
+        { title: 'Colaboradores', icon: 'groups', route: '/colaboradores', desc: 'Actividades recientes' },
+        { title: 'Estudiantes', icon: 'school', route: '/estudiantes', desc: 'Seguimiento asignado' },
         ...comunes
       ];
     }

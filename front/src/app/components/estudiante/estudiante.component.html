@@ -87,8 +87,8 @@
               <div><b>Teléfono:</b> {{ s.fono || '-' }}</div>
             </div>
             <div class="row-foot" *ngIf="s.ultimaPractica">
-              Última práctica: {{ formatearFecha(s.ultimaPractica?.fecha_inicio) }} -
-              {{ formatearFecha(s.ultimaPractica?.fecha_termino) }}
+              Última práctica: {{ formatearFecha(s.ultimaPractica.fecha_inicio) }} -
+              {{ formatearFecha(s.ultimaPractica.fecha_termino) }}
             </div>
           </div>
         </mat-card-content>
@@ -159,4 +159,5 @@
       </mat-card>
     </div>
   </div>
-</div>
+</div>
+
