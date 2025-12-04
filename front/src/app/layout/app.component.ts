@@ -177,6 +177,11 @@ private syncRoleFromAuthUser() {
     this.router.navigateByUrl('/login');
   }
 
+  goHome() {
+  this.router.navigate(['/dashboard']);
+  }
+
+
   ngOnDestroy(): void {
     if (isPlatformBrowser(this.platformId)) {
       window.removeEventListener('app:close-sidenav', this.closeSidenavListener);
@@ -201,7 +206,7 @@ private syncRoleFromAuthUser() {
   private buildNav(id: RoleId): NavItem[] {
     if (id === 'jefatura') {
       return [
-        { label: 'Dashboard', icon: 'dashboard', route: '/dashboard' },
+
         { label: 'Usuarios', icon: 'manage_accounts', route: '/usuarios' },
         { label: 'Estudiantes en práctica', icon: 'school', route: '/estudiantes-en-practica' },
         { label: 'Tutores', icon: 'supervisor_account', route: '/tutores' },
@@ -215,7 +220,7 @@ private syncRoleFromAuthUser() {
 
     if (id === 'vinculacion') {
       return [
-        { label: 'Dashboard', icon: 'dashboard', route: '/dashboard' },
+
         { label: 'Encuestas', icon: 'assignment', route: '/encuestas' },
         { label: 'Estudiantes', icon: 'school', route: '/estudiantes' },
         { label: 'Colaboradores', icon: 'groups', route: '/colaboradores' },
@@ -225,7 +230,7 @@ private syncRoleFromAuthUser() {
 
     if (id === 'practicas') {
       return [
-        { label: 'Dashboard', icon: 'dashboard', route: '/dashboard' },
+
         { label: 'Estudiantes', icon: 'school', route: '/estudiantes' },
         { label: 'Tutores', icon: 'supervisor_account', route: '/tutores' },
         { label: 'Colaboradores', icon: 'groups', route: '/colaboradores' },

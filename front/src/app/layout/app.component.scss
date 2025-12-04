@@ -7,6 +7,7 @@
 /* SIDEBAR */
 .side {
   width: 260px;
+  
   border-right: 1px solid #e5e7eb;
   display: flex;
   flex-direction: column;
@@ -59,7 +60,7 @@
 
 .side__nav a.mat-mdc-list-item {
   border-radius: 999px;
-  margin: 2px 8px;
+  margin: 2px 0;
 }
 
 .side__nav a.active {
@@ -168,4 +169,20 @@
   .page {
     padding: 16px;
   }
+
+
+  .home-btn {
+  margin-right: 8px;
+  background: transparent !important;
+}
+
+.home-btn .mat-icon {
+  font-size: 24px;
+}
+
+.topbar-title {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
 }

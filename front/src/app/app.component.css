@@ -38,3 +38,4 @@ a.mat-mdc-list-item.active {
   .side { width: 260px; }
   .shell ::ng-deep mat-sidenav { position: fixed !important; }
 }
+

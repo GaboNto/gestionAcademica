@@ -59,15 +59,13 @@
           <mat-icon>menu</mat-icon>
         </button>
 
-        <div class="topbar__brand">
-          <div class="topbar__logo">
-            <mat-icon>school</mat-icon>
-          </div>
-          <div class="topbar__titles">
-            <span class="title">{{ appTitle }}</span>
-            <span class="subtitle">Prácticas pedagógicas UTA</span>
-          </div>
-        </div>
+        <button
+          mat-icon-button
+          class="home-btn"
+          aria-label="Volver al dashboard"
+          (click)="goHome()">
+          <mat-icon>home</mat-icon>
+        </button>
 
         <span class="spacer"></span>
 
