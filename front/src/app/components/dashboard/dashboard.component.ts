@@ -64,6 +64,9 @@ export class DashboardComponent implements OnInit {
   user = { name: 'Usuario', roleLabel: 'Rol', icon: 'account_circle' };
   cards: CardItem[] = [];
 
+  // Último acceso formateado para mostrar en el hero
+  lastLogin: string | null = null;
+
   summary: {
     estudiantes: number | null;
     centros: number | null;
@@ -89,6 +92,19 @@ export class DashboardComponent implements OnInit {
       this.cards = this.buildCardsFor(role.id);
     } else {
       this.cards = this.buildCardsFor('vinculacion');
+    }
+
+    // Cargar y formatear último acceso (si existe)
+    const rawLastLogin = localStorage.getItem('lastLogin');
+    if (rawLastLogin) {
+      const d = new Date(rawLastLogin);
+      // Formato local chileno: ej. "3 dic 2025, 14:35"
+      this.lastLogin = d.toLocaleString('es-CL', {
+        dateStyle: 'medium',
+        timeStyle: 'short',
+      });
+    } else {
+      this.lastLogin = null;
     }
 
     this.loadSummary();

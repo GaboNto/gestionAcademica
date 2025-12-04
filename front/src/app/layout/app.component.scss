@@ -1,54 +1,171 @@
-/* Layout base */
+/* Contenedor general */
 .shell {
   height: 100vh;
-  --side-offset: 0px;
+  background: #f3f4f6;
 }
-.side  { width: 260px; border-right: 1px solid #e5e7eb; }
-.content { background: #f7f9fc; }
-.shell--open { --side-offset: 260px; }
 
-/* Topbar */
-.topbar { position: sticky; top: 0; z-index: 10; }
-.menu-btn { margin-right: 8px; }
-.title { font-weight: 700; }
-.spacer { flex: 1 1 auto; }
+/* SIDEBAR */
+.side {
+  width: 260px;
+  border-right: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  padding: 8px 0 12px;
+  box-shadow: 2px 0 8px rgba(15, 23, 42, 0.04);
+}
 
-/* Sidebar header */
 .side__header {
-  display: flex; align-items: center; gap: 10px;
-  padding: 14px 16px; border-bottom: 1px solid #eef2f7;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 18px 10px;
 }
+
 .avatar {
-  width: 42px; height: 42px; border-radius: 50%;
-  display: grid; place-items: center; background: #e3f2fd; color: #1976d2;
-}
-.who .name { font-weight: 600; line-height: 1.1; }
-.who .role { font-size: 12px; color: #64748b; }
-
-/* Funciones del rol */
-.side__section { padding: 12px 16px; }
-.section-title {
-  display: flex; align-items: center; gap: 6px;
-  font-weight: 600; color: #334155; margin-bottom: 6px;
-}
-.perm-list { margin: 0; padding-left: 18px; color: #475569; font-size: 13px; }
-.perm-list li { margin: 4px 0; }
-
-/* Items activos en la lista */
-a.mat-mdc-list-item.active {
-  background: #e8f0fe;
-  border-left: 3px solid #1976d2;
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  background: #e0ecff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1d4ed8;
+  font-size: 24px;
 }
 
-/* Footer del sidebar */
-.side__footer { margin: 12px; }
+.who .name {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #111827;
+}
 
-/* Contenido */
-.page { padding: 16px; }
+.who .role {
+  font-size: 0.8rem;
+  color: #6b7280;
+}
 
-/* Responsive: en pantallas pequeñas el sidenav pasa a overlay */
-@media (max-width: 960px) {
-  .side { width: 260px; }
-  .shell ::ng-deep mat-sidenav { position: fixed !important; }
-  .shell--open { --side-offset: 0px; }
+.side__section-title {
+  padding: 10px 18px 4px;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #9ca3af;
+}
+
+.side__nav {
+  padding-top: 4px;
+  flex: 1;
+}
+
+.side__nav a.mat-mdc-list-item {
+  border-radius: 999px;
+  margin: 2px 8px;
+}
+
+.side__nav a.active {
+  background: rgba(37, 99, 235, 0.08);
+  color: #1d4ed8;
+}
+
+.side__footer {
+  padding: 8px 18px 0;
+  border-top: 1px solid #e5e7eb;
+  font-size: 0.75rem;
+  color: #9ca3af;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.side__footer-version {
+  font-size: 0.7rem;
+}
+
+/* TOPBAR */
+.content {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+}
+
+.menu-btn {
+  margin-right: 8px;
+}
+
+.topbar__brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.topbar__logo {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 19px;
+}
+
+.topbar__titles .title {
+  display: block;
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+
+.topbar__titles .subtitle {
+  display: block;
+  font-size: 0.75rem;
+  opacity: 0.8;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.topbar__user {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-right: 10px;
+  font-size: 0.85rem;
+}
+
+.user-icon {
+  font-size: 20px;
+}
+
+.logout-btn {
+  margin-left: 4px;
+}
+
+/* CONTENIDO PRINCIPAL */
+.page {
+  flex: 1;
+  padding: 20px 24px 24px;
+  overflow: auto;
+}
+
+/* Responsivo: sidebar tipo "over" en pantallas pequeñas si ya lo manejas desde TS */
+@media (max-width: 768px) {
+  .side {
+    width: 240px;
+  }
+
+  .topbar__titles .title {
+    font-size: 0.95rem;
+  }
+
+  .page {
+    padding: 16px;
+  }
 }

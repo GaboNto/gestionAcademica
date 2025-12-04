@@ -19,10 +19,13 @@
         <span class="dot"></span>
         Sesión activa
       </div>
-      <div class="hero-env">Ambiente: Desarrollo</div>
+      <div class="hero-env">
+        Último acceso: {{ lastLogin || '—' }}
+      </div>
     </div>
   </section>
 
+  
   <!-- ===== TARJETAS PEQUEÑAS (RESUMEN) ===== -->
   <section class="summary-row">
     <mat-card class="summary-card elev">
@@ -86,8 +89,6 @@
               }
             </div>
           }
-
-
         </mat-card>
       }
     </div>

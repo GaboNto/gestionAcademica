@@ -27,6 +27,7 @@ export class AuthService {
         tap((res) => {
           localStorage.setItem(this.TOKEN_KEY, res.accessToken);
           localStorage.setItem(this.USER_KEY, JSON.stringify(res.user));
+          localStorage.setItem('lastLogin', new Date().toISOString());
         }),
       );
   }
