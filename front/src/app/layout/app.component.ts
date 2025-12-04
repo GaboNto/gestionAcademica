@@ -14,7 +14,7 @@ import { MatDividerModule } from '@angular/material/divider';
 /** IDs de rol válidos en toda la app */
 type RoleId = 'jefatura' | 'vinculacion' | 'practicas';
 
-/** Estructura que guardas en localStorage desde Home */
+/** Estructura que guardas en localStorage */
 interface SavedRole {
   id: RoleId;
   title: string;
@@ -94,18 +94,62 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // ------- Lógica de rol -------
   private loadRoleFromStorage() {
-    try {
-      const saved = isPlatformBrowser(this.platformId)
-        ? localStorage.getItem('app.selectedRole')
-        : null;
-      if (!saved) return;
+  try {
+    const saved = isPlatformBrowser(this.platformId)
+      ? localStorage.getItem('app.selectedRole')
+      : null;
 
+    if (saved) {
       const r = JSON.parse(saved) as SavedRole;
-      if (!r?.id) return;
+      if (r?.id) {
+        this.applyRole(r.id, r);
+        return;
+      }
+    }
 
-      this.applyRole(r.id, r);
-    } catch {}
+    // Si no hay rol guardado, intentamos usar el usuario autenticado
+    this.syncRoleFromAuthUser();
+  } catch {
+    this.syncRoleFromAuthUser();
   }
+}
+
+
+private syncRoleFromAuthUser() {
+  // usamos el usuario guardado por AuthService (app.user)
+  const authUser = this.auth.getCurrentUser?.();
+  if (!authUser?.role) return;
+
+  const id = authUser.role as RoleId;
+
+  const savedRole: SavedRole = {
+    id,
+    title: this.mapRoleLabel(id),
+    name: authUser.nombre || authUser.email,
+    icon:
+      id === 'jefatura'
+        ? 'school'
+        : id === 'vinculacion'
+        ? 'groups'
+        : 'assignment_ind',
+    permissions: [], // si después quieres, aquí metes permisos por rol
+    color:
+      id === 'jefatura'
+        ? 'purple'
+        : id === 'vinculacion'
+        ? 'green'
+        : 'blue',
+  };
+
+  // aplicamos el rol al layout
+  this.applyRole(id, savedRole);
+
+  // y además lo guardamos para futuras recargas
+  if (isPlatformBrowser(this.platformId)) {
+    localStorage.setItem('app.selectedRole', JSON.stringify(savedRole));
+  }
+}
+
 
   private applyRole(id: RoleId, r?: SavedRole) {
     this.user.name = r?.name ?? this.user.name;
@@ -146,9 +190,9 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
       case 'jefatura':
         return 'Jefatura de Carrera';
       case 'vinculacion':
-        return 'Coordinador/a de Vinculación';
+        return 'Coordinador de Vinculación';
       case 'practicas':
-        return 'Coordinador/a de Prácticas';
+        return 'Coordinador de Prácticas';
       default:
         return 'Sin rol';
     }

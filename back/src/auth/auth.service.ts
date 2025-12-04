@@ -1,54 +1,41 @@
 import { Injectable } from '@nestjs/common';
-
-interface User {
-  id: number;
-  email: string;
-  password: string; // en un proyecto real va hasheada
-  nombre: string;
-  role: 'jefatura' | 'vinculacion' | 'practicas';
-}
+import * as bcrypt from 'bcrypt';
+import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
 export class AuthService {
-  // Usuarios de ejemplo (puedes cambiarlos o cargarlos desde BD después)
-  private users: User[] = [
-    {
-      id: 1,
-      email: 'jefatura@uta.cl',
-      password: '123456',
-      nombre: 'Jefatura de Carrera',
-      role: 'jefatura',
-    },
-    {
-      id: 2,
-      email: 'vinculacion@uta.cl',
-      password: '123456',
-      nombre: 'Coordinación de Vinculación',
-      role: 'vinculacion',
-    },
-    {
-      id: 3,
-      email: 'practicas@uta.cl',
-      password: '123456',
-      nombre: 'Coordinadora de Prácticas',
-      role: 'practicas',
-    },
-  ];
+  constructor(private readonly prisma: PrismaService) {}
 
-  validateUser(email: string, password: string) {
-    const user = this.users.find(
-      u => u.email === email && u.password === password,
-    );
-    if (!user) return null;
+  /**
+   * Valida las credenciales contra la tabla Usuario
+   */
+  async validateUser(email: string, password: string) {
+    // buscar usuario por email
+    const user = await this.prisma.usuario.findUnique({
+      where: { email },
+    });
 
-    const { password: _pwd, ...rest } = user;
-    return rest;
+    if (!user || !user.activo) {
+      return null;
+    }
+
+    // comparar password en texto plano con el hash almacenado
+    const ok = await bcrypt.compare(password, user.password);
+    if (!ok) {
+      return null;
+    }
+
+    // eliminar el password antes de devolver
+    const { password: _pwd, ...safeUser } = user;
+    return safeUser;
   }
 
-  buildLoginResponse(user: Omit<User, 'password'>) {
-    // Aquí podrías firmar un JWT; por ahora un token sencillo
+  /**
+   * Arma la respuesta de login (a futuro aquí puedes firmar un JWT real)
+   */
+  buildLoginResponse(user: any) {
     return {
-      accessToken: `fake-token-${user.id}`,
+      accessToken: `fake-token-${user.id}`, // luego: reemplazar por JWT
       user,
     };
   }

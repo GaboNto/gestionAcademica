@@ -16,14 +16,6 @@ export const routes: Routes = [
       import('./components/login/login.component').then(m => m.LoginComponent),
   },
 
-  // Página de selección de rol (antes era la raíz)
-  {
-    path: 'home',
-    canActivate: [authGuard],
-    loadComponent: () =>
-      import('./components/home/home.component').then(m => m.HomeComponent),
-  },
-
   // Dashboard
   {
     path: 'dashboard',
@@ -123,6 +115,6 @@ export const routes: Routes = [
   // Ruta comodín → redirige a login
   {
     path: '**',
-    redirectTo: 'login',
+    redirectTo: 'dashboard',
   },
 ];

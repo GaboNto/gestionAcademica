@@ -141,15 +141,18 @@ model Actividad {
   @@map("actividad")
 }
 
-model Usuario {
-  id         Int    @id @default(autoincrement())
-  nombre     String
-  correo     String @unique
-  rol        String
-  contrasena String
 
-  @@map("usuario")
+model Usuario {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  nombre    String
+  role      String
+  activo    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
+
 
 /////////////////////////////////////
 //    NUEVO MODELO: ENCUESTA SEMESTRE
@@ -356,3 +359,4 @@ model Cargo {
 
   @@map("cargo")
 }
+

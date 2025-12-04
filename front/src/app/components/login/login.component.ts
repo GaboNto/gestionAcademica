@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   FormBuilder,
@@ -33,7 +33,7 @@ import { AuthService } from '../../services/auth.service';
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss'],
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   private fb = inject(FormBuilder);
   private auth = inject(AuthService);
   private router = inject(Router);
@@ -44,9 +44,16 @@ export class LoginComponent {
   loading = false;
 
   form: FormGroup = this.fb.group({
-    email: ['jefatura@uta.cl', [Validators.required, Validators.email]],
-    password: ['123456', [Validators.required, Validators.minLength(4)]],
+    email: ['', [Validators.required, Validators.email]],
+    password: ['', [Validators.required, Validators.minLength(4)]],
   });
+
+  ngOnInit(): void {
+    if (this.auth.isLoggedIn()) {
+      this.router.navigateByUrl('/dashboard');
+      return;
+    }
+  }
 
   submit() {
     if (this.form.invalid) {
@@ -61,7 +68,7 @@ export class LoginComponent {
       next: () => {
         this.loading = false;
         const returnUrl =
-          this.route.snapshot.queryParamMap.get('returnUrl') || '/home';
+          this.route.snapshot.queryParamMap.get('returnUrl') || '/dashboard';
         this.router.navigateByUrl(returnUrl);
       },
       error: (err) => {
