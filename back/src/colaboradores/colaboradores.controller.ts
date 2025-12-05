@@ -4,7 +4,7 @@ import { CreateColaboradorDto } from './dto/create-colaborador.dto';
 import { UpdateColaboradorDto } from './dto/update-colaborador.dto';
 import { QueryColaboradorDto } from './dto/query-colaborador.dto';
 
-@Controller('colaboradores')
+@Controller('api/colaboradores')
 export class ColaboradoresController {
   constructor(private readonly service: ColaboradoresService) {}
 

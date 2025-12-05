@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 
-const API = 'http://localhost:3000/api/auth';
+const API = '/api/auth';
 
 export interface LoginResponse {
   accessToken: string;
@@ -50,7 +50,7 @@ export class AuthService {
 
   forgotPassword(email: string) {
     return this.http.post<{ message: string }>(
-      'http://localhost:3000/api/auth/forgot-password',
+      '/api/auth/forgot-password',
       { email }
     );
   }
