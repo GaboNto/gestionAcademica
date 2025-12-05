@@ -198,7 +198,7 @@ model EncuestaEstudiante {
   nombre_centro      String?
   nombre_colaborador String?
   fecha              DateTime?
-  observacion        String?
+  observacion String? @db.Text
 
   semestreId Int?
   semestre   EncuestaSemestre? @relation(fields: [semestreId], references: [id], onDelete: Cascade)
@@ -229,7 +229,7 @@ model EncuestaColaborador {
   id                 Int      @id @default(autoincrement())
   nombre_colaborador String
   nombre_colegio     String?
-  observacion        String?
+  observacion String? @db.Text
   fecha              DateTime?
   
   semestreId Int?
@@ -261,7 +261,7 @@ model Pregunta {
   id               Int     @id @default(autoincrement())
   descripcion      String
   tipo             TipoPregunta
-  respuestaAbierta String?
+  respuestaAbierta String? @db.LongText
 
   itemEstudianteId  Int?
   itemEstudiante    ItemEncuestaEstudiante? @relation(fields: [itemEstudianteId], references: [id])
@@ -307,7 +307,7 @@ model RespuestaSeleccionada {
   alternativaId         Int?
   alternativa           Alternativa? @relation(fields: [alternativaId], references: [id])
 
-  respuestaAbierta      String?
+  respuestaAbierta      String? @db.LongText
 
   @@map("respuesta_seleccionada")
 }
