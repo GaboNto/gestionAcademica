@@ -1,4 +1,12 @@
-import {Component,inject,OnInit,AfterViewInit,PLATFORM_ID,OnDestroy,ViewChild} from '@angular/core';
+import {
+  Component,
+  inject,
+  OnInit,
+  AfterViewInit,
+  PLATFORM_ID,
+  OnDestroy,
+  ViewChild,
+} from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Router, RouterModule, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
@@ -54,13 +62,18 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild(MatSidenav) sidenav?: MatSidenav;
 
   private navigationSub?: Subscription;
+
   private closeSidenavListener = () => {
     this.isSidenavOpened = false;
     this.sidenav?.close();
   };
 
-  /** NUEVO: detectar si estamos en la ruta /login */
-  isLoginRoute = false;
+  /**
+   * true cuando la ruta actual es de autenticación:
+   * - /login
+   * - /recuperar-clave
+   */
+  isAuthRoute = false;
 
   isSidenavOpened = true;
   appTitle = 'Sistema de Prácticas';
@@ -70,17 +83,22 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   nav: NavItem[] = [];
 
   ngOnInit(): void {
-    this.applyRole('practicas'); // fallback para SSR
+    // Fallback por defecto (SSR / antes de que cargue usuario real)
+    this.applyRole('practicas');
 
     if (isPlatformBrowser(this.platformId)) {
       window.addEventListener('app:close-sidenav', this.closeSidenavListener);
+
+      // Evaluar URL actual al iniciar
+      this.isAuthRoute = this.isAuthUrl(this.router.url);
       this.loadRoleFromStorage();
 
-      // detectar cambios de ruta + detectar si estamos en /login
+      // Escuchar cambios de navegación
       this.navigationSub = this.router.events
         .pipe(filter(event => event instanceof NavigationEnd))
-        .subscribe((event: any) => {
-          this.isLoginRoute = event.url === '/login';
+        .subscribe((event: NavigationEnd) => {
+          const url = event.urlAfterRedirects || event.url;
+          this.isAuthRoute = this.isAuthUrl(url);
           this.loadRoleFromStorage();
         });
     }
@@ -92,64 +110,74 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  /** Devuelve true si la URL corresponde a login o recuperar clave */
+  private isAuthUrl(url: string): boolean {
+    const cleanUrl = url.split('?')[0].split('#')[0];
+
+    return (
+      cleanUrl === '/login' ||
+      cleanUrl === '/recuperar-clave' ||
+      cleanUrl.startsWith('/login/') ||
+      cleanUrl.startsWith('/recuperar-clave/')
+    );
+  }
+
   // ------- Lógica de rol -------
   private loadRoleFromStorage() {
-  try {
-    const saved = isPlatformBrowser(this.platformId)
-      ? localStorage.getItem('app.selectedRole')
-      : null;
+    try {
+      const saved = isPlatformBrowser(this.platformId)
+        ? localStorage.getItem('app.selectedRole')
+        : null;
 
-    if (saved) {
-      const r = JSON.parse(saved) as SavedRole;
-      if (r?.id) {
-        this.applyRole(r.id, r);
-        return;
+      if (saved) {
+        const r = JSON.parse(saved) as SavedRole;
+        if (r?.id) {
+          this.applyRole(r.id, r);
+          return;
+        }
       }
+
+      // Si no hay rol guardado, intentamos usar el usuario autenticado
+      this.syncRoleFromAuthUser();
+    } catch {
+      this.syncRoleFromAuthUser();
     }
-
-    // Si no hay rol guardado, intentamos usar el usuario autenticado
-    this.syncRoleFromAuthUser();
-  } catch {
-    this.syncRoleFromAuthUser();
   }
-}
 
+  private syncRoleFromAuthUser() {
+    // usamos el usuario guardado por AuthService (app.user)
+    const authUser = this.auth.getCurrentUser?.();
+    if (!authUser?.role) return;
 
-private syncRoleFromAuthUser() {
-  // usamos el usuario guardado por AuthService (app.user)
-  const authUser = this.auth.getCurrentUser?.();
-  if (!authUser?.role) return;
+    const id = authUser.role as RoleId;
 
-  const id = authUser.role as RoleId;
+    const savedRole: SavedRole = {
+      id,
+      title: this.mapRoleLabel(id),
+      name: authUser.nombre || authUser.email,
+      icon:
+        id === 'jefatura'
+          ? 'school'
+          : id === 'vinculacion'
+          ? 'groups'
+          : 'assignment_ind',
+      permissions: [], // si después quieres, aquí metes permisos por rol
+      color:
+        id === 'jefatura'
+          ? 'purple'
+          : id === 'vinculacion'
+          ? 'green'
+          : 'blue',
+    };
 
-  const savedRole: SavedRole = {
-    id,
-    title: this.mapRoleLabel(id),
-    name: authUser.nombre || authUser.email,
-    icon:
-      id === 'jefatura'
-        ? 'school'
-        : id === 'vinculacion'
-        ? 'groups'
-        : 'assignment_ind',
-    permissions: [], // si después quieres, aquí metes permisos por rol
-    color:
-      id === 'jefatura'
-        ? 'purple'
-        : id === 'vinculacion'
-        ? 'green'
-        : 'blue',
-  };
+    // aplicamos el rol al layout
+    this.applyRole(id, savedRole);
 
-  // aplicamos el rol al layout
-  this.applyRole(id, savedRole);
-
-  // y además lo guardamos para futuras recargas
-  if (isPlatformBrowser(this.platformId)) {
-    localStorage.setItem('app.selectedRole', JSON.stringify(savedRole));
+    // y además lo guardamos para futuras recargas
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.setItem('app.selectedRole', JSON.stringify(savedRole));
+    }
   }
-}
-
 
   private applyRole(id: RoleId, r?: SavedRole) {
     this.user.name = r?.name ?? this.user.name;
@@ -178,9 +206,8 @@ private syncRoleFromAuthUser() {
   }
 
   goHome() {
-  this.router.navigate(['/dashboard']);
+    this.router.navigate(['/dashboard']);
   }
-
 
   ngOnDestroy(): void {
     if (isPlatformBrowser(this.platformId)) {
@@ -206,7 +233,6 @@ private syncRoleFromAuthUser() {
   private buildNav(id: RoleId): NavItem[] {
     if (id === 'jefatura') {
       return [
-
         { label: 'Usuarios', icon: 'manage_accounts', route: '/usuarios' },
         { label: 'Estudiantes en práctica', icon: 'school', route: '/estudiantes-en-practica' },
         { label: 'Tutores', icon: 'supervisor_account', route: '/tutores' },
@@ -220,7 +246,6 @@ private syncRoleFromAuthUser() {
 
     if (id === 'vinculacion') {
       return [
-
         { label: 'Encuestas', icon: 'assignment', route: '/encuestas' },
         { label: 'Estudiantes', icon: 'school', route: '/estudiantes' },
         { label: 'Colaboradores', icon: 'groups', route: '/colaboradores' },
@@ -230,7 +255,6 @@ private syncRoleFromAuthUser() {
 
     if (id === 'practicas') {
       return [
-
         { label: 'Estudiantes', icon: 'school', route: '/estudiantes' },
         { label: 'Tutores', icon: 'supervisor_account', route: '/tutores' },
         { label: 'Colaboradores', icon: 'groups', route: '/colaboradores' },
