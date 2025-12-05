@@ -25,7 +25,6 @@
     </div>
   </section>
 
-  
   <!-- ===== TARJETAS PEQUEÑAS (RESUMEN) ===== -->
   <section class="summary-row">
     <mat-card class="summary-card elev">
@@ -51,49 +50,56 @@
       </div>
       <div class="summary-foot">Respuestas registradas</div>
     </mat-card>
-  </section>
 
+    <!-- NUEVA TARJETA: PRÁCTICAS EN CURSO -->
+    <mat-card class="summary-card elev">
+      <div class="summary-label">PRÁCTICAS</div>
+      <div class="summary-value">
+        {{ summary.practicasEnCurso ?? '—' }}
+      </div>
+      <div class="summary-foot">Prácticas en curso</div>
+    </mat-card>
+  </section>
 
   <!-- ===== GRID DE MÓDULOS ===== -->
   <section class="page">
     <section class="modules-section">
-    <div class="modules-header">
-      <h2>Módulos del sistema</h2>
-      <p>Selecciona un módulo para acceder a sus funciones.</p>
-    </div>
+      <div class="modules-header">
+        <h2>Módulos del sistema</h2>
+        <p>Selecciona un módulo para acceder a sus funciones.</p>
+      </div>
 
-    <div class="modules-grid">
-      @for (c of cards; track c.title) {
-        <mat-card class="module-card elev" (click)="go(c.route)">
-          <div class="module-header">
-            <div class="module-icon">
-              <span class="material-icons">{{ c.icon }}</span>
+      <div class="modules-grid">
+        @for (c of cards; track c.title) {
+          <mat-card class="module-card elev" (click)="go(c.route)">
+            <div class="module-header">
+              <div class="module-icon">
+                <span class="material-icons">{{ c.icon }}</span>
+              </div>
+              <div class="module-title">
+                <h3>{{ c.title }}</h3>
+                @if (c.desc) {
+                  <p>{{ c.desc }}</p>
+                }
+              </div>
             </div>
-            <div class="module-title">
-              <h3>{{ c.title }}</h3>
-              @if (c.desc) {
-                <p>{{ c.desc }}</p>
-              }
-            </div>
-          </div>
 
-          @if (c.subItems?.length) {
-            <div class="module-subitems">
-              @for (s of c.subItems; track s.title) {
-                <button
-                  type="button"
-                  class="sub-chip"
-                  (click)="$event.stopPropagation(); go(s.route)"
-                >
-                  {{ s.title }}
-                </button>
-              }
-            </div>
-          }
-        </mat-card>
-      }
-    </div>
+            @if (c.subItems?.length) {
+              <div class="module-subitems">
+                @for (s of c.subItems; track s.title) {
+                  <button
+                    type="button"
+                    class="sub-chip"
+                    (click)="$event.stopPropagation(); go(s.route)"
+                  >
+                    {{ s.title }}
+                  </button>
+                }
+              </div>
+            }
+          </mat-card>
+        }
+      </div>
+    </section>
   </section>
-</section>
-
-
+</div>

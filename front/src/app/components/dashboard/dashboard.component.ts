@@ -2,8 +2,8 @@ import { Component, inject, OnInit, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule }   from '@angular/material/icon';
-import { MatCardModule }   from '@angular/material/card';
+import { MatIconModule } from '@angular/material/icon';
+import { MatCardModule } from '@angular/material/card';
 
 import {
   CentrosApiService,
@@ -18,6 +18,11 @@ import {
   EncuestasApiService,
   ApiEncuesta,
 } from '../../services/encuestas-api.service';
+import {
+  PracticasService,
+  EstadoPractica,
+  Practica,
+} from '../../services/practicas.service';
 
 type RoleId = 'jefatura' | 'vinculacion' | 'practicas';
 
@@ -58,6 +63,7 @@ export class DashboardComponent implements OnInit {
   private centrosService = inject(CentrosApiService);
   private estudiantesService = inject(EstudiantesService);
   private encuestasService = inject(EncuestasApiService);
+  private practicasService = inject(PracticasService);
 
   themeClass = 'light-theme';
 
@@ -71,10 +77,12 @@ export class DashboardComponent implements OnInit {
     estudiantes: number | null;
     centros: number | null;
     encuestas: number | null;
+    practicasEnCurso: number | null;
   } = {
     estudiantes: null,
     centros: null,
     encuestas: null,
+    practicasEnCurso: null,
   };
 
   ngOnInit(): void {
@@ -98,7 +106,6 @@ export class DashboardComponent implements OnInit {
     const rawLastLogin = localStorage.getItem('lastLogin');
     if (rawLastLogin) {
       const d = new Date(rawLastLogin);
-      // Formato local chileno: ej. "3 dic 2025, 14:35"
       this.lastLogin = d.toLocaleString('es-CL', {
         dateStyle: 'medium',
         timeStyle: 'short',
@@ -115,9 +122,9 @@ export class DashboardComponent implements OnInit {
       case 'jefatura':
         return 'Jefatura de Carrera';
       case 'vinculacion':
-        return 'Coordinador(a) de Vinculación';
+        return 'Coordinador de Vinculación';
       case 'practicas':
-        return 'Coordinador(a) de Prácticas';
+        return 'Coordinador de Prácticas';
     }
   }
 
@@ -265,7 +272,7 @@ export class DashboardComponent implements OnInit {
   private loadSummary(): void {
     if (!isPlatformBrowser(this.platformId)) return;
 
-    // CENTROS: usamos el total de la paginación si viene, si no, la cantidad de items
+    // CENTROS
     this.centrosService.list({ page: 1, limit: 1 }).subscribe({
       next: (res: PagedResult<CentroEducativoDTO>) => {
         this.summary.centros =
@@ -278,7 +285,7 @@ export class DashboardComponent implements OnInit {
       },
     });
 
-    // ESTUDIANTES: listado completo sin filtros
+    // ESTUDIANTES
     this.estudiantesService.listar().subscribe({
       next: (estudiantes: EstudianteResumen[]) => {
         this.summary.estudiantes = estudiantes?.length ?? 0;
@@ -288,7 +295,7 @@ export class DashboardComponent implements OnInit {
       },
     });
 
-    // ENCUESTAS: todas las encuestas registradas
+    // ENCUESTAS
     this.encuestasService.getEncuestasRegistradas().subscribe({
       next: (encuestas: ApiEncuesta[]) => {
         this.summary.encuestas = encuestas?.length ?? 0;
@@ -297,6 +304,18 @@ export class DashboardComponent implements OnInit {
         this.summary.encuestas = null;
       },
     });
+
+    // PRÁCTICAS EN CURSO
+    this.practicasService
+      .listar({ estado: 'EN_CURSO' as EstadoPractica })
+      .subscribe({
+        next: (practicas: Practica[]) => {
+          this.summary.practicasEnCurso = practicas?.length ?? 0;
+        },
+        error: () => {
+          this.summary.practicasEnCurso = null;
+        },
+      });
   }
 
   go(path: string): void {
