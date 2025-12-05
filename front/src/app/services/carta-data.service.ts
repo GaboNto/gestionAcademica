@@ -34,7 +34,7 @@ export interface CreateCartaDto {
 @Injectable({ providedIn: 'root' })
 export class CartaDataService {
 
-  private readonly API = 'http://localhost:3000';
+  private readonly API = '/api';
   private readonly TIPOS_PRACTICA_DEFAULT = [
     'Apoyo a la Docencia I',
     'Apoyo a la Docencia II',

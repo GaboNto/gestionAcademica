@@ -8,23 +8,56 @@ import { join } from 'path';
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
-  // Habilitar CORS para permitir peticiones desde el frontend
   app.enableCors();
 
-  // Servir archivos estáticos desde la carpeta uploads
-  // En desarrollo: __dirname = back/src, necesitamos subir un nivel
-  // En producción: __dirname = back/dist/src, necesitamos subir dos niveles
-  // Usamos process.cwd() para obtener la raíz del proyecto (back/)
-  app.useStaticAssets(join(process.cwd(), 'uploads'), {
-    prefix: '/uploads',
+  const rootPath = process.cwd();
+  const uploadsPath = join(rootPath, 'uploads');
+  const clientPath = join(rootPath, 'public');
+
+  // Servir uploads
+  app.useStaticAssets(uploadsPath, { prefix: '/uploads' });
+
+  // Servir frontend Angular
+  app.useStaticAssets(clientPath);
+
+  // Fallback SOLO para rutas que no sean API (y solo GET)
+  app.use((req, res, next) => {
+    const url = req.url;
+
+    // Si NO es GET, que lo maneje Nest (POST, PUT, DELETE, etc.)
+    if (req.method !== 'GET') {
+      return next();
+    }
+
+    // Rutas de API que NO debemos interceptar
+    if (
+      url.startsWith('/api') ||
+      url.startsWith('/centros') ||
+      url.startsWith('/trabajadores') ||
+      url.startsWith('/practicas') ||
+      url.startsWith('/estudiante') ||
+      url.startsWith('/colaboradores') ||
+      url.startsWith('/tutores') ||
+      url.startsWith('/encuestas') ||
+      url.startsWith('/actividad-practica') ||
+      url.startsWith('/uploads')
+    ) {
+      return next();
+    }
+
+    // Para el resto (rutas de Angular), servir index.html
+    return res.sendFile(join(clientPath, 'index.html'));
   });
 
-  app.useGlobalPipes(new ValidationPipe({ 
-    whitelist: true, 
-    forbidNonWhitelisted: false,
-    transform: true,
-    transformOptions: { enableImplicitConversion: true }
-  }));
-  await app.listen(3000);
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      transform: true,
+      transformOptions: { enableImplicitConversion: true },
+    }),
+  );
+
+  await app.listen(3000, '0.0.0.0');
 }
+
 bootstrap();
