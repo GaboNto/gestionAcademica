@@ -151,6 +151,7 @@ model Usuario {
   activo    Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  resetTokens PasswordResetToken[]
 }
 
 
@@ -169,6 +170,22 @@ model EncuestaSemestre {
 
   @@map("encuesta_semestre")
 }
+
+/////////////////////////////////////
+//    NUEVO MODELO: token de password
+/////////////////////////////////////
+
+model PasswordResetToken {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  userId    Int
+  usuario   Usuario  @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  used      Boolean  @default(false)
+
+  @@map("password_reset_tokens")
+}
+
 
 /////////////////////////////////////
 //   ENCUESTAS A ESTUDIANTES

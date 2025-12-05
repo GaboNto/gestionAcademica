@@ -1,7 +1,9 @@
 <div class="login-wrapper">
+  <!-- Fondo decorativo -->
   <div class="login-background"></div>
 
   <mat-card class="login-card">
+    <!-- ENCABEZADO -->
     <div class="login-header">
       <div class="login-icon">
         <mat-icon>school</mat-icon>
@@ -16,7 +18,14 @@
 
     <mat-divider class="login-divider"></mat-divider>
 
-    <form [formGroup]="form" (ngSubmit)="submit()" novalidate class="login-form">
+    <!-- FORMULARIO -->
+    <form
+      [formGroup]="form"
+      (ngSubmit)="submit()"
+      novalidate
+      class="login-form">
+
+      <!-- Correo -->
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Correo institucional</mat-label>
         <input matInput formControlName="email" type="email" />
@@ -28,6 +37,7 @@
         </mat-error>
       </mat-form-field>
 
+      <!-- Contraseña -->
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Contraseña</mat-label>
         <input
@@ -39,8 +49,7 @@
           mat-icon-button
           matSuffix
           type="button"
-          (click)="hidePassword = !hidePassword"
-        >
+          (click)="hidePassword = !hidePassword">
           <mat-icon>
             {{ hidePassword ? 'visibility' : 'visibility_off' }}
           </mat-icon>
@@ -53,18 +62,27 @@
         </mat-error>
       </mat-form-field>
 
+      <!-- Botón ingresar -->
       <button
         mat-flat-button
         color="primary"
         class="full-width login-btn"
         type="submit"
-        [disabled]="loading"
-      >
+        [disabled]="loading">
         {{ loading ? 'Ingresando...' : 'Ingresar' }}
       </button>
     </form>
 
+    <!-- FOOTER -->
     <div class="login-footer">
+      <button
+        mat-button
+        type="button"
+        class="full-width forgot-btn"
+        routerLink="/recuperar-clave">
+        ¿Olvidaste tu contraseña?
+      </button>
+
       <p class="help-text">
         ¿Tienes problemas para ingresar? Contacta a este loco 997061651.
       </p>

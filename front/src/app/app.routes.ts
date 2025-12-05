@@ -16,6 +16,13 @@ export const routes: Routes = [
       import('./components/login/login.component').then(m => m.LoginComponent),
   },
 
+  // Login (página pública)
+  {
+    path: 'recuperar-clave',
+    loadComponent: () =>
+      import('./components/auth/forgot-password/forgot-password.component').then(m => m.ForgotPasswordComponent),
+  },
+
   // Dashboard
   {
     path: 'dashboard',

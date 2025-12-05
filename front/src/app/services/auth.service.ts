@@ -47,4 +47,11 @@ export class AuthService {
     const raw = localStorage.getItem(this.USER_KEY);
     return raw ? JSON.parse(raw) : null;
   }
+
+  forgotPassword(email: string) {
+    return this.http.post<{ message: string }>(
+      'http://localhost:3000/api/auth/forgot-password',
+      { email }
+    );
+  }
 }
