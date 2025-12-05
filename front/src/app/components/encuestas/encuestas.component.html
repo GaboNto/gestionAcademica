@@ -324,6 +324,109 @@
   </mat-card>
 
 
+  <!-- ESTADÍSTICAS ENCUESTA COLABORADORES / JEFES UTP (VENTANA MODAL) -->
+<mat-card
+  class="elev detail-card custom-modal"
+  *ngIf="
+    tipoStatsVisible === 'COLABORADORES_JEFES' &&
+    estadisticasColaboradores?.length &&
+    totalEncuestasColaboradores
+  "
+>
+  <mat-card-header>
+    <mat-card-title>
+      Estadísticas – Colaboradores / Jefes UTP
+    </mat-card-title>
+    <mat-card-subtitle>
+      Basado en {{ totalEncuestasColaboradores }} encuestas registradas
+    </mat-card-subtitle>
+
+    <button mat-icon-button class="close-btn" (click)="cerrarEstadisticas()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </mat-card-header>
+
+  <mat-card-content>
+    <mat-accordion>
+      <mat-expansion-panel
+        *ngFor="let grupo of estadisticasColaboradores"
+        class="stats-group"
+      >
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            {{ grupo.titulo }}
+          </mat-panel-title>
+          <mat-panel-description>
+            Ver estadísticas
+          </mat-panel-description>
+        </mat-expansion-panel-header>
+
+        <!-- Tabla de conteos -->
+        <div class="table-wrapper">
+          <table class="detail-plain-table stats-table">
+            <thead>
+              <tr>
+                <th>Aspecto a evaluar</th>
+                <th *ngFor="let col of getColumnasPorEscala(grupo.escala)">
+                  {{ col.label }}
+                </th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let p of grupo.preguntas">
+                <td>{{ p.label }}</td>
+
+                <!-- Conteos por categoría -->
+                <td *ngFor="let col of getColumnasPorEscala(grupo.escala)">
+                  {{ p.conteos[col.value] || 0 }}
+                </td>
+
+                <td>{{ p.totalEncuestas }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Gráfico tipo barras apiladas -->
+        <div class="charts-container">
+          <div class="chart-row" *ngFor="let p of grupo.preguntas">
+            <div class="chart-row-label">
+              {{ p.label }}
+            </div>
+
+            <div class="chart-row-bar">
+              <div
+                *ngFor="let col of getColumnasPorEscala(grupo.escala)"
+                class="chart-segment scale-{{ col.value }}"
+                [style.width.%]="getPorcentaje(p, col.value)"
+                [attr.title]="col.label + ': ' + getPorcentaje(p, col.value) + '%'"
+              >
+                <span
+                  class="chart-segment-text"
+                  *ngIf="getPorcentaje(p, col.value) >= 8"
+                >
+                  {{ getPorcentaje(p, col.value) }}%
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="chart-legend">
+            <span *ngFor="let col of getColumnasPorEscala(grupo.escala)">
+              <span class="legend-color scale-{{ col.value }}"></span>
+              {{ col.label }}
+            </span>
+          </div>
+        </div>
+      </mat-expansion-panel>
+    </mat-accordion>
+  </mat-card-content>
+</mat-card>
+
+
+
+
   <!-- ================== MODAL DE REGISTRO ================== -->
   <mat-card class="elev detail-card custom-modal" *ngIf="tipoRegistroActivo">
     <form [formGroup]="registroForm" (ngSubmit)="onSubmitRegistro()">
@@ -1707,6 +1810,7 @@
                 </ng-template>
               </td>
             </tr>
+
           </tbody>
         </table>
       </div>

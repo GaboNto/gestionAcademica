@@ -611,6 +611,13 @@ mat-card-actions {
   color: #fff;
 }
 
+/* NA = No aplica */
+.scale-NA {
+  background: #e0e0e0; /* gris neutro */
+  color: #000;
+}
+
+
 /* Escala Sí / No */
 .scale-SI {
   background: #4472c4;
@@ -721,3 +728,4 @@ mat-card-actions {
     justify-content: flex-start;
   }
 }
+

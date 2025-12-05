@@ -166,13 +166,20 @@ downloadEstadisticasEstudiantilesExcel(): void {
 
   // === ESTADÍSTICAS ===
   totalEncuestasEstudiantiles = 0;
+  totalEncuestasColaboradores = 0;
   tipoStatsVisible: TipoEncuesta | null = null;
 
   estadisticasEstudiantiles: {
-  titulo: string;
-  escala: TipoEscala;
-  preguntas: EstadisticaPregunta[];
-}[] = [];
+    titulo: string;
+    escala: TipoEscala;
+    preguntas: EstadisticaPregunta[];
+  }[] = [];
+
+  estadisticasColaboradores: {
+    titulo: string;
+    escala: TipoEscala;
+    preguntas: EstadisticaPregunta[];
+  }[] = [];
 
 
   constructor(
@@ -428,6 +435,7 @@ downloadEstadisticasEstudiantilesExcel(): void {
   };
 
   private columnasEscala5 = [
+    { value: 'NA', label: 'No aplica' },
     { value: '1', label: 'Muy insatisfecho' },
     { value: '2', label: 'Insatisfecho' },
     { value: '3', label: 'Ni insatisfecho ni satisfecho' },
@@ -560,129 +568,131 @@ downloadEstadisticasEstudiantilesExcel(): void {
   private buildEstudiantilForm(): FormGroup {
     return this.fb.group({
       nombreEstudiante: ['', Validators.required],
-      establecimiento: [''],
-      fechaEvaluacion: [null],
-      nombreTalleristaSupervisor: [''],
-      nombreDocenteColaborador: [''],
+      establecimiento: ['', Validators.required],
+      fechaEvaluacion: [null, Validators.required],
+      nombreTalleristaSupervisor: ['', Validators.required],
+      nombreDocenteColaborador: ['', Validators.required],
 
       secI: this.fb.group({
         objetivos: ['', Validators.required],
-        accionesEstablecimiento: [''],
-        accionesTaller: [''],
-        satisfaccionGeneral: [''],
+        accionesEstablecimiento: ['', Validators.required],
+        accionesTaller: ['', Validators.required],
+        satisfaccionGeneral: ['', Validators.required],
       }),
 
       secII_A: this.fb.group({
-        apoyoInsercion: [''],
-        apoyoGestion: [''],
-        orientacionComportamiento: [''],
-        comunicacionConstante: [''],
-        retroalimentacionProceso: [''],
+        apoyoInsercion: ['', Validators.required],
+        apoyoGestion: ['', Validators.required],
+        orientacionComportamiento: ['', Validators.required],
+        comunicacionConstante: ['', Validators.required],
+        retroalimentacionProceso: ['', Validators.required],
       }),
 
       secII_B: this.fb.group({
-        interesRol: [''],
-        recomendarColaborador: [''],
-        comentariosColaborador: [''],
+        interesRol: ['', Validators.required],
+        recomendarColaborador: ['', Validators.required],
+        comentariosColaborador: [''], // opcional
       }),
 
       secIII_A: this.fb.group({
-        planEvacuacion: [''],
-        proyectoEducativo: [''],
-        reglamentoConvivencia: [''],
-        planMejoramiento: [''],
+        planEvacuacion: ['', Validators.required],
+        proyectoEducativo: ['', Validators.required],
+        reglamentoConvivencia: ['', Validators.required],
+        planMejoramiento: ['', Validators.required],
       }),
 
       secIII_B: this.fb.group({
-        reunionesDepartamento: [''],
-        reunionesApoderados: [''],
-        fiestasPatrias: [''],
-        diaLibro: [''],
-        aniversarios: [''],
-        diaFamilia: [''],
-        graduaciones: [''],
+        reunionesDepartamento: ['', Validators.required],
+        reunionesApoderados: ['', Validators.required],
+        fiestasPatrias: ['', Validators.required],
+        diaLibro: ['', Validators.required],
+        aniversarios: ['', Validators.required],
+        diaFamilia: ['', Validators.required],
+        graduaciones: ['', Validators.required],
       }),
 
       secIII_C: this.fb.group({
-        gratoAmbiente: [''],
-        recomendarCentro: [''],
-        comentariosCentro: [''],
+        gratoAmbiente: ['', Validators.required],
+        recomendarCentro: ['', Validators.required],
+        comentariosCentro: [''], // opcional
       }),
 
       secIV_T: this.fb.group({
-        presentacionCentro: [''],
-        facilitaComprension: [''],
-        planificaVisitas: [''],
-        sesionesSemanales: [''],
-        evaluaPermanente: [''],
-        orientaDesempeno: [''],
-        organizaActividades: [''],
+        presentacionCentro: ['', Validators.required],
+        facilitaComprension: ['', Validators.required],
+        planificaVisitas: ['', Validators.required],
+        sesionesSemanales: ['', Validators.required],
+        evaluaPermanente: ['', Validators.required],
+        orientaDesempeno: ['', Validators.required],
+        organizaActividades: ['', Validators.required],
       }),
 
       secIV_S: this.fb.group({
-        presentacionCentro: [''],
-        orientaGestion: [''],
-        comunicacionConstante: [''],
-        orientaComportamiento: [''],
-        sesionesRetro: [''],
-        evaluaGlobal: [''],
-        resuelveProblemas: [''],
-        orientaGestionDos: [''],
-        mejoraRolTallerista: [''],
+        presentacionCentro: ['', Validators.required],
+        orientaGestion: ['', Validators.required],
+        comunicacionConstante: ['', Validators.required],
+        orientaComportamiento: ['', Validators.required],
+        sesionesRetro: ['', Validators.required],
+        evaluaGlobal: ['', Validators.required],
+        resuelveProblemas: ['', Validators.required],
+        orientaGestionDos: ['', Validators.required],
+        mejoraRolTallerista: [''], // comentario abierto opcional
       }),
 
       secV: this.fb.group({
-        induccionesAcordes: [''],
-        informacionClara: [''],
-        respuestaDudas: [''],
-        infoAcordeCentros: [''],
-        gestionesMejora: [''],
-        mejoraCoordinacion: [''],
+        induccionesAcordes: ['', Validators.required],
+        informacionClara: ['', Validators.required],
+        respuestaDudas: ['', Validators.required],
+        infoAcordeCentros: ['', Validators.required],
+        gestionesMejora: ['', Validators.required],
+        mejoraCoordinacion: [''], // abierto opcional
       }),
 
-      comentariosAdicionales: [''],
+      comentariosAdicionales: [''], // opcional
     });
   }
+
 
   // Construye formulario para encuesta de colaboradores / jefes UTP
   private buildColaboradoresForm(): FormGroup {
     return this.fb.group({
       nombreColaborador: ['', Validators.required],
-      nombreEstudiantePractica: [''],
-      centroEducativo: [''],
-      fechaEvaluacion: [null],
+      nombreEstudiantePractica: ['', Validators.required],
+      centroEducativo: ['', Validators.required],
+      fechaEvaluacion: [null, Validators.required],
 
       secI: this.fb.group({
-        e1_planificacion: [''],
-        e2_estructuraClase: [''],
-        e3_secuenciaActividades: [''],
-        e4_preguntasAplicacion: [''],
-        e5_estrategiasAtencion: [''],
-        e6_retroalimentacion: [''],
-        e7_normasClase: [''],
-        e8_usoTecnologia: [''],
+        e1_planificacion: ['', Validators.required],
+        e2_estructuraClase: ['', Validators.required],
+        e3_secuenciaActividades: ['', Validators.required],
+        e4_preguntasAplicacion: ['', Validators.required],
+        e5_estrategiasAtencion: ['', Validators.required],
+        e6_retroalimentacion: ['', Validators.required],
+        e7_normasClase: ['', Validators.required],
+        e8_usoTecnologia: ['', Validators.required],
       }),
 
       secII: this.fb.group({
-        i1_vinculacionPares: [''],
-        i2_capacidadGrupoTrabajo: [''],
-        i3_presentacionPersonal: [''],
-        i4_autoaprendizaje: [''],
-        i5_formacionSuficiente: [''],
+        i1_vinculacionPares: ['', Validators.required],
+        i2_capacidadGrupoTrabajo: ['', Validators.required],
+        i3_presentacionPersonal: ['', Validators.required],
+        i4_autoaprendizaje: ['', Validators.required],
+        i5_formacionSuficiente: ['', Validators.required],
       }),
 
       secIII: this.fb.group({
-        v1_flujoInformacionSupervisor: [''],
-        v2_claridadRoles: [''],
-        v3_verificacionAvance: [''],
-        v4_satisfaccionGeneral: [''],
+        v1_flujoInformacionSupervisor: ['', Validators.required],
+        v2_claridadRoles: ['', Validators.required],
+        v3_verificacionAvance: ['', Validators.required],
+        v4_satisfaccionGeneral: ['', Validators.required],
       }),
 
-      sugerencias: [''],
-      cumplePerfilEgreso: [''],
-      comentariosAdicionales: [''],
+      sugerencias: [''],           // opcional
+      cumplePerfilEgreso: [''],   // opcional
+      comentariosAdicionales: [''] // opcional
     });
   }
+
 
   // ---------- UI / FORM CONTROL ----------
   // Inicializa el formulario según el tipo de encuesta
@@ -1033,24 +1043,22 @@ getPorcentaje(pregunta: any, valor: string): number {
 
 
   // Botón para mostrar / ocultar estadísticas
-  mostrarEstadisticas(tipo: TipoEncuesta): void {
-    // Si haces clic de nuevo en el mismo botón, se oculta (toggle)
-    if (this.tipoStatsVisible === tipo) {
-      this.tipoStatsVisible = null;
-      return;
-    }
-
-    this.tipoStatsVisible = tipo;
-
-    if (tipo === 'ESTUDIANTIL') {
-      // Recalcula las estadísticas de encuestas estudiantiles
-      this.computeEstadisticasEstudiantiles();
-    }
-    // Para COLABORADORES_JEFES en el futuro:
-    // else if (tipo === 'COLABORADORES_JEFES') {
-    //   this.computeEstadisticasColaboradores();
-    // }
+mostrarEstadisticas(tipo: TipoEncuesta): void {
+  // Si haces clic de nuevo en el mismo botón, se oculta (toggle)
+  if (this.tipoStatsVisible === tipo) {
+    this.tipoStatsVisible = null;
+    return;
   }
+
+  this.tipoStatsVisible = tipo;
+
+  if (tipo === 'ESTUDIANTIL') {
+    this.computeEstadisticasEstudiantiles();
+  } else if (tipo === 'COLABORADORES_JEFES') {
+    this.computeEstadisticasColaboradores();
+  }
+}
+
 
 
   // Cierra la ventana/modal de estadísticas
@@ -1218,6 +1226,76 @@ getPorcentaje(pregunta: any, valor: string): number {
     grupoCoordinacion,
   ];
 }
+
+// Calcula todas las estadísticas para la encuesta COLABORADORES_JEFES
+private computeEstadisticasColaboradores(): void {
+  const encuestasCol = this.encuestas.filter(
+    (e) => e.tipo === 'COLABORADORES_JEFES'
+  );
+
+  this.totalEncuestasColaboradores = encuestasCol.length;
+  this.estadisticasColaboradores = [];
+
+  if (!encuestasCol.length) {
+    return;
+  }
+
+  // Grupo I: Evaluación al Docente en Práctica
+  const grupoDocente = {
+    titulo: 'I. Evaluación al Docente en Práctica',
+    escala: 'ESCALA5' as TipoEscala,
+    preguntas: [
+      'secI.e1_planificacion',
+      'secI.e2_estructuraClase',
+      'secI.e3_secuenciaActividades',
+      'secI.e4_preguntasAplicacion',
+      'secI.e5_estrategiasAtencion',
+      'secI.e6_retroalimentacion',
+      'secI.e7_normasClase',
+      'secI.e8_usoTecnologia',
+    ].map((key) =>
+      this.buildEstadisticaPregunta(encuestasCol, key, 'ESCALA5')
+    ),
+  };
+
+  // Grupo II: Integración a la comunidad educativa
+  const grupoIntegracion = {
+    titulo: 'II. Integración a la comunidad educativa',
+    escala: 'ESCALA5' as TipoEscala,
+    preguntas: [
+      'secII.i1_vinculacionPares',
+      'secII.i2_capacidadGrupoTrabajo',
+      'secII.i3_presentacionPersonal',
+      'secII.i4_autoaprendizaje',
+      'secII.i5_formacionSuficiente',
+    ].map((key) =>
+      this.buildEstadisticaPregunta(encuestasCol, key, 'ESCALA5')
+    ),
+  };
+
+  // Grupo III: Vinculación con la Coordinación de las Prácticas
+  const grupoVinculacion = {
+    titulo: 'III. Vinculación con la Coordinación de las Prácticas',
+    escala: 'ESCALA5' as TipoEscala,
+    preguntas: [
+      'secIII.v1_flujoInformacionSupervisor',
+      'secIII.v2_claridadRoles',
+      'secIII.v3_verificacionAvance',
+      'secIII.v4_satisfaccionGeneral',
+    ].map((key) =>
+      this.buildEstadisticaPregunta(encuestasCol, key, 'ESCALA5')
+    ),
+  };
+
+  this.estadisticasColaboradores = [
+    grupoDocente,
+    grupoIntegracion,
+    grupoVinculacion,
+  ];
+}
+
+
+
   // ---------- ENVÍO ----------
   // Envía el formulario a la API según el tipo de encuesta
   onSubmitRegistro(): void {
