@@ -1697,7 +1697,7 @@
           </thead>
           <tbody>
             <tr *ngFor="let key of getDetailColumns(selectedEncuesta!)">
-              <td><strong>{{ key }}</strong></td>
+              <td><strong>{{ mapMetadataLabel(key) }}</strong></td>
               <td>
                 <ng-container *ngIf="key === 'fecha'; else plain">
                   {{ selectedEncuesta!.metadata[key] | date: 'yyyy-MM-dd' }}

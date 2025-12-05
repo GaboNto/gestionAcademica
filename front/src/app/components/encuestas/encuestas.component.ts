@@ -376,6 +376,33 @@ downloadEstadisticasEstudiantilesExcel(): void {
       'Sugiere mejoras para la coordinacion de practicas.',
   };
 
+    // Mapea claves de metadata a etiquetas legibles para el detalle
+  metadataLabels: { [key: string]: string } = {
+    // COLABORADORES / JEFES
+    nombre_colaborador: 'Nombre del colaborador',
+    nombre_colegio: 'Centro educativo',
+
+    // ESTUDIANTIL
+    nombre_estudiante: 'Nombre del estudiante',
+    nombre_centro: 'Centro educativo',
+
+    // Campos generales
+    observacion: 'Observación',
+    fecha: 'Fecha de evaluación',
+    semestre: 'Semestre',
+  };
+
+  mapMetadataLabel(key: string): string {
+    // si existe en el mapa, usamos el texto bonito
+    if (this.metadataLabels[key]) {
+      return this.metadataLabels[key];
+    }
+
+    // fallback: reemplaza guiones bajos por espacios y pone mayúscula inicial
+    const pretty = key.replace(/_/g, ' ');
+    return pretty.charAt(0).toUpperCase() + pretty.slice(1);
+  }
+
   // Diccionarios para mostrar textos descriptivos en vez de códigos
   private escala5Texto: Record<string, string> = {
     NA: 'No aplica',
@@ -1258,7 +1285,6 @@ getPorcentaje(pregunta: any, valor: string): number {
         mejoraCoordinacion: data.comentariosAdicionales,
 
         comentariosAdicionales: data.comentariosAdicionales,
-        observacion: data.comentariosAdicionales,
       };
     } else {
       // COLABORADORES_JEFES
