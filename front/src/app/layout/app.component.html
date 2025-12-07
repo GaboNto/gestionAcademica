@@ -1,5 +1,5 @@
-<!-- LAYOUT COMPLETO -->
-<ng-container *ngIf="!isLoginRoute; else loginOnly">
+<!-- LAYOUT COMPLETO (todas las rutas excepto login / recuperar-clave) -->
+<ng-container *ngIf="!isAuthRoute; else authOnly">
   <mat-sidenav-container
     class="shell"
     [class.shell--open]="isSidenavOpened"
@@ -28,7 +28,7 @@
 
       <!-- Título navegación -->
       <div class="side__section-title">
-        
+        <!-- Opcional: título sección -->
       </div>
 
       <!-- Navegación -->
@@ -74,7 +74,11 @@
           <span class="user-name">{{ user.name }}</span>
         </div>
 
-        <button mat-stroked-button color="accent" class="logout-btn" (click)="logout()">
+        <button
+          mat-stroked-button
+          color="accent"
+          class="logout-btn"
+          (click)="logout()">
           <mat-icon>logout</mat-icon>
           Cerrar sesión
         </button>
@@ -88,7 +92,7 @@
   </mat-sidenav-container>
 </ng-container>
 
-<!-- SOLO LOGIN (cuando la ruta ES /login) -->
-<ng-template #loginOnly>
+<!-- SOLO VISTAS DE AUTENTICACIÓN (login, recuperar clave, etc.) -->
+<ng-template #authOnly>
   <router-outlet></router-outlet>
 </ng-template>
