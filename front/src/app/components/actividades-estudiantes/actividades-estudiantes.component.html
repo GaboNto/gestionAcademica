@@ -89,7 +89,7 @@
               </mat-form-field>
             </div>
 
-            <div class="FormRow">
+                        <div class="FormRow">
               <mat-form-field appearance="outline" class="FormField">
                 <mat-label>Ubicación</mat-label>
                 <input matInput formControlName="lugar" placeholder="Ej: Sala A, Auditorio, Online" />
@@ -97,9 +97,42 @@
 
               <mat-form-field appearance="outline" class="FormField">
                 <mat-label>Estudiantes</mat-label>
-                <input matInput formControlName="estudiantes" placeholder="Ingrese estudiantes" />
+
+                <!-- Chips con estudiantes seleccionados -->
+                <mat-chip-grid #chipGrid aria-label="Estudiantes seleccionados">
+                  <mat-chip-row
+                    *ngFor="let est of estudiantesSeleccionados"
+                    (removed)="removeEstudiante(est)">
+                    {{ est.rut }} - {{ est.nombre }}
+                    <button matChipRemove>
+                      <mat-icon>close</mat-icon>
+                    </button>
+                  </mat-chip-row>
+
+                  <!-- Input con autocomplete -->
+                  <input
+                    #estudianteInput
+                    placeholder="Escribe nombre o RUT..."
+                    [matAutocomplete]="autoEstudiantes"
+                    [matChipInputFor]="chipGrid"
+                    (input)="filtrarEstudiantes(estudianteInput.value)" />
+                </mat-chip-grid>
+
+                <mat-autocomplete
+                  #autoEstudiantes="matAutocomplete"
+                  (optionSelected)="onSelectEstudiante($event.option.value); estudianteInput.value=''; filtrarEstudiantes('')">
+                  <mat-option *ngFor="let est of estudiantesFiltrados | slice:0:5" [value]="est">
+                    {{ est.rut }} - {{ est.nombre }}
+                  </mat-option>
+
+                  <!-- Mostrar mensaje cuando hay más resultados -->
+                  
+                  </mat-autocomplete>
+
+                <mat-hint>Puedes seleccionar más de un estudiante</mat-hint>
               </mat-form-field>
             </div>
+
 
             <div class="FormRow">
               <div class="FormField FullWidth">

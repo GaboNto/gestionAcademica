@@ -253,6 +253,12 @@ export class DashboardComponent implements OnInit {
           route: '/reportes',
           desc: 'Historial y reportes',
         },
+        {
+          title: 'Actividades',
+          icon: 'assignment',
+          route: '/actividades-estudiantes',
+          desc: 'Visualización de actividades',
+        },
         ...comunes,
       ];
     }
