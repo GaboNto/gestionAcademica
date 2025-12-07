@@ -250,6 +250,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
         { label: 'Estudiantes', icon: 'school', route: '/estudiantes' },
         { label: 'Colaboradores', icon: 'groups', route: '/colaboradores' },
         { label: 'Centros educativos', icon: 'domain', route: '/centros-educativos' },
+        { label: 'Tutores', icon: 'supervisor_account', route: '/tutores' },
       ];
     }
 

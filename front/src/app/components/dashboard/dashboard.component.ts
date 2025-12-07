@@ -211,6 +211,12 @@ export class DashboardComponent implements OnInit {
           route: '/encuestas',
           desc: 'Registro y análisis de encuestas',
         },
+        {
+          title: 'Tutores',
+          icon: 'supervisor_account',
+          route: '/tutores',
+          desc: 'Gestión de tutores',
+        },
         ...comunes,
       ];
     }
