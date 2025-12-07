@@ -73,10 +73,14 @@
 }
 
 .FiltersGrid {
-  display: grid;
-  grid-template-columns: 1fr 240px;
-  gap: 16px;
-  align-items: end;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.FiltersRow {
+  display: flex;
+  gap: 1rem;
 }
 
 .SearchField {
@@ -84,8 +88,23 @@
 }
 
 .FilterField {
-  min-width: 200px;
+  flex: 1; 
 }
+
+.FiltersRow3 {
+  display: flex;
+  gap: 1rem;
+  width: 100%;
+}
+
+.FieldBuscar {
+  flex: 3;    
+}
+
+.Fieldsmall {
+  flex: 1; 
+}
+
 
 @media (max-width: 768px) {
   .FiltersGrid {

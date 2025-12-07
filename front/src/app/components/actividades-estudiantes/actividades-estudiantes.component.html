@@ -14,31 +14,52 @@
 
   <!-- FILTROS DE BÚSQUEDA -->
   <mat-card class="FiltersCard Elev">
-    <mat-card-header>
-      <mat-card-title>
-        <mat-icon>search</mat-icon>
-        Filtros de Búsqueda
-      </mat-card-title>
-    </mat-card-header>
-    <mat-card-content>
-      <div class="FiltersGrid">
-        <mat-form-field appearance="outline" class="SearchField">
-          <mat-label>Buscar</mat-label>
-          <input matInput [(ngModel)]="searchTerm" (ngModelChange)="filterActivities()" placeholder="Buscar por nombre de actividad..." />
-          <mat-icon matSuffix>search</mat-icon>
-        </mat-form-field>
-        
-        <mat-form-field appearance="outline" class="FilterField">
-          <mat-label>Mes</mat-label>
-          <mat-select [(ngModel)]="selectedMes" (ngModelChange)="onMesChange()">
-            <mat-option *ngFor="let mes of meses" [value]="mes.value">
-              {{ mes.label }}
-            </mat-option>
-          </mat-select>
-        </mat-form-field>
-      </div>
-    </mat-card-content>
-  </mat-card>
+  <mat-card-header>
+    <mat-card-title>
+      <mat-icon>search</mat-icon>
+      Filtros de Búsqueda
+    </mat-card-title>
+  </mat-card-header>
+
+  <mat-card-content>
+    <div class="FiltersRow3">
+
+      <!-- BUSCAR (ocupa más espacio) -->
+      <mat-form-field appearance="outline" class="FieldBuscar">
+        <mat-label>Buscar</mat-label>
+        <input
+          matInput
+          [(ngModel)]="searchTerm"
+          (ngModelChange)="filterActivities()"
+          placeholder="Buscar por nombre de actividad..." />
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+
+      <!-- MES -->
+      <mat-form-field appearance="outline" class="Fieldsmall">
+        <mat-label>Mes</mat-label>
+        <mat-select [(ngModel)]="selectedMes" (ngModelChange)="onMesChange()">
+          <mat-option *ngFor="let mes of meses" [value]="mes.value">
+            {{ mes.label }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <!-- AÑO -->
+      <mat-form-field appearance="outline" class="Fieldsmall">
+        <mat-label>Año</mat-label>
+        <mat-select [(ngModel)]="selectedAnio" (ngModelChange)="onAnioChange()">
+          <mat-option [value]="'all'">Todos los años</mat-option>
+          <mat-option *ngFor="let anio of aniosDisponibles" [value]="anio">
+            {{ anio }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+    </div>
+  </mat-card-content>
+</mat-card>
+
 
   <!-- FORMULARIO -->
   <div class="FormContainer" [class.FormOpen]="mostrarFormulario" *ngIf="!esJefatura">

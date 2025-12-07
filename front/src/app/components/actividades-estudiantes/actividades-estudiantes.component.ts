@@ -109,6 +109,8 @@ export class ActividadesEstudiantesComponent implements OnInit {
   
   searchTerm: string = '';
   selectedMes: string = 'all';
+  selectedAnio: number | 'all' = 'all';
+  aniosDisponibles: number[] = [];
   cargando: boolean = false;
   
   // Lista de meses disponibles
@@ -183,6 +185,7 @@ export class ActividadesEstudiantesComponent implements OnInit {
       next: (response) => {
         this.actividades = response.items || [];
         this.cargando = false;
+        this.construirAniosDisponibles();
         this.actualizarPaginacion();
       },
       error: (err) => {
@@ -204,6 +207,32 @@ export class ActividadesEstudiantesComponent implements OnInit {
       }
     });
   }
+
+    private construirAniosDisponibles(): void {
+    const set = new Set<number>();
+
+    for (const act of this.actividades) {
+      let d: Date;
+
+      if (typeof act.fecha === 'string') {
+        // Manejar fecha tipo "YYYY-MM-DD" o ISO
+        const fechaStr = act.fecha.includes('T')
+          ? act.fecha.split('T')[0]
+          : act.fecha;
+        const [year, month, day] = fechaStr.split('-').map(Number);
+        d = new Date(year, (month || 1) - 1, day || 1);
+      } else {
+        d = act.fecha;
+      }
+
+      if (!isNaN(d.getTime())) {
+        set.add(d.getFullYear());
+      }
+    }
+
+    this.aniosDisponibles = Array.from(set).sort((a, b) => b - a); // descendente
+  }
+
 
 
     filtrarEstudiantes(term: string): void {
@@ -251,6 +280,25 @@ export class ActividadesEstudiantesComponent implements OnInit {
       );
     }
 
+    // Filtrar por año
+    if (this.selectedAnio && this.selectedAnio !== 'all') {
+      resultado = resultado.filter(actividad => {
+        let d: Date;
+
+        if (typeof actividad.fecha === 'string') {
+          const fechaStr = actividad.fecha.includes('T')
+            ? actividad.fecha.split('T')[0]
+            : actividad.fecha;
+          const [year, month, day] = fechaStr.split('-').map(Number);
+          d = new Date(year, (month || 1) - 1, day || 1);
+        } else {
+          d = actividad.fecha;
+        }
+
+        return !isNaN(d.getTime()) && d.getFullYear() === this.selectedAnio;
+      });
+    }
+
     return resultado;
   }
 
@@ -278,6 +326,11 @@ export class ActividadesEstudiantesComponent implements OnInit {
   }
 
   onMesChange(): void {
+    this.pageIndex = 0;
+    this.actualizarPaginacion();
+  }
+
+  onAnioChange(): void {
     this.pageIndex = 0;
     this.actualizarPaginacion();
   }
