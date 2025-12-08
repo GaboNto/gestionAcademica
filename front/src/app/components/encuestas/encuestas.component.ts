@@ -1,5 +1,6 @@
 ﻿// Componente principal de gestión de encuestas (estudiantiles y colaboradores)
 import { Component, OnInit, inject } from '@angular/core';
+import { ColaboradoresService } from '../../services/colaboradores.service';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { FormsModule } from '@angular/forms';
@@ -184,7 +185,8 @@ downloadEstadisticasEstudiantilesExcel(): void {
 
   constructor(
     private snackBar: MatSnackBar,
-    private encuestasApi: EncuestasApiService
+    private encuestasApi: EncuestasApiService,
+    private colaboradoresService: ColaboradoresService
   ) {}
 
   // Estado general de la UI
@@ -200,7 +202,7 @@ downloadEstadisticasEstudiantilesExcel(): void {
   // Catálogos para selects
   estudiantes: { rut: string; nombre: string }[] = [];
   centros: { id: number; nombre: string; comuna?: string; region?: string }[] = [];
-  colaboradores: { id: number; nombre: string }[] = [];
+  colaboradores: { id: number; nombre: string; rut?: string }[] = [];
   tutores: { id: number; nombre: string }[] = [];
   colaboradoresFiltrados: { id: number; nombre: string }[] = [];
 
@@ -398,6 +400,7 @@ downloadEstadisticasEstudiantilesExcel(): void {
     observacion: 'Observación',
     fecha: 'Fecha de evaluación',
     semestre: 'Semestre',
+    tipo_practica: 'Tipo de práctica',
   };
 
   mapMetadataLabel(key: string): string {
@@ -549,29 +552,36 @@ downloadEstadisticasEstudiantilesExcel(): void {
   // ---------- CARGA CATÁLOGOS ----------
   // Carga en paralelo estudiantes, centros, colaboradores y tutores
   loadCatalogos(): void {
-    this.isLoading = true;
-    forkJoin({
-      estudiantes: this.encuestasApi.getEstudiantes(),
-      centros: this.encuestasApi.getCentros(),
-      colaboradores: this.encuestasApi.getColaboradores(),
-      tutores: this.encuestasApi.getTutores(),
-    }).subscribe({
-      next: ({ estudiantes, centros, colaboradores, tutores }) => {
-        this.estudiantes = estudiantes || [];
-        this.centros = centros || [];
-        this.colaboradores = colaboradores || [];
-        this.tutores = tutores || [];
-        this.isLoading = false;
-      },
-      error: (err) => {
-        console.error('Error cargando catálogos', err);
-        this.mostrarError(
-          'No fue posible cargar catálogos (estudiantes/centros).'
-        );
-        this.isLoading = false;
-      },
-    });
-  }
+  this.isLoading = true;
+  forkJoin({
+    estudiantes: this.encuestasApi.getEstudiantes(),
+    centros: this.encuestasApi.getCentros(),
+    // usamos el servicio que trae rut
+    colaboradoresResp: this.colaboradoresService.listar({ limit: 999 }),
+    tutores: this.encuestasApi.getTutores(),
+  }).subscribe({
+    next: ({ estudiantes, centros, colaboradoresResp, tutores }) => {
+      this.estudiantes = estudiantes || [];
+      this.centros = centros || [];
+      // el endpoint de colaboradoresService devuelve { items: Colaborador[] }
+      this.colaboradores = (colaboradoresResp?.items || []).map(c => ({
+        id: c.id,
+        nombre: c.nombre,
+        rut: c.rut,
+      }));
+      this.tutores = tutores || [];
+      this.isLoading = false;
+    },
+    error: (err) => {
+      console.error('Error cargando catálogos', err);
+      this.mostrarError(
+        'No fue posible cargar catálogos (estudiantes/centros/colaboradores).'
+      );
+      this.isLoading = false;
+    },
+  });
+}
+
 
   // ---------- FORM BUILDERS ----------
   // Construye formulario para encuesta estudiantil
@@ -673,6 +683,7 @@ downloadEstadisticasEstudiantilesExcel(): void {
       nombreEstudiantePractica: ['', Validators.required],
       centroEducativo: ['', Validators.required],
       fechaEvaluacion: [null, Validators.required],
+      tipoPractica: ['', Validators.required],
 
       secI: this.fb.group({
         e1_planificacion: ['', Validators.required],
@@ -856,6 +867,14 @@ downloadEstadisticasEstudiantilesExcel(): void {
     const est = this.estudiantes.find((e) => e.rut === rut);
     return est ? est.nombre : '';
   }
+  getRutColaboradorPorNombre(nombre: string | null | undefined): string {
+  if (!nombre) return '';
+  const col = this.colaboradores.find(c => c.nombre === nombre);
+  return this.formatRut(col?.rut);
+  }
+
+
+
 
   terminoBusqueda: string = '';
 
@@ -883,6 +902,8 @@ downloadEstadisticasEstudiantilesExcel(): void {
     // --- FILTRO ---
     if (this.terminoBusqueda && this.terminoBusqueda.trim()) {
       const termino = this.terminoBusqueda.trim().toLowerCase();
+      const terminoSinPuntos = termino.replace(/\./g, '');
+
 
       lista = lista.filter((e) => {
         const meta = e.metadata || {};
@@ -891,16 +912,23 @@ downloadEstadisticasEstudiantilesExcel(): void {
         const rutEstudiante = (meta['nombre_estudiante'] || '')
           .toString()
           .toLowerCase();
+        const rutEstudianteSinPuntos = rutEstudiante.replace(/\./g, '');
         const nombreEstudiante = (
           this.getNombreEstudiantePorRut(meta['nombre_estudiante']) || ''
         )
           .toString()
           .toLowerCase();
 
+
         // Para encuestas de colaboradores
+        const rutColaborador = (
+          this.getRutColaboradorPorNombre(meta['nombre_colaborador']) || ''
+        ).toLowerCase();
+        const rutColaboradorSinPuntos = rutColaborador.replace(/\./g, '');
         const nombreColaborador = (meta['nombre_colaborador'] || '')
           .toString()
           .toLowerCase();
+
 
         // Nombre del centro
         const nombreCentro = (
@@ -921,7 +949,10 @@ downloadEstadisticasEstudiantilesExcel(): void {
 
         return (
           rutEstudiante.includes(termino) ||
+          rutEstudianteSinPuntos.includes(terminoSinPuntos) ||
           nombreEstudiante.includes(termino) ||
+          rutColaborador.includes(termino) ||
+          rutColaboradorSinPuntos.includes(terminoSinPuntos) ||
           nombreColaborador.includes(termino) ||
           nombreCentro.includes(termino) ||
           tipoLabel.includes(termino) ||
@@ -1019,6 +1050,21 @@ downloadEstadisticasEstudiantilesExcel(): void {
     const month = fecha.getMonth(); // 0-based
     return month <= 6 ? 1 : 2; // enero (0) a julio (6) es semestre 1
   }
+
+  // Formatea un RUT a formato 12.345.678-9
+private formatRut(rut: string | null | undefined): string {
+  if (!rut) return '';
+  // dejar solo números y K
+  const limpio = rut.replace(/[^0-9kK]/g, '');
+  if (limpio.length < 2) return rut;
+
+  const cuerpo = limpio.slice(0, -1);
+  const dv = limpio.slice(-1);
+
+  const cuerpoFmt = cuerpo.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  return `${cuerpoFmt}-${dv}`;
+}
+
 
   // Construye los conteos para una pregunta dada en un conjunto de encuestas ESTUDIANTILES
   private buildEstadisticaPregunta(
@@ -1418,12 +1464,16 @@ private computeEstadisticasColaboradores(): void {
         fechaEvaluacion: data.fechaEvaluacion
           ? new Date(data.fechaEvaluacion).toISOString()
           : new Date().toISOString(),
+
+        tipo_practica: data.tipoPractica,
         secI: data.secI,
         secII: data.secII,
         secIII: data.secIII,
         sugerencias: data.sugerencias,
         cumplePerfilEgreso: data.cumplePerfilEgreso,
         comentariosAdicionales: data.comentariosAdicionales ?? null,
+
+        
       };
     }
 

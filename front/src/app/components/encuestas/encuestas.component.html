@@ -57,6 +57,7 @@
   </div>
 
   <!-- FILTROS DE BÚSQUEDA -->
+    <!-- FILTROS DE BÚSQUEDA + ESTADÍSTICAS -->
   <mat-card class="elev filters-card">
     <mat-card-header>
       <mat-card-title>
@@ -66,6 +67,7 @@
     </mat-card-header>
 
     <mat-card-content>
+      <!-- FILA DE BÚSQUEDA Y ORDEN -->
       <div class="filters-row">
         <!-- BÚSQUEDA -->
         <mat-form-field appearance="outline" class="search-field">
@@ -106,8 +108,35 @@
           </button>
         </div>
       </div>
+
+      <!-- FILA DE ESTADÍSTICAS (ALINEADA A LA DERECHA) -->
+      <div class="stats-toggle-row">
+        <span class="stats-toggle-title">
+          Estadísticas de encuestas
+        </span>
+
+        <span class="stats-toggle-buttons">
+          <button
+            mat-stroked-button
+            color="primary"
+            (click)="mostrarEstadisticas('ESTUDIANTIL')"
+            [class.active]="tipoStatsVisible === 'ESTUDIANTIL'">
+         
+            Percepción estudiantil sobre el proceso de práctica
+          </button>
+
+          <button
+            mat-stroked-button
+            color="accent"
+            (click)="mostrarEstadisticas('COLABORADORES_JEFES')"
+            [class.active]="tipoStatsVisible === 'COLABORADORES_JEFES'">
+            Encuesta a colaboradores y Jefes UTP
+          </button>
+        </span>
+      </div>
     </mat-card-content>
   </mat-card>
+
 
   <!-- LISTA DE ENCUESTAS -->
   <mat-card class="elev registered-list-card">
@@ -135,18 +164,29 @@
                 </ng-container>
                 <ng-template #sinEstudiante>Sin dato</ng-template>
                 <br />
-                Centro:
+                Centro educativo:
                 {{ e.metadata ? e.metadata['nombre_centro'] : 'Sin información' }}
               </ng-container>
 
               <!-- Encuesta Colaboradores -->
               <ng-container *ngIf="e.tipo === 'COLABORADORES_JEFES'">
                 Colaborador:
-                {{ e.metadata ? e.metadata['nombre_colaborador'] : 'Sin dato' }}
+                <ng-container *ngIf="e.metadata; else sinCol">
+                  <!-- Primero el RUT -->
+                  {{ getRutColaboradorPorNombre(e.metadata['nombre_colaborador']) }}
+                  <!-- Luego el nombre -->
+                  <ng-container *ngIf="e.metadata['nombre_colaborador'] as nombreCol">
+                    — {{ nombreCol }}
+                  </ng-container>
+                </ng-container>
+                <ng-template #sinCol>Sin dato</ng-template>
                 <br />
-                Centro:
+                Centro educativo:
                 {{ e.metadata ? e.metadata['nombre_colegio'] : 'Sin información' }}
               </ng-container>
+
+
+
             </span>
           </div>
         </div>
@@ -178,34 +218,6 @@
     </ng-template>
   </mat-card>
 
-  <!-- BOTONES PARA MOSTRAR ESTADÍSTICAS -->
-  <mat-card class="elev stats-toggle-card">
-    <mat-card-content class="stats-toggle-row">
-      <span class="stats-toggle-title">
-        Estadísticas de encuestas
-      </span>
-
-      <span class="stats-toggle-buttons">
-        <button
-          mat-stroked-button
-          color="primary"
-          (click)="mostrarEstadisticas('ESTUDIANTIL')"
-          [class.active]="tipoStatsVisible === 'ESTUDIANTIL'">
-          <mat-icon>bar_chart</mat-icon>
-          Estudiantes
-        </button>
-
-        <button
-          mat-stroked-button
-          color="accent"
-          (click)="mostrarEstadisticas('COLABORADORES_JEFES')"
-          [class.active]="tipoStatsVisible === 'COLABORADORES_JEFES'">
-          <mat-icon>insights</mat-icon>
-          Colaboradores / Jefes UTP
-        </button>
-      </span>
-    </mat-card-content>
-  </mat-card>
 
     <!-- ESTADÍSTICAS ENCUESTA ESTUDIANTIL (VENTANA MODAL) -->
   <mat-card
@@ -477,7 +489,7 @@
   </mat-form-field>
 
   <mat-form-field appearance="outline" class="field">
-    <mat-label>Nombre del Docente Colaborador(a)</mat-label>
+    <mat-label>Nombre del Colaborador</mat-label>
     <mat-select formControlName="nombreDocenteColaborador">
       <mat-option *ngFor="let col of colaboradores" [value]="col.id">
         {{ col.nombre }}
@@ -1346,7 +1358,7 @@
           <div class="form-grid">
 
             <mat-form-field appearance="outline" class="field">
-              <mat-label>Nombre del profesor colaborador</mat-label>
+              <mat-label>Nombre del colaborador</mat-label>
               <mat-select formControlName="nombreColaborador" required>
                 <mat-option *ngFor="let col of colaboradores" [value]="col.id">
                   {{ col.nombre }}
@@ -1379,7 +1391,22 @@
               <mat-datepicker #pickerC></mat-datepicker>
             </mat-form-field>
 
+              <mat-form-field appearance="outline" class="field">
+              <mat-label>Tipo de práctica</mat-label>
+              <mat-select formControlName="tipoPractica" required>
+                <mat-option value="Apoyo a la Docencia I">Apoyo a la Docencia I</mat-option>
+                <mat-option value="Apoyo a la Docencia II">Apoyo a la Docencia II</mat-option>
+                <mat-option value="Apoyo a la Docencia III">Apoyo a la Docencia III</mat-option>
+                <mat-option value="Práctica Profesional">Práctica Profesional</mat-option>
+              </mat-select>
+              <mat-error *ngIf="registroForm.get('tipoPractica')?.hasError('required')">
+                Requerido
+              </mat-error>
+            </mat-form-field>
+
+
           </div>
+        
 
           <h2 class="form-title">Evaluación al Docente en Práctica</h2>
 

@@ -61,8 +61,9 @@ export class EncuestasApiService {
   }
 
   // Lista de profesores colaboradores
-  getColaboradores(): Observable<{ id: number; nombre: string }[]> {
-    return this.http.get<{ id: number; nombre: string }[]>(`${API_URL}/colaboradores`);
+  getColaboradores(): Observable<{ id: number; nombre: string; rut: string }[]> {
+    return this.http.get<{ id: number; nombre: string; rut: string
+     }[]>(`${API_URL}/colaboradores`);
   }
 
   // Lista de tutores/supervisores

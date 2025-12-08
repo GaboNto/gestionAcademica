@@ -234,6 +234,7 @@ model EncuestaColaborador {
   nombre_colaborador String
   nombre_colegio     String?
   observacion String? @db.Text
+  tipo_practica      String?
   fecha              DateTime?
   
   semestreId Int?
