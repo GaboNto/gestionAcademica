@@ -170,6 +170,8 @@ model EncuestaSemestre {
   encuestasColaboradores  EncuestaColaborador[]
 
   @@map("encuesta_semestre")
+  @@unique([anio, semestre], name: "anio_semestre_unique")
+
 }
 
 /////////////////////////////////////

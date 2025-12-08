@@ -24,17 +24,28 @@
   font-weight: 600;
 }
 
-.respuesta-larga {
-  white-space: pre-wrap;      /* Permite saltos de línea naturales */
-  word-break: break-word;     /* Parte palabras demasiado largas */
-  max-width: 450px;           /* Controla que no se expanda demasiado */
-  overflow-wrap: break-word;  /* Compatibilidad extra */
+.headline .muted {
+  margin: 0.25rem 0 0;
+  font-size: 0.9rem;
+  color: rgba(0, 0, 0, 0.6);
 }
+
+.spacer {
+  flex: 1;
+}
+
+.header button[mat-flat-button] {
+  border-radius: 999px;
+  padding-inline: 1.4rem;
+}
+
+/* ===== TEXTO LARGO EN DETALLE ===== */
 
 .respuesta-larga {
   max-width: 450px;
-  white-space: pre-wrap;
-  word-break: break-word;
+  white-space: pre-wrap;      /* Permite saltos de línea naturales */
+  word-break: break-word;     /* Parte palabras demasiado largas */
+  overflow-wrap: break-word;  /* Compatibilidad extra */
 }
 
 .respuesta-larga .texto {
@@ -56,22 +67,6 @@
   padding: 0;
   margin-top: 4px;
   font-size: 0.85rem;
-}
-
-
-.headline .muted {
-  margin: 0.25rem 0 0;
-  font-size: 0.9rem;
-  color: rgba(0, 0, 0, 0.6);
-}
-
-.spacer {
-  flex: 1;
-}
-
-.header button[mat-flat-button] {
-  border-radius: 999px;
-  padding-inline: 1.4rem;
 }
 
 /* ===== TARJETAS DE REGISTRO (ARRIBA) ===== */
@@ -148,26 +143,29 @@
   gap: 0.5rem;
 }
 
+/* FILA DE BÚSQUEDA + ORDEN */
 .filters-row {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 1rem;
-  align-items: center;
+  align-items: flex-end;
   margin-top: 0.25rem;
 }
 
+/* Barra de búsqueda amplia */
 .search-field {
-  flex: 1;
-  min-width: 280px;
+  flex: 1 1 auto;
+  min-width: 320px;
+  max-width: none;
 }
 
-/* contenedor de los botones de orden */
+/* contenedor de los botones de orden, pegados a la derecha */
 .order-inline {
+  flex-shrink: 0;
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 0.75rem;
   align-items: center;
-  margin-top: -12px;
   justify-content: flex-end;
 }
 
@@ -197,6 +195,51 @@
   background: #e3f2fd;
   border-color: #90caf9;
   color: #1565c0;
+}
+
+/* ===== TARJETA DE ESTADÍSTICAS (AÑO / SEMESTRE / TIPO) ===== */
+
+.stats-toggle-card {
+  margin-top: 0.75rem;
+  border-radius: 1rem;
+  padding: 0.6rem 1.25rem 0.7rem;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  background: #f8fafc;
+  box-shadow: none;
+}
+
+.stats-toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.stats-toggle-title {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #111827;
+}
+
+/* Contenedor de selects */
+.stats-filters {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.stats-filter-field {
+  width: 140px;
+  min-width: 120px;
+}
+
+/* Por si en algún momento se vuelven a usar botones de toggle */
+.stats-toggle-buttons {
+  margin-left: auto;
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 /* ===== LISTA DE ENCUESTAS ===== */
@@ -652,7 +695,6 @@ mat-card-actions {
   color: #000;
 }
 
-
 /* Escala Sí / No */
 .scale-SI {
   background: #4472c4;
@@ -680,7 +722,6 @@ mat-card-actions {
   color: #fff;
 }
 
-/* Participación actividades (ejemplo) */
 /* Participación actividades (códigos reales: A_P, A_N, R_NA, R_NI, NR) */
 .scale-A_P {
   background: #4472c4;  /* Asistí y pude participar */
@@ -706,7 +747,6 @@ mat-card-actions {
   background: #595959;  /* No se realizó */
   color: #fff;
 }
-
 
 /* ===== RESPONSIVE ===== */
 
@@ -754,6 +794,14 @@ mat-card-actions {
     display: none;
   }
 
+  .filters-row {
+    flex-wrap: wrap;
+  }
+
+  .search-field {
+    min-width: 100%;
+  }
+
   .order-inline {
     justify-content: flex-start;
   }
@@ -762,5 +810,31 @@ mat-card-actions {
     flex-wrap: wrap;
     justify-content: flex-start;
   }
+
+  /* Estadísticas en columna en mobile */
+  .stats-toggle-row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .stats-filters {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .stats-filter-field {
+    flex: 1 1 120px;
+  }
 }
 
+.stats-cta {
+  margin-left: auto;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+@media (max-width: 600px) {
+  .stats-cta {
+    margin-left: 0;
+    align-self: flex-start;
+  }
+}

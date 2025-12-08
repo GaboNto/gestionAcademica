@@ -17,7 +17,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
-import { RouterLink } from '@angular/router';
+import { RouterModule } from '@angular/router';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { forkJoin } from 'rxjs';
 import * as XLSX from 'xlsx';
@@ -52,6 +52,7 @@ interface EstadisticaPregunta {
   totalEncuestas: number;
 }
 
+const anioActual = new Date().getFullYear();
 
 @Component({
   selector: 'app-encuestas',
@@ -62,7 +63,7 @@ interface EstadisticaPregunta {
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
-    RouterLink,
+    RouterModule,
     HttpClientModule,
     MatRadioModule,
     MatCardModule,
@@ -181,7 +182,12 @@ downloadEstadisticasEstudiantilesExcel(): void {
     escala: TipoEscala;
     preguntas: EstadisticaPregunta[];
   }[] = [];
+  filtroAnioStats: number | null = null;
+  filtroSemestreStats: number | null = null;
+  filtroTipoStats: TipoEncuesta = 'ESTUDIANTIL';
 
+
+  aniosDisponiblesStats: number[] = [];
 
   constructor(
     private snackBar: MatSnackBar,
@@ -508,38 +514,70 @@ downloadEstadisticasEstudiantilesExcel(): void {
     this.isLoading = true;
     this.encuestasApi.getEncuestasRegistradas().subscribe({
       next: (data: ApiEncuesta[]) => {
-        this.encuestas = data.map((item) => {
+        this.encuestas = (data as any[]).map((item) => {
           const { respuestas, tipo, ...rest } = item;
 
-          const tipoInferido: TipoEncuesta =
-            (tipo as TipoEncuesta) ??
-            ((item as any).nombre_estudiante ? 'ESTUDIANTIL' : 'COLABORADORES_JEFES');
+          // Si tu backend incluye la relación "semestre" (por include: { semestre: true })
+          const semestreRelacion = (item as any).semestre as
+            | { anio: number; semestre: number }
+            | null
+            | undefined;
 
           const fechaObj = item.fecha ? new Date(item.fecha) : new Date();
-          const semestreCalc = this.computeSemestre(fechaObj);
+
+          // Definimos tipo por presencia de nombre_estudiante
+          const tipoInferido: TipoEncuesta =
+            (item as any).nombre_estudiante
+              ? 'ESTUDIANTIL'
+              : 'COLABORADORES_JEFES';
+
+          // Año y semestre "oficiales" de la encuesta
+          const anioEncuesta =
+            semestreRelacion?.anio ?? (fechaObj ? fechaObj.getFullYear() : null);
+
+          const semestreCalculado = this.computeSemestre(fechaObj);
+          const semestreEncuesta =
+            semestreRelacion?.semestre ??
+            (typeof semestreCalculado === 'number' ? semestreCalculado : null);
 
           // Convertir ID del colaborador opcional a nombre (si existe)
           if (rest['nombre_docente_colaborador_opcional']) {
-            const col = this.colaboradores.find(c => c.id === Number(rest['nombre_docente_colaborador_opcional']));
+            const col = this.colaboradores.find(
+              (c) =>
+                c.id ===
+                Number(rest['nombre_docente_colaborador_opcional'])
+            );
             if (col) {
               rest['nombre_docente_colaborador_opcional'] = col.nombre;
             }
           }
-
 
           return {
             id: (item.id ?? Math.random()).toString(),
             tipo: tipoInferido,
             fecha: fechaObj,
             origenArchivo: (item as any).origenArchivo ?? '',
-            metadata: { ...rest, fecha: fechaObj, semestre: semestreCalc },
+            metadata: {
+              ...rest,
+              fecha: fechaObj,
+              anioEncuesta,
+              semestreEncuesta,
+            },
             respuestas: (respuestas as any[]) || [],
           } as EncuestaRegistro;
         });
 
+        // Recalcular opciones de años disponibles para el filtro
+        this.recalcularOpcionesFiltroStats();
+
         this.isLoading = false;
-        // Recalcular estadísticas cuando se cargan encuestas
-        this.computeEstadisticasEstudiantiles();
+
+        // Si ya hay un tipo de estadísticas visible, lo recalculamos
+        if (this.tipoStatsVisible === 'ESTUDIANTIL') {
+          this.computeEstadisticasEstudiantiles();
+        } else if (this.tipoStatsVisible === 'COLABORADORES_JEFES') {
+          this.computeEstadisticasColaboradores();
+        }
       },
       error: (err) => {
         console.error('Error al cargar encuestas', err);
@@ -548,6 +586,54 @@ downloadEstadisticasEstudiantilesExcel(): void {
       },
     });
   }
+
+  // Recalcula los años disponibles para filtrar estadísticas
+  private recalcularOpcionesFiltroStats(): void {
+    const setAnios = new Set<number>();
+
+    this.encuestas.forEach((e) => {
+      const meta = e.metadata || {};
+      const anio: number | null =
+        meta['anioEncuesta'] ?? (e.fecha ? e.fecha.getFullYear() : null);
+
+      if (anio) {
+        setAnios.add(anio);
+      }
+    });
+
+    this.aniosDisponiblesStats = Array.from(setAnios).sort((a, b) => b - a);
+  }
+
+
+  // Devuelve solo las encuestas que cumplan con el año / semestre elegidos
+  private filtrarPorSemestreYAnio(
+    encuestas: EncuestaRegistro[]
+  ): EncuestaRegistro[] {
+    return encuestas.filter((e) => {
+      const meta = e.metadata || {};
+
+      const anio: number | null =
+        meta['anioEncuesta'] ?? (e.fecha ? e.fecha.getFullYear() : null);
+      const semestre: number | null =
+        meta['semestreEncuesta'] ?? this.computeSemestre(e.fecha as Date);
+
+      if (this.filtroAnioStats !== null && anio !== this.filtroAnioStats) {
+        return false;
+      }
+
+      if (
+        this.filtroSemestreStats !== null &&
+        semestre !== this.filtroSemestreStats
+      ) {
+        return false;
+      }
+
+      return true;
+    });
+  }
+
+
+
 
   // ---------- CARGA CATÁLOGOS ----------
   // Carga en paralelo estudiantes, centros, colaboradores y tutores
@@ -586,7 +672,10 @@ downloadEstadisticasEstudiantilesExcel(): void {
   // ---------- FORM BUILDERS ----------
   // Construye formulario para encuesta estudiantil
   private buildEstudiantilForm(): FormGroup {
+    const anioActual = new Date().getFullYear();
     return this.fb.group({
+      anioEncuesta: [anioActual, Validators.required],
+      semestreEncuesta: [1, Validators.required],
       nombreEstudiante: ['', Validators.required],
       establecimiento: ['', Validators.required],
       fechaEvaluacion: [null, Validators.required],
@@ -679,6 +768,8 @@ downloadEstadisticasEstudiantilesExcel(): void {
   // Construye formulario para encuesta de colaboradores / jefes UTP
   private buildColaboradoresForm(): FormGroup {
     return this.fb.group({
+      anioEncuesta: [anioActual, Validators.required],
+      semestreEncuesta: [1, Validators.required],
       nombreColaborador: ['', Validators.required],
       nombreEstudiantePractica: ['', Validators.required],
       centroEducativo: ['', Validators.required],
@@ -1006,6 +1097,22 @@ downloadEstadisticasEstudiantilesExcel(): void {
     // Por ahora no hace nada extra
   }
 
+    // Se llama cuando cambian los selects de año / semestre de estadísticas
+  onFiltroStatsChange(): void {
+    if (this.tipoStatsVisible === 'ESTUDIANTIL') {
+      this.computeEstadisticasEstudiantiles();
+    } else if (this.tipoStatsVisible === 'COLABORADORES_JEFES') {
+      this.computeEstadisticasColaboradores();
+    }
+  }
+
+  onVerEstadisticas(): void {
+  if (!this.filtroTipoStats) return;
+  this.mostrarEstadisticas(this.filtroTipoStats);
+}
+
+
+
   // Columnas de metadatos a mostrar en tabla de detalle (oculta campos técnicos)
   getDetailColumns(encuesta: EncuestaRegistro | null): string[] {
     if (!encuesta || !encuesta.metadata) return [];
@@ -1142,60 +1249,63 @@ mostrarEstadisticas(tipo: TipoEncuesta): void {
 
 
   // Calcula todas las estadísticas para la encuesta ESTUDIANTIL
-  private computeEstadisticasEstudiantiles(): void {
-    const encuestasEst = this.encuestas.filter(
-      (e) => e.tipo === 'ESTUDIANTIL'
-    );
+   // Calcula todas las estadísticas para la encuesta ESTUDIANTIL
+private computeEstadisticasEstudiantiles(): void {
+  const encuestasEstTodas = this.encuestas.filter(
+    (e) => e.tipo === 'ESTUDIANTIL'
+  );
 
-    this.totalEncuestasEstudiantiles = encuestasEst.length;
-    this.estadisticasEstudiantiles = [];
+  const encuestasEst = this.filtrarPorSemestreYAnio(encuestasEstTodas);
 
-    if (!encuestasEst.length) {
-      return;
-    }
+  this.totalEncuestasEstudiantiles = encuestasEst.length;
+  this.estadisticasEstudiantiles = [];
 
-    // === GRUPO 1: Perspectiva general de la práctica ===
-    const grupoPerspectiva = {
-      titulo: 'I. Perspectiva general desarrollo de la práctica',
-      escala: 'ESCALA5' as const,
-      preguntas: [
-        'secI.objetivos',
-        'secI.accionesEstablecimiento',
-        'secI.accionesTaller',
-        'secI.satisfaccionGeneral',
-      ].map((key) =>
-        this.buildEstadisticaPregunta(encuestasEst, key, 'ESCALA5')
-      ),
-    };
+  if (!encuestasEst.length) {
+    return;
+  }
 
-    // === GRUPO 2: Percepción sobre colaboradores ===
-    const grupoColaboradores = {
-      titulo: 'II. Percepción sobre colaboradores(as)',
-      escala: 'ESCALA5' as const,
-      preguntas: [
-        'secII_A.apoyoInsercion',
-        'secII_A.apoyoGestion',
-        'secII_A.orientacionComportamiento',
-        'secII_A.comunicacionConstante',
-        'secII_A.retroalimentacionProceso',
-      ].map((key) =>
-        this.buildEstadisticaPregunta(encuestasEst, key, 'ESCALA5')
-      ),
-    };
+  // === GRUPO 1: Perspectiva general de la práctica ===
+  const grupoPerspectiva = {
+    titulo: 'I. Perspectiva general desarrollo de la práctica',
+    escala: 'ESCALA5' as TipoEscala,
+    preguntas: [
+      'secI.objetivos',
+      'secI.accionesEstablecimiento',
+      'secI.accionesTaller',
+      'secI.satisfaccionGeneral',
+    ].map((key) =>
+      this.buildEstadisticaPregunta(encuestasEst, key, 'ESCALA5')
+    ),
+  };
 
-    // === GRUPO 3: Experiencia con colaborador ===
-    const grupoExperienciaColaborador = {
-      titulo: 'III. Experiencia con colaborador(a)',
-      escala: 'SI_NO' as const,
-      preguntas: [
-        'secII_B.interesRol',
-        'secII_B.recomendarColaborador',
-      ].map((key) =>
-        this.buildEstadisticaPregunta(encuestasEst, key, 'SI_NO')
-      ),
-    };
+  // === GRUPO 2: Percepción sobre colaboradores ===
+  const grupoColaboradores = {
+    titulo: 'II. Percepción sobre colaboradores(as)',
+    escala: 'ESCALA5' as TipoEscala,
+    preguntas: [
+      'secII_A.apoyoInsercion',
+      'secII_A.apoyoGestion',
+      'secII_A.orientacionComportamiento',
+      'secII_A.comunicacionConstante',
+      'secII_A.retroalimentacionProceso',
+    ].map((key) =>
+      this.buildEstadisticaPregunta(encuestasEst, key, 'ESCALA5')
+    ),
+  };
 
-    // === GRUPO 4: Normativas del centro educativo ===
+  // === GRUPO 3: Experiencia con colaborador ===
+  const grupoExperienciaColaborador = {
+    titulo: 'III. Experiencia con colaborador(a)',
+    escala: 'SI_NO' as TipoEscala,
+    preguntas: [
+      'secII_B.interesRol',
+      'secII_B.recomendarColaborador',
+    ].map((key) =>
+      this.buildEstadisticaPregunta(encuestasEst, key, 'SI_NO')
+    ),
+  };
+
+  // === GRUPO 4: Normativas del centro educativo ===
   const grupoNormativas = {
     titulo: 'IV. Normativas del centro educativo de práctica',
     escala: 'NORMATIVAS' as TipoEscala,
@@ -1301,11 +1411,14 @@ mostrarEstadisticas(tipo: TipoEncuesta): void {
   ];
 }
 
+
 // Calcula todas las estadísticas para la encuesta COLABORADORES_JEFES
 private computeEstadisticasColaboradores(): void {
-  const encuestasCol = this.encuestas.filter(
+  const encuestasColTodas = this.encuestas.filter(
     (e) => e.tipo === 'COLABORADORES_JEFES'
   );
+
+  const encuestasCol = this.filtrarPorSemestreYAnio(encuestasColTodas);
 
   this.totalEncuestasColaboradores = encuestasCol.length;
   this.estadisticasColaboradores = [];
@@ -1390,7 +1503,17 @@ private computeEstadisticasColaboradores(): void {
 
     this.isLoading = true;
 
-    let payload: any = { tipo: this.tipoRegistroActivo, data: {} };
+    const anioEncuesta = raw.anioEncuesta;
+    const semestreEncuesta = raw.semestreEncuesta;
+
+    let payload: any = {
+      tipo: this.tipoRegistroActivo,
+      data: { },
+      semestre: {
+        anio: raw.anioEncuesta, 
+        semestre: raw.semestreEncuesta,
+      },
+    };
 
     if (this.tipoRegistroActivo === 'ESTUDIANTIL') {
       const data = raw;
