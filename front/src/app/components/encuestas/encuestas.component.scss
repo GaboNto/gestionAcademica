@@ -200,13 +200,20 @@
 /* ===== TARJETA DE ESTADÍSTICAS (AÑO / SEMESTRE / TIPO) ===== */
 
 .stats-toggle-card {
-  margin-top: 0.75rem;
-  border-radius: 1rem;
-  padding: 0.6rem 1.25rem 0.7rem;
-  border: 1px solid rgba(0, 0, 0, 0.04);
-  background: #f8fafc;
-  box-shadow: none;
+  background: #f3f4f6 !important;
+  border-radius: 1rem !important;
+  padding: 1.25rem 1.5rem !important;
+
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
+
+
+
 
 .stats-toggle-row {
   display: flex;
@@ -577,6 +584,7 @@ mat-card-actions {
   margin-top: 1rem;
 }
 
+
 .stats-group + .stats-group {
   margin-top: 2rem;
   border-top: 1px solid rgba(0, 0, 0, 0.06);
@@ -838,3 +846,17 @@ mat-card-actions {
     align-self: flex-start;
   }
 }
+
+.filters-tools {
+  display: flex;
+  align-items: center; 
+  gap: 1rem;
+}
+
+.order-inline {
+  margin-top: 0 !important;
+  align-self: center;
+  transform: translateY(-8px);
+}
+
+

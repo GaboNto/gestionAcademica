@@ -1404,6 +1404,21 @@
 
           <h2 class="form-title">Datos Generales</h2>
 
+        <div class="form-grid">
+          <mat-form-field appearance="outline" class="field">
+            <mat-label>Año de encuesta</mat-label>
+            <input matInput type="number" formControlName="anioEncuesta" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="field">
+            <mat-label>Semestre</mat-label>
+            <mat-select formControlName="semestreEncuesta">
+              <mat-option [value]="1">1</mat-option>
+              <mat-option [value]="2">2</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
           <div class="form-grid">
 
             <mat-form-field appearance="outline" class="field">
