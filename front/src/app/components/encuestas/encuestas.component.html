@@ -445,52 +445,91 @@
           <h2 class="form-title">Datos de Identificación</h2>
 
           <div class="form-grid">
-            <mat-form-field appearance="outline" class="field">
-              <mat-label>Nombre del Estudiante</mat-label>
-              <mat-select formControlName="nombreEstudiante" required>
-                <mat-option *ngFor="let s of estudiantes" [value]="s.rut">
-                  {{ s.nombre }}
-                </mat-option>
-              </mat-select>
-              <mat-error *ngIf="registroForm.get('nombreEstudiante')?.hasError('required')">
-                Requerido
-              </mat-error>
-            </mat-form-field>
 
-            <mat-form-field appearance="outline" class="field">
-              <mat-label>Establecimiento donde desarrolló su práctica</mat-label>
-              <mat-select formControlName="establecimiento">
-                <mat-option *ngFor="let c of centros" [value]="c.id">
-                  {{ c.nombre }} — {{ c.comuna || c.region }}
-                </mat-option>
-              </mat-select>
-            </mat-form-field>
+  <mat-form-field appearance="outline" class="field">
+    <mat-label>Nombre del Estudiante</mat-label>
+    <mat-select formControlName="nombreEstudiante" required>
+      <mat-option *ngFor="let s of estudiantes" [value]="s.rut">
+        {{ s.nombre }}
+      </mat-option>
+    </mat-select>
+    <mat-error *ngIf="registroForm.get('nombreEstudiante')?.hasError('required')">
+      Requerido
+    </mat-error>
+  </mat-form-field>
 
-            <mat-form-field appearance="outline" class="field">
-              <mat-label>Nombre del Tallerista o Supervisor de Práctica</mat-label>
-              <mat-select formControlName="nombreTalleristaSupervisor">
-                <mat-option *ngFor="let t of tutores" [value]="t.id">
-                  {{ t.nombre }}
-                </mat-option>
-              </mat-select>
-            </mat-form-field>
+  <mat-form-field appearance="outline" class="field">
+    <mat-label>Establecimiento donde desarrolló su práctica</mat-label>
+    <mat-select formControlName="establecimiento">
+      <mat-option *ngFor="let c of centros" [value]="c.id">
+        {{ c.nombre }} — {{ c.comuna || c.region }}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
 
-            <mat-form-field appearance="outline" class="field">
-              <mat-label>Nombre del Docente Colaborador(a)</mat-label>
-              <mat-select formControlName="nombreDocenteColaborador">
-                <mat-option *ngFor="let col of colaboradores" [value]="col.id">
-                  {{ col.nombre }}
-                </mat-option>
-              </mat-select>
-            </mat-form-field>
+  <mat-form-field appearance="outline" class="field">
+    <mat-label>Nombre del Tallerista o Supervisor</mat-label>
+    <mat-select formControlName="nombreTalleristaSupervisor">
+      <mat-option *ngFor="let t of tutores" [value]="t.id">
+        {{ t.nombre }}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
 
-            <mat-form-field appearance="outline" class="field">
-              <mat-label>Fecha de evaluacion</mat-label>
-              <input matInput [matDatepicker]="pickerEst" formControlName="fechaEvaluacion" />
-              <mat-datepicker-toggle matSuffix [for]="pickerEst"></mat-datepicker-toggle>
-              <mat-datepicker #pickerEst></mat-datepicker>
-            </mat-form-field>
-          </div>
+  <mat-form-field appearance="outline" class="field">
+    <mat-label>Nombre del Docente Colaborador(a)</mat-label>
+    <mat-select formControlName="nombreDocenteColaborador">
+      <mat-option *ngFor="let col of colaboradores" [value]="col.id">
+        {{ col.nombre }}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="field">
+    <mat-label>Fecha de evaluación</mat-label>
+    <input matInput [matDatepicker]="pickerEst" formControlName="fechaEvaluacion">
+    <mat-datepicker-toggle matSuffix [for]="pickerEst"></mat-datepicker-toggle>
+    <mat-datepicker #pickerEst></mat-datepicker>
+  </mat-form-field>
+
+  <!-- ==========================
+       NUEVO CAMPO: TIPO PRÁCTICA
+       ========================== -->
+  <mat-form-field appearance="outline" class="field">
+  <mat-label>Tipo de Práctica</mat-label>
+  <mat-select formControlName="tipoPractica" required>
+    <mat-option value="Apoyo a la Docencia I">Apoyo a la Docencia I</mat-option>
+    <mat-option value="Apoyo a la Docencia II">Apoyo a la Docencia II</mat-option>
+    <mat-option value="Apoyo a la Docencia III">Apoyo a la Docencia III</mat-option>
+    <mat-option value="Práctica Profesional">Práctica Profesional</mat-option>
+  </mat-select>
+  <mat-error *ngIf="registroForm.get('tipoPractica')?.hasError('required')">
+    Requerido
+  </mat-error>
+</mat-form-field>
+
+
+  <!-- ==========================
+       NUEVO CAMPO: COLABORADOR EXTRA
+       ========================== -->
+  <mat-form-field appearance="outline" class="field">
+  <mat-label>Colaborador adicional (opcional)</mat-label>
+  <mat-select formControlName="colaboradorAdicional">
+    
+    <!-- Opción vacía -->
+    <mat-option [value]="null">Ninguno</mat-option>
+
+    <!-- Colaboradores filtrados -->
+    <mat-option
+      *ngFor="let col of colaboradoresFiltrados"
+      [value]="col.id">
+      {{ col.nombre }}
+    </mat-option>
+  </mat-select>
+</mat-form-field>
+
+
+</div>
 
           <!-- ======================= SECCIONES ======================= -->
           <h2 class="form-title">Evaluación Detallada</h2>
@@ -1353,7 +1392,8 @@
                   I. Evaluación al Docente en Práctica
                 </mat-panel-title>
                 <mat-panel-description>
-                  Escala desde “totalmente en desacuerdo” a “totalmente de acuerdo”.
+                  
+              En una escala de 1 a 5, donde 1 es muy insatisfecho y 5 muy satisfecho.
                 </mat-panel-description>
               </mat-expansion-panel-header>
 
@@ -1477,6 +1517,10 @@
             <mat-expansion-panel formGroupName="secII">
               <mat-expansion-panel-header>
                 <mat-panel-title>II. Evaluación respecto a integración a la comunidad educativa</mat-panel-title>
+                <mat-panel-description>
+                  
+              En una escala de 1 a 5, donde 1 es muy insatisfecho y 5 muy satisfecho.
+                </mat-panel-description>
               </mat-expansion-panel-header>
 
               <div class="question-list-group">
@@ -1555,6 +1599,10 @@
             <mat-expansion-panel formGroupName="secIII">
               <mat-expansion-panel-header>
                 <mat-panel-title>III. Evaluación vinculación con la Coordinación de las Prácticas</mat-panel-title>
+                <mat-panel-description>
+                  
+              En una escala de 1 a 5, donde 1 es muy insatisfecho y 5 muy satisfecho.
+                </mat-panel-description>
               </mat-expansion-panel-header>
 
               <div class="question-list-group">
@@ -1835,7 +1883,7 @@
                 {{ mapPreguntaDescripcion(r.pregunta?.descripcion || ('Pregunta ' + r.preguntaId)) }}
               </td>
 
-              <td>
+              <td class="respuesta-larga">
                 {{ mapRespuestaValor(r.alternativa?.descripcion ?? r.respuestaAbierta) }}
               </td>
             </tr>

@@ -107,6 +107,8 @@ export class EncuestasService {
               nombre_estudiante: data.nombreEstudiante ?? null,
               nombre_tallerista: data.nombreTalleristaSupervisor ?? null,
               nombre_colaborador: data.nombreDocenteColaborador ?? null,
+              tipo_practica: data.tipo_practica ?? null,
+              nombre_docente_colaborador_opcional: data.nombre_docente_colaborador_opcional ?? null,
               nombre_centro: data.establecimiento ?? null,
               fecha: data.fechaEvaluacion
                 ? new Date(data.fechaEvaluacion)
@@ -126,6 +128,7 @@ export class EncuestasService {
           return { success: true, created };
         });
       }
+      
 
       if (tipo === 'COLABORADORES_JEFES') {
         // Crea encuesta de colaborador + respuestas en una transacción

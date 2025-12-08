@@ -202,6 +202,7 @@ downloadEstadisticasEstudiantilesExcel(): void {
   centros: { id: number; nombre: string; comuna?: string; region?: string }[] = [];
   colaboradores: { id: number; nombre: string }[] = [];
   tutores: { id: number; nombre: string }[] = [];
+  colaboradoresFiltrados: { id: number; nombre: string }[] = [];
 
   // Permite bloquear selects si se requiere
   public readOnlySelects = false;
@@ -514,6 +515,15 @@ downloadEstadisticasEstudiantilesExcel(): void {
           const fechaObj = item.fecha ? new Date(item.fecha) : new Date();
           const semestreCalc = this.computeSemestre(fechaObj);
 
+          // Convertir ID del colaborador opcional a nombre (si existe)
+          if (rest['nombre_docente_colaborador_opcional']) {
+            const col = this.colaboradores.find(c => c.id === Number(rest['nombre_docente_colaborador_opcional']));
+            if (col) {
+              rest['nombre_docente_colaborador_opcional'] = col.nombre;
+            }
+          }
+
+
           return {
             id: (item.id ?? Math.random()).toString(),
             tipo: tipoInferido,
@@ -572,6 +582,9 @@ downloadEstadisticasEstudiantilesExcel(): void {
       fechaEvaluacion: [null, Validators.required],
       nombreTalleristaSupervisor: ['', Validators.required],
       nombreDocenteColaborador: ['', Validators.required],
+      tipoPractica: ['', Validators.required],
+      colaboradorAdicional: [null],
+
 
       secI: this.fb.group({
         objetivos: ['', Validators.required],
@@ -693,6 +706,7 @@ downloadEstadisticasEstudiantilesExcel(): void {
     });
   }
 
+  
 
   // ---------- UI / FORM CONTROL ----------
   // Inicializa el formulario según el tipo de encuesta
@@ -703,6 +717,13 @@ downloadEstadisticasEstudiantilesExcel(): void {
 
     if (tipo === 'ESTUDIANTIL') {
       this.registroForm = this.buildEstudiantilForm();
+      this.filtrarColaboradores(null);
+
+      // Cuando cambia el colaborador principal → actualizar lista del adicional
+      this.registroForm.get('nombreDocenteColaborador')?.valueChanges.subscribe(val => {
+        this.filtrarColaboradores(val);
+      });
+      
 
       // Valores por defecto opcionales
       if (this.estudiantes.length) {
@@ -731,6 +752,13 @@ downloadEstadisticasEstudiantilesExcel(): void {
       this.disableSelectControls();
     }
   }
+
+  private filtrarColaboradores(colaboradorPrincipalId: number | null) {
+  this.colaboradoresFiltrados = this.colaboradores.filter(
+    col => col.id !== colaboradorPrincipalId
+  );
+}
+
 
   // Deshabilita controles select cuando se requiere modo solo lectura
   private disableSelectControls(): void {
@@ -1343,6 +1371,8 @@ private computeEstadisticasColaboradores(): void {
           ? new Date(data.fechaEvaluacion).toISOString()
           : new Date().toISOString(),
 
+        tipo_practica: data.tipoPractica,
+        nombre_docente_colaborador_opcional: data.colaboradorAdicional,
         nombreTalleristaSupervisor: tutorNombre,
         nombreTalleristaSupervisorId: tutorId,
 
@@ -1417,6 +1447,8 @@ private computeEstadisticasColaboradores(): void {
       },
     });
   }
+
+  
 
   // ---------- EXPORT ----------
   // Descarga Excel con todas las encuestas

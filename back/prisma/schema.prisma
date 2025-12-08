@@ -200,6 +200,9 @@ model EncuestaEstudiante {
   nombre_colaborador String?
   fecha              DateTime?
   observacion String? @db.Text
+  tipo_practica               String?
+  nombre_docente_colaborador_opcional Int?
+
 
   semestreId Int?
   semestre   EncuestaSemestre? @relation(fields: [semestreId], references: [id], onDelete: Cascade)

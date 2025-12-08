@@ -24,6 +24,41 @@
   font-weight: 600;
 }
 
+.respuesta-larga {
+  white-space: pre-wrap;      /* Permite saltos de línea naturales */
+  word-break: break-word;     /* Parte palabras demasiado largas */
+  max-width: 450px;           /* Controla que no se expanda demasiado */
+  overflow-wrap: break-word;  /* Compatibilidad extra */
+}
+
+.respuesta-larga {
+  max-width: 450px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.respuesta-larga .texto {
+  max-height: 4.5em;    /* aprox. 3 líneas */
+  overflow: hidden;
+  display: block;
+  line-height: 1.5em;
+}
+
+.respuesta-larga .texto.expandido {
+  max-height: none;     /* mostrar todo */
+}
+
+.ver-mas-btn {
+  background: none;
+  border: none;
+  color: #1976d2;       /* azul Material */
+  cursor: pointer;
+  padding: 0;
+  margin-top: 4px;
+  font-size: 0.85rem;
+}
+
+
 .headline .muted {
   margin: 0.25rem 0 0;
   font-size: 0.9rem;
