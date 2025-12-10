@@ -1,0 +1,91 @@
+<div class="login-wrapper">
+  <!-- Fondo decorativo -->
+  <div class="login-background"></div>
+
+  <mat-card class="login-card">
+    <!-- ENCABEZADO -->
+    <div class="login-header">
+      <div class="login-icon">
+        <mat-icon>school</mat-icon>
+      </div>
+      <div>
+        <h1 class="title">Ingresar al sistema</h1>
+        <p class="subtitle">
+          Plataforma de gestión de prácticas pedagógicas.
+        </p>
+      </div>
+    </div>
+
+    <mat-divider class="login-divider"></mat-divider>
+
+    <!-- FORMULARIO -->
+    <form
+      [formGroup]="form"
+      (ngSubmit)="submit()"
+      novalidate
+      class="login-form">
+
+      <!-- Correo -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Correo institucional</mat-label>
+        <input matInput formControlName="email" type="email" />
+        <mat-error *ngIf="form.get('email')?.hasError('required')">
+          El correo es obligatorio
+        </mat-error>
+        <mat-error *ngIf="form.get('email')?.hasError('email')">
+          Ingresa un correo válido
+        </mat-error>
+      </mat-form-field>
+
+      <!-- Contraseña -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Contraseña</mat-label>
+        <input
+          matInput
+          [type]="hidePassword ? 'password' : 'text'"
+          formControlName="password"
+        />
+        <button
+          mat-icon-button
+          matSuffix
+          type="button"
+          (click)="hidePassword = !hidePassword">
+          <mat-icon>
+            {{ hidePassword ? 'visibility' : 'visibility_off' }}
+          </mat-icon>
+        </button>
+        <mat-error *ngIf="form.get('password')?.hasError('required')">
+          La contraseña es obligatoria
+        </mat-error>
+        <mat-error *ngIf="form.get('password')?.hasError('minlength')">
+          La contraseña debe tener al menos 4 caracteres
+        </mat-error>
+      </mat-form-field>
+
+      <!-- Botón ingresar -->
+      <button
+        mat-flat-button
+        color="primary"
+        class="full-width login-btn"
+        type="submit"
+        [disabled]="loading">
+        {{ loading ? 'Ingresando...' : 'Ingresar' }}
+      </button>
+    </form>
+
+    <!-- FOOTER -->
+    <div class="login-footer">
+      <button
+        mat-button
+        type="button"
+        class="full-width forgot-btn"
+        routerLink="/recuperar-clave">
+        ¿Olvidaste tu contraseña?
+      </button>
+
+      <p class="help-text">
+        ¿Tienes problemas para ingresar? Contacta a este loco 997061651.
+      </p>
+    </div>
+  </mat-card>
+</div>

@@ -1,6 +1,14 @@
-import { Component, inject, PLATFORM_ID } from '@angular/core';
+import { Component, inject, PLATFORM_ID, OnInit } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
+import {
+  FormsModule,
+  ReactiveFormsModule,
+  FormBuilder,
+  FormGroup,
+  Validators,
+  AbstractControl,
+  ValidationErrors,
+} from '@angular/forms';
 
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -41,7 +49,7 @@ interface TutorForm {
     MatPaginatorModule,
   ],
 })
-export class TutoresComponent {
+export class TutoresComponent implements OnInit {
   private snack = inject(MatSnackBar);
   private tutoresService = inject(TutoresService);
   private fb = inject(FormBuilder);
@@ -58,7 +66,10 @@ export class TutoresComponent {
   terminoBusqueda = '';
 
   formularioTutor!: FormGroup;
-  
+
+  // ===== permisos =====
+  soloLecturaVinculacion = false;
+
   // Verificar si el usuario es jefatura (solo lectura)
   get esJefatura(): boolean {
     if (!isPlatformBrowser(this.platformId)) return false;
@@ -72,7 +83,25 @@ export class TutoresComponent {
     }
   }
 
-  // ===== paginación (back) =====
+  // Rol vinculacion solo lectura (igual que en centros)
+  private esRolVinculacionSoloLectura(): boolean {
+    if (!isPlatformBrowser(this.platformId)) return false;
+    try {
+      const saved = localStorage.getItem('app.selectedRole');
+      if (!saved) return false;
+      const parsed = JSON.parse(saved);
+      return parsed?.id === 'vinculacion';
+    } catch {
+      return false;
+    }
+  }
+
+  // Está en modo solo lectura si es jefatura o vinculacion
+  get esSoloLectura(): boolean {
+    return this.esJefatura || this.soloLecturaVinculacion;
+  }
+
+  // ===== paginación =====
   pageIndex = 0;
   pageSize = 5;
   totalItems = 0;
@@ -86,6 +115,17 @@ export class TutoresComponent {
     this.load();
   }
 
+  ngOnInit(): void {
+    this.soloLecturaVinculacion = this.esRolVinculacionSoloLectura();
+
+    // Asegurar que en solo lectura no quede el formulario abierto
+    if (this.esSoloLectura) {
+      this.mostrarFormulario = false;
+      this.estaEditando = false;
+    }
+  }
+
+  // ===== validaciones =====
   validarRut(control: AbstractControl): ValidationErrors | null {
     const rut = control.value;
     if (!rut) return null;
@@ -93,12 +133,19 @@ export class TutoresComponent {
     const rutLimpio = rut.replace(/\./g, '').replace(/-/g, '').trim();
 
     if (rutLimpio.length < 3 || rutLimpio.length > 20) {
-      return { rutInvalido: true, mensaje: 'RUT debe tener entre 3 y 20 caracteres' };
+      return {
+        rutInvalido: true,
+        mensaje: 'RUT debe tener entre 3 y 20 caracteres',
+      };
     }
 
     const rutRegex = /^[0-9]+[0-9kK]?$/;
     if (!rutRegex.test(rutLimpio)) {
-      return { rutInvalido: true, mensaje: 'RUT solo puede contener números y letra K (ej: 12345678-9 o 12345678-K)' };
+      return {
+        rutInvalido: true,
+        mensaje:
+          'RUT solo puede contener números y letra K (ej: 12345678-9 o 12345678-K)',
+      };
     }
 
     return null;
@@ -109,12 +156,18 @@ export class TutoresComponent {
     if (!telefono) return null;
 
     if (typeof telefono === 'string' && !/^\d+$/.test(telefono)) {
-      return { telefonoInvalido: true, mensaje: 'El teléfono debe contener solo números' };
+      return {
+        telefonoInvalido: true,
+        mensaje: 'El teléfono debe contener solo números',
+      };
     }
 
     const num = Number(telefono);
     if (isNaN(num) || num < 0) {
-      return { telefonoInvalido: true, mensaje: 'El teléfono debe ser un número válido' };
+      return {
+        telefonoInvalido: true,
+        mensaje: 'El teléfono debe ser un número válido',
+      };
     }
 
     return null;
@@ -122,8 +175,23 @@ export class TutoresComponent {
 
   inicializarFormulario() {
     this.formularioTutor = this.fb.group({
-      rut: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(20), this.validarRut.bind(this)]],
-      nombre: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(120)]],
+      rut: [
+        '',
+        [
+          Validators.required,
+          Validators.minLength(3),
+          Validators.maxLength(20),
+          this.validarRut.bind(this),
+        ],
+      ],
+      nombre: [
+        '',
+        [
+          Validators.required,
+          Validators.minLength(3),
+          Validators.maxLength(120),
+        ],
+      ],
       correo: ['', [Validators.email]],
       telefono: ['', [this.validarTelefono.bind(this)]],
       direccion: [''],
@@ -136,29 +204,33 @@ export class TutoresComponent {
   // ===== carga lista desde backend (todos los items para filtrado local) =====
   load() {
     this.cargando = true;
-    
-    // Cargar un número grande de tutores para filtrar localmente
-    const params: any = { page: 1, limit: 1000, orderBy: 'nombre', orderDir: 'asc' };
+
+    const params: any = {
+      page: 1,
+      limit: 1000,
+      orderBy: 'nombre',
+      orderDir: 'asc',
+    };
 
     this.tutoresService.listar(params).subscribe({
       next: (response) => {
         this.todosLosTutores = response.items || [];
         this.cargando = false;
-        // Actualizar totalItems basado en los filtrados
         this.actualizarPaginacion();
       },
       error: (err) => {
         console.error('Error al cargar tutores:', err);
-        this.snack.open('Error al cargar tutores', 'Cerrar', { duration: 3000 });
+        this.snack.open('Error al cargar tutores', 'Cerrar', {
+          duration: 3000,
+        });
         this.cargando = false;
-      }
+      },
     });
   }
 
   // Actualizar paginación cuando cambian los filtros o datos
   actualizarPaginacion() {
     this.totalItems = this.filtrados.length;
-    // Asegurar que pageIndex no exceda el número de páginas disponibles
     const maxPage = Math.max(0, Math.ceil(this.totalItems / this.pageSize) - 1);
     if (this.pageIndex > maxPage) {
       this.pageIndex = maxPage;
@@ -179,9 +251,9 @@ export class TutoresComponent {
   }
 
   alternarFormulario() {
-    // Si es jefatura, no permitir abrir el formulario
-    if (this.esJefatura) return;
-    
+    // Si es jefatura o vinculacion, no permitir abrir el formulario
+    if (this.esSoloLectura) return;
+
     this.mostrarFormulario = !this.mostrarFormulario;
     if (!this.mostrarFormulario) {
       this.estaEditando = false;
@@ -193,13 +265,19 @@ export class TutoresComponent {
   }
 
   agregarTutor() {
+    if (this.esSoloLectura) return;
+
     if (this.formularioTutor.invalid) {
       this.formularioTutor.markAllAsTouched();
       const errores = this.obtenerErrores();
       if (errores.length > 0) {
         this.snack.open(errores[0], 'Cerrar', { duration: 4000 });
       } else {
-        this.snack.open('Por favor, completa todos los campos requeridos correctamente', 'Cerrar', { duration: 3000 });
+        this.snack.open(
+          'Por favor, completa todos los campos requeridos correctamente',
+          'Cerrar',
+          { duration: 3000 },
+        );
       }
       return;
     }
@@ -262,14 +340,16 @@ export class TutoresComponent {
   }
 
   eliminar(tutor: Tutor) {
-    // Si es jefatura, no permitir eliminar
-    if (this.esJefatura) return;
-    
+    // Si es jefatura o vinculacion, no permitir eliminar
+    if (this.esSoloLectura) return;
+
     this.tutorAEliminar = tutor;
     this.mostrarConfirmarEliminar = true;
   }
 
   confirmarEliminar() {
+    if (this.esSoloLectura) return;
+
     if (this.tutorAEliminar?.id) {
       this.tutoresService.eliminar(this.tutorAEliminar.id).subscribe({
         next: () => {
@@ -295,7 +375,9 @@ export class TutoresComponent {
         },
         error: (err) => {
           console.error('Error al eliminar tutor:', err);
-          this.snack.open('Error al eliminar tutor', 'Cerrar', { duration: 3000 });
+          this.snack.open('Error al eliminar tutor', 'Cerrar', {
+            duration: 3000,
+          });
         },
       });
     }
@@ -357,9 +439,9 @@ export class TutoresComponent {
   }
 
   editarTutor(tutor: Tutor) {
-    // Si es jefatura, no permitir editar
-    if (this.esJefatura) return;
-    
+    // Si es jefatura o vinculacion, no permitir editar
+    if (this.esSoloLectura) return;
+
     this.estaEditando = true;
     this.tutorEditando = tutor;
     this.tutorSeleccionado = null;
@@ -383,6 +465,8 @@ export class TutoresComponent {
   }
 
   actualizarTutor() {
+    if (this.esSoloLectura) return;
+
     const tutorOriginal = this.tutorEditando;
 
     if (this.formularioTutor.invalid) {
@@ -391,13 +475,21 @@ export class TutoresComponent {
       if (errores.length > 0) {
         this.snack.open(errores[0], 'Cerrar', { duration: 4000 });
       } else {
-        this.snack.open('Por favor, completa todos los campos requeridos correctamente', 'Cerrar', { duration: 3000 });
+        this.snack.open(
+          'Por favor, completa todos los campos requeridos correctamente',
+          'Cerrar',
+          { duration: 3000 },
+        );
       }
       return;
     }
 
     if (!tutorOriginal?.id) {
-      this.snack.open('Error: No se pudo identificar el tutor a actualizar', 'Cerrar', { duration: 3000 });
+      this.snack.open(
+        'Error: No se pudo identificar el tutor a actualizar',
+        'Cerrar',
+        { duration: 3000 },
+      );
       return;
     }
 
@@ -491,7 +583,9 @@ export class TutoresComponent {
     }
 
     if (form.get('telefono')?.hasError('telefonoInvalido')) {
-      errores.push(form.get('telefono')?.errors?.['mensaje'] || 'Teléfono inválido');
+      errores.push(
+        form.get('telefono')?.errors?.['mensaje'] || 'Teléfono inválido',
+      );
     }
 
     return errores;
@@ -500,17 +594,22 @@ export class TutoresComponent {
   getErrorRut(): string {
     const control = this.formularioTutor.get('rut');
     if (control?.hasError('required')) return 'El RUT es obligatorio';
-    if (control?.hasError('minlength')) return 'El RUT debe tener al menos 3 caracteres';
-    if (control?.hasError('maxlength')) return 'El RUT no puede tener más de 20 caracteres';
-    if (control?.hasError('rutInvalido')) return control.errors?.['mensaje'] || 'RUT inválido';
+    if (control?.hasError('minlength'))
+      return 'El RUT debe tener al menos 3 caracteres';
+    if (control?.hasError('maxlength'))
+      return 'El RUT no puede tener más de 20 caracteres';
+    if (control?.hasError('rutInvalido'))
+      return control.errors?.['mensaje'] || 'RUT inválido';
     return '';
   }
 
   getErrorNombre(): string {
     const control = this.formularioTutor.get('nombre');
     if (control?.hasError('required')) return 'El nombre es obligatorio';
-    if (control?.hasError('minlength')) return 'El nombre debe tener al menos 3 caracteres';
-    if (control?.hasError('maxlength')) return 'El nombre no puede tener más de 120 caracteres';
+    if (control?.hasError('minlength'))
+      return 'El nombre debe tener al menos 3 caracteres';
+    if (control?.hasError('maxlength'))
+      return 'El nombre no puede tener más de 120 caracteres';
     return '';
   }
 
@@ -522,7 +621,8 @@ export class TutoresComponent {
 
   getErrorTelefono(): string {
     const control = this.formularioTutor.get('telefono');
-    if (control?.hasError('telefonoInvalido')) return control.errors?.['mensaje'] || 'Teléfono inválido';
+    if (control?.hasError('telefonoInvalido'))
+      return control.errors?.['mensaje'] || 'Teléfono inválido';
     return '';
   }
 }

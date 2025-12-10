@@ -1,5 +1,7 @@
-﻿import { Component, inject} from '@angular/core';
+﻿import { Component, inject, OnInit, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
+
+
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 
 // Angular Material
@@ -10,7 +12,6 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule }  from '@angular/material/input';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
-import { OnInit, PLATFORM_ID } from '@angular/core';
 
 // Servicios y tipos
 import { ColaboradoresService, Colaborador } from '../../services/colaboradores.service';
@@ -209,9 +210,8 @@ export class ColaboradoresComponent implements OnInit {
   }
 
   // Interfaz de usuario
-  alternarFormulario() {
-    // Si es jefatura, no permitir abrir el formulario
-    if (this.esJefatura) return; 
+  alternarFormulario() { 
+    if (this.soloLecturaVinculacion) return;
     this.mostrarFormulario = !this.mostrarFormulario;
     if (!this.mostrarFormulario) {
       this.estaEditando = false;
@@ -304,8 +304,7 @@ export class ColaboradoresComponent implements OnInit {
 
   // Eliminar
   eliminar(c: Colaborador) {
-    // Si es jefatura, no permitir eliminar
-    if (this.esJefatura) return;
+    if (this.soloLecturaVinculacion) return;
     this.colaboradorAEliminar = c;
     this.mostrarConfirmarEliminar = true;
   }
@@ -401,8 +400,7 @@ export class ColaboradoresComponent implements OnInit {
 
   // Funciones de ediciÃ³n
   editarColaborador(colaborador: Colaborador) {
-    // Si es jefatura, no permitir editar
-    if (this.esJefatura) return;
+    if (this.soloLecturaVinculacion) return;
     this.estaEditando = true;
     this.colaboradorEditando = colaborador;
     this.colaboradorSeleccionado = null; // Cerrar modal

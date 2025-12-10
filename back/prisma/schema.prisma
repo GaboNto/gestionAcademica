@@ -23,6 +23,7 @@ enum TipoCentro {
   PARTICULAR
   PARTICULAR_SUBVENCIONADO @map("PARTICULAR SUBVENCIONADO")
   SLEP
+  NO_CONVENCIONAL
 }
 
 enum TipoTutor {
@@ -141,15 +142,19 @@ model Actividad {
   @@map("actividad")
 }
 
-model Usuario {
-  id         Int    @id @default(autoincrement())
-  nombre     String
-  correo     String @unique
-  rol        String
-  contrasena String
 
-  @@map("usuario")
+model Usuario {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  nombre    String
+  role      String
+  activo    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  resetTokens PasswordResetToken[]
 }
+
 
 /////////////////////////////////////
 //    NUEVO MODELO: ENCUESTA SEMESTRE
@@ -165,7 +170,25 @@ model EncuestaSemestre {
   encuestasColaboradores  EncuestaColaborador[]
 
   @@map("encuesta_semestre")
+  @@unique([anio, semestre], name: "anio_semestre_unique")
+
 }
+
+/////////////////////////////////////
+//    NUEVO MODELO: token de password
+/////////////////////////////////////
+
+model PasswordResetToken {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  userId    Int
+  usuario   Usuario  @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  used      Boolean  @default(false)
+
+  @@map("password_reset_tokens")
+}
+
 
 /////////////////////////////////////
 //   ENCUESTAS A ESTUDIANTES
@@ -178,7 +201,10 @@ model EncuestaEstudiante {
   nombre_centro      String?
   nombre_colaborador String?
   fecha              DateTime?
-  observacion        String?
+  observacion String? @db.Text
+  tipo_practica               String?
+  nombre_docente_colaborador_opcional Int?
+
 
   semestreId Int?
   semestre   EncuestaSemestre? @relation(fields: [semestreId], references: [id], onDelete: Cascade)
@@ -209,9 +235,10 @@ model EncuestaColaborador {
   id                 Int      @id @default(autoincrement())
   nombre_colaborador String
   nombre_colegio     String?
-  observacion        String?
+  observacion String? @db.Text
+  tipo_practica      String?
   fecha              DateTime?
-
+  
   semestreId Int?
   semestre   EncuestaSemestre? @relation(fields: [semestreId], references: [id], onDelete: Cascade)
 
@@ -241,7 +268,7 @@ model Pregunta {
   id               Int     @id @default(autoincrement())
   descripcion      String
   tipo             TipoPregunta
-  respuestaAbierta String?
+  respuestaAbierta String? @db.LongText
 
   itemEstudianteId  Int?
   itemEstudiante    ItemEncuestaEstudiante? @relation(fields: [itemEstudianteId], references: [id])
@@ -287,8 +314,7 @@ model RespuestaSeleccionada {
   alternativaId         Int?
   alternativa           Alternativa? @relation(fields: [alternativaId], references: [id])
 
-  respuestaAbierta      String? @db.Text
-
+  respuestaAbierta      String? @db.LongText
 
   @@map("respuesta_seleccionada")
 }
@@ -357,3 +383,4 @@ model Cargo {
 
   @@map("cargo")
 }
+

@@ -1,4 +1,5 @@
 import { PrismaClient, TipoPregunta } from '@prisma/client';
+import * as bcrypt from 'bcrypt'; // 👈 NUEVO
 
 const prisma = new PrismaClient();
 
@@ -68,8 +69,59 @@ async function ensurePregunta(
   return pregunta;
 }
 
+/** usuarios del sistema (login) */
+async function ensureUsuario(
+  email: string,
+  hashedPassword: string,
+  nombre: string,
+  role: 'jefatura' | 'vinculacion' | 'practicas',
+) {
+  return prisma.usuario.upsert({
+    where: { email },
+    update: {
+      nombre,
+      role,
+      activo: true,
+    },
+    create: {
+      email,
+      password: hashedPassword,
+      nombre,
+      role,
+      activo: true,
+    },
+  });
+}
+
 async function main() {
-  // Catálogos mínimos para poblar selects del front
+  // ====== USUARIOS PARA LOGIN ======
+  const plainPassword = '123456';
+  const hashed = await bcrypt.hash(plainPassword, 10);
+
+  await Promise.all([
+    ensureUsuario(
+      'jefatura@uta.cl',
+      hashed,
+      'Jefatura de Carrera',
+      'jefatura',
+    ),
+    ensureUsuario(
+      'vinculacion@uta.cl',
+      hashed,
+      'Coordinación de Vinculación',
+      'vinculacion',
+    ),
+    ensureUsuario(
+      'practicas@uta.cl',
+      hashed,
+      'Coordinación de Prácticas',
+      'practicas',
+    ),
+  ]);
+
+  console.log('Usuarios para login creados/actualizados');
+
+  // ====== (encuestas demo, etc.) ======
   const [est1] = await Promise.all([
     ensureEstudiante('12.345.678-9', 'Ana Estudiante'),
     ensureEstudiante('98.765.432-1', 'Bruno Practicante'),
@@ -84,7 +136,6 @@ async function main() {
   const tutor = await ensureTutor('11.111.111-1', 'Profa. Teresa Tallerista');
   await ensureColaborador('22.222.222-2', 'Prof. Carlos Colaborador');
 
-  // Preguntas cerradas (escala 1-5)
   const escala5 = [
     { descripcion: '1', puntaje: 1 },
     { descripcion: '2', puntaje: 2 },
@@ -100,13 +151,11 @@ async function main() {
     ensurePregunta('secI.satisfaccionGeneral', 'CERRADA', escala5),
   ]);
 
-  // Preguntas abiertas
   const preguntaAbierta = await ensurePregunta(
     'comentariosAdicionales',
     'ABIERTA',
   );
 
-  // Encuesta de estudiante con respuestas
   const encuesta = await prisma.encuestaEstudiante.create({
     data: {
       nombre_estudiante: est1.rut,
@@ -118,7 +167,6 @@ async function main() {
     },
   });
 
-  // Alternativas usadas
   const alternativas = await prisma.alternativa.findMany({
     where: { preguntaId: { in: preguntasCerradas.map((p) => p.id) } },
   });

@@ -10,7 +10,7 @@
     <div class="Spacer"></div>
 
     <!-- BOTÓN AGREGAR -->
-    <button mat-flat-button color="primary" (click)="alternarFormulario()" class="BtnAdd" *ngIf="!esJefatura">
+    <button mat-flat-button color="primary" (click)="alternarFormulario()" class="BtnAdd" *ngIf="!soloLecturaVinculacion">
       <mat-icon>{{ mostrarFormulario ? 'close' : 'person_add' }}</mat-icon>
       {{ mostrarFormulario ? 'Cerrar' : 'Agregar colaborador' }}
     </button>
@@ -38,7 +38,7 @@
   </mat-card>
 
   <!-- FORMULARIO (colapsable por botón) -->
-  <div class="FormContainer" [class.FormOpen]="mostrarFormulario" *ngIf="!esJefatura">
+  <div class="FormContainer" [class.FormOpen]="mostrarFormulario" *ngIf="!soloLecturaVinculacion">
     @if (mostrarFormulario) {
       <mat-card class="Elev FormCard">
         <mat-card-header class="FormHeader">
@@ -163,12 +163,14 @@
               <button mat-icon-button color="accent" (click)="verDetalles(c)" title="Ver más información">
                 <mat-icon>visibility</mat-icon>
               </button>
-            <button mat-icon-button color="primary" (click)="editarColaborador(c)" title="Editar" *ngIf="!esJefatura">
-              <mat-icon>edit</mat-icon>
-            </button>
-              <button mat-icon-button color="warn" (click)="eliminar(c)" title="Eliminar" *ngIf="!esJefatura">
-                <mat-icon>delete</mat-icon>
-              </button>
+              <ng-container *ngIf="!soloLecturaVinculacion">
+                <button mat-icon-button color="primary" (click)="editarColaborador(c)" title="Editar">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button color="warn" (click)="eliminar(c)" title="Eliminar">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </ng-container>
             </div>
           </div>
         </div>
@@ -253,10 +255,10 @@
         
         <div class="DialogActions">
           <button mat-stroked-button (click)="cerrarDetalles()">Cerrar</button>
-        <button mat-raised-button color="primary" (click)="editarColaborador(colaboradorSeleccionado!)" *ngIf="!esJefatura">
-          <mat-icon>edit</mat-icon>
-          Editar colaborador
-        </button>
+          <button mat-raised-button color="primary" (click)="editarColaborador(colaboradorSeleccionado!)" *ngIf="!soloLecturaVinculacion">
+            <mat-icon>edit</mat-icon>
+            Editar colaborador
+          </button>
         </div>
       </div>
     </div>

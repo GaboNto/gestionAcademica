@@ -39,6 +39,36 @@
   padding-inline: 1.4rem;
 }
 
+/* ===== TEXTO LARGO EN DETALLE ===== */
+
+.respuesta-larga {
+  max-width: 450px;
+  white-space: pre-wrap;      /* Permite saltos de línea naturales */
+  word-break: break-word;     /* Parte palabras demasiado largas */
+  overflow-wrap: break-word;  /* Compatibilidad extra */
+}
+
+.respuesta-larga .texto {
+  max-height: 4.5em;    /* aprox. 3 líneas */
+  overflow: hidden;
+  display: block;
+  line-height: 1.5em;
+}
+
+.respuesta-larga .texto.expandido {
+  max-height: none;     /* mostrar todo */
+}
+
+.ver-mas-btn {
+  background: none;
+  border: none;
+  color: #1976d2;       /* azul Material */
+  cursor: pointer;
+  padding: 0;
+  margin-top: 4px;
+  font-size: 0.85rem;
+}
+
 /* ===== TARJETAS DE REGISTRO (ARRIBA) ===== */
 
 .registration-grid {
@@ -113,26 +143,29 @@
   gap: 0.5rem;
 }
 
+/* FILA DE BÚSQUEDA + ORDEN */
 .filters-row {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 1rem;
-  align-items: center;
+  align-items: flex-end;
   margin-top: 0.25rem;
 }
 
+/* Barra de búsqueda amplia */
 .search-field {
-  flex: 1;
-  min-width: 280px;
+  flex: 1 1 auto;
+  min-width: 320px;
+  max-width: none;
 }
 
-/* contenedor de los botones de orden */
+/* contenedor de los botones de orden, pegados a la derecha */
 .order-inline {
+  flex-shrink: 0;
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 0.75rem;
   align-items: center;
-  margin-top: -12px;
   justify-content: flex-end;
 }
 
@@ -162,6 +195,58 @@
   background: #e3f2fd;
   border-color: #90caf9;
   color: #1565c0;
+}
+
+/* ===== TARJETA DE ESTADÍSTICAS (AÑO / SEMESTRE / TIPO) ===== */
+
+.stats-toggle-card {
+  background: #f3f4f6 !important;
+  border-radius: 1rem !important;
+  padding: 1.25rem 1.5rem !important;
+
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+
+
+
+.stats-toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.stats-toggle-title {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #111827;
+}
+
+/* Contenedor de selects */
+.stats-filters {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.stats-filter-field {
+  width: 140px;
+  min-width: 120px;
+}
+
+/* Por si en algún momento se vuelven a usar botones de toggle */
+.stats-toggle-buttons {
+  margin-left: auto;
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 /* ===== LISTA DE ENCUESTAS ===== */
@@ -488,6 +573,189 @@ mat-card-actions {
   padding: 0.75rem 1.5rem 1rem;
 }
 
+/* ===== ESTADÍSTICAS (tablas) ===== */
+
+.stats-card {
+  margin-top: 1rem;
+  border-radius: 1rem;
+}
+
+.stats-group {
+  margin-top: 1rem;
+}
+
+
+.stats-group + .stats-group {
+  margin-top: 2rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  padding-top: 1.2rem;
+}
+
+.stats-group-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem;
+}
+
+.stats-table th,
+.stats-table td {
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+.stats-table th:first-child,
+.stats-table td:first-child {
+  text-align: left;
+  min-width: 260px;
+}
+
+/* ====== GRÁFICOS DE BARRAS APILADAS ====== */
+
+.charts-container {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.chart-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.chart-row-label {
+  flex: 0 0 260px; /* ancho de la columna de texto */
+  font-size: 0.85rem;
+}
+
+.chart-row-bar {
+  flex: 1;
+  display: flex;
+  height: 24px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #f0f0f0;
+}
+
+.chart-segment {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+/* Texto solo si el segmento tiene espacio */
+.chart-segment-text {
+  padding: 0 4px;
+}
+
+/* Leyenda */
+.chart-legend {
+  margin-top: 0.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  font-size: 0.8rem;
+}
+
+.legend-color {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  margin-right: 4px;
+}
+
+/* ===== COLORES POR CATEGORÍA ===== */
+
+/* Escala 1–5: Muy insatisfecho … Muy satisfecho */
+.scale-1 {
+  background: #1f4e79; /* Muy insatisfecho */
+  color: #fff;
+}
+
+.scale-2 {
+  background: #ed7d31; /* Insatisfecho */
+  color: #000;
+}
+
+.scale-3 {
+  background: #a5a5a5; /* Ni insatisfecho ni satisfecho */
+  color: #000;
+}
+
+.scale-4 {
+  background: #ffc000; /* Satisfecho */
+  color: #000;
+}
+
+.scale-5 {
+  background: #4472c4; /* Muy satisfecho */
+  color: #fff;
+}
+
+/* NA = No aplica */
+.scale-NA {
+  background: #e0e0e0; /* gris neutro */
+  color: #000;
+}
+
+/* Escala Sí / No */
+.scale-SI {
+  background: #4472c4;
+  color: #fff;
+}
+
+.scale-NO {
+  background: #ed7d31;
+  color: #000;
+}
+
+/* Normativas: Sí / No / No existe-no sabe */
+.scale-SI_NORM {
+  background: #4472c4;
+  color: #fff;
+}
+
+.scale-NO_NORM {
+  background: #ed7d31;
+  color: #000;
+}
+
+.scale-NS_NORM {
+  background: #7f7f7f;
+  color: #fff;
+}
+
+/* Participación actividades (códigos reales: A_P, A_N, R_NA, R_NI, NR) */
+.scale-A_P {
+  background: #4472c4;  /* Asistí y pude participar */
+  color: #fff;
+}
+
+.scale-A_N {
+  background: #ed7d31;  /* Asistí, pero no intervine */
+  color: #000;
+}
+
+.scale-R_NA {
+  background: #a5a5a5;  /* Se realizó, pero no asistí */
+  color: #000;
+}
+
+.scale-R_NI {
+  background: #ffc000;  /* Se realizó, pero no fui invitado */
+  color: #000;
+}
+
+.scale-NR {
+  background: #595959;  /* No se realizó */
+  color: #fff;
+}
+
 /* ===== RESPONSIVE ===== */
 
 @media (max-width: 960px) {
@@ -534,6 +802,14 @@ mat-card-actions {
     display: none;
   }
 
+  .filters-row {
+    flex-wrap: wrap;
+  }
+
+  .search-field {
+    min-width: 100%;
+  }
+
   .order-inline {
     justify-content: flex-start;
   }
@@ -542,4 +818,45 @@ mat-card-actions {
     flex-wrap: wrap;
     justify-content: flex-start;
   }
+
+  /* Estadísticas en columna en mobile */
+  .stats-toggle-row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .stats-filters {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .stats-filter-field {
+    flex: 1 1 120px;
+  }
 }
+
+.stats-cta {
+  margin-left: auto;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+@media (max-width: 600px) {
+  .stats-cta {
+    margin-left: 0;
+    align-self: flex-start;
+  }
+}
+
+.filters-tools {
+  display: flex;
+  align-items: center; 
+  gap: 1rem;
+}
+
+.order-inline {
+  margin-top: 0 !important;
+  align-self: center;
+  transform: translateY(-8px);
+}
+
+

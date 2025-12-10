@@ -1,57 +1,98 @@
-<mat-sidenav-container
-  class="shell"
-  [class.shell--open]="isSidenavOpened"
-  [style.--side-offset.px]="isSidenavOpened ? 260 : 0">
-  <!-- SIDEBAR -->
-  <mat-sidenav
-    #sidenav
-    class="side"
-    mode="side"
-    [opened]="isSidenavOpened"
-    (openedChange)="onSidenavChange($event)">
-    <!-- Usuario -->
-    <div class="side__header">
-      <div class="avatar"><mat-icon>{{ user.icon }}</mat-icon></div>
-      <div class="who">
-        <div class="name">{{ user.name }}</div>
-        <div class="role">{{ user.roleLabel }}</div>
+<!-- LAYOUT COMPLETO (todas las rutas excepto login / recuperar-clave) -->
+<ng-container *ngIf="!isAuthRoute; else authOnly">
+  <mat-sidenav-container
+    class="shell"
+    [class.shell--open]="isSidenavOpened"
+    [style.--side-offset.px]="isSidenavOpened ? 260 : 0">
+
+    <!-- SIDEBAR -->
+    <mat-sidenav
+      #sidenav
+      class="side"
+      mode="side"
+      [opened]="isSidenavOpened"
+      (openedChange)="onSidenavChange($event)">
+
+      <!-- Header usuario -->
+      <div class="side__header">
+        <div class="avatar">
+          <mat-icon>{{ user.icon }}</mat-icon>
+        </div>
+        <div class="who">
+          <div class="name">{{ user.name }}</div>
+          <div class="role">{{ user.roleLabel }}</div>
+        </div>
       </div>
-    </div>
 
+      <mat-divider></mat-divider>
 
-    <mat-divider></mat-divider>
+      <!-- Título navegación -->
+      <div class="side__section-title">
+        <!-- Opcional: título sección -->
+      </div>
 
-    <!-- Navegación -->
-    <mat-nav-list>
-      <a mat-list-item
-         *ngFor="let item of nav"
-         [routerLink]="item.route"
-         routerLinkActive="active"
-         [routerLinkActiveOptions]="{ exact: true }"
-         (click)="sidenav.mode === 'over' && sidenav.close()">
-        <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
-        <span matListItemTitle>{{ item.label }}</span>
-      </a>
-    </mat-nav-list>
+      <!-- Navegación -->
+      <mat-nav-list class="side__nav">
+        <a mat-list-item
+           *ngFor="let item of nav"
+           [routerLink]="item.route"
+           routerLinkActive="active"
+           [routerLinkActiveOptions]="{ exact: true }"
+           (click)="sidenav.mode === 'over' && sidenav.close()">
+          <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
+          <span matListItemTitle>{{ item.label }}</span>
+        </a>
+      </mat-nav-list>
 
-  </mat-sidenav>
+      <!-- Pie del sidebar -->
+      <div class="side__footer">
+        <span class="side__footer-text">Sistema de Prácticas</span>
+        <span class="side__footer-version">v1.0</span>
+      </div>
+    </mat-sidenav>
 
-  <!-- CONTENIDO -->
-  <mat-sidenav-content class="content">
-    <mat-toolbar class="topbar" color="primary">
-      <button mat-icon-button class="menu-btn" (click)="toggleSidenav(sidenav)">
-        <mat-icon>menu</mat-icon>
-      </button>
-      <span class="title">{{ appTitle }}</span>
-      <span class="spacer"></span>
-      <button mat-button (click)="logout()">
-        <mat-icon>logout</mat-icon>
-        Cerrar sesión
-      </button>
-    </mat-toolbar>
+    <!-- CONTENIDO -->
+    <mat-sidenav-content class="content">
+      <!-- TOPBAR -->
+      <mat-toolbar class="topbar" color="primary">
+        <button mat-icon-button class="menu-btn" (click)="toggleSidenav(sidenav)">
+          <mat-icon>menu</mat-icon>
+        </button>
 
-    <main class="page">
-      <router-outlet></router-outlet>
-    </main>
-  </mat-sidenav-content>
-</mat-sidenav-container>
+        <button
+          mat-icon-button
+          class="home-btn"
+          aria-label="Volver al dashboard"
+          (click)="goHome()">
+          <mat-icon>home</mat-icon>
+        </button>
+
+        <span class="spacer"></span>
+
+        <div class="topbar__user">
+          <mat-icon class="user-icon">account_circle</mat-icon>
+          <span class="user-name">{{ user.name }}</span>
+        </div>
+
+        <button
+          mat-stroked-button
+          color="accent"
+          class="logout-btn"
+          (click)="logout()">
+          <mat-icon>logout</mat-icon>
+          Cerrar sesión
+        </button>
+      </mat-toolbar>
+
+      <!-- CONTENIDO DE PÁGINA -->
+      <main class="page">
+        <router-outlet></router-outlet>
+      </main>
+    </mat-sidenav-content>
+  </mat-sidenav-container>
+</ng-container>
+
+<!-- SOLO VISTAS DE AUTENTICACIÓN (login, recuperar clave, etc.) -->
+<ng-template #authOnly>
+  <router-outlet></router-outlet>
+</ng-template>
