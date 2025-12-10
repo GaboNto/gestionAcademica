@@ -387,6 +387,30 @@ export class ActividadesEstudiantesComponent implements OnInit {
     }
   }
 
+  /**
+   * Formatear el horario guardado en la BD (formato HH:MM) a formato legible (HH:MM AM/PM)
+   * Si no hay horario guardado, usa la hora de la fecha
+   */
+  formatHorario(actividad: Actividad): string {
+    // Si hay un horario guardado en la BD, usarlo
+    if (actividad.horario && actividad.horario.trim()) {
+      try {
+        const [hora, minutos] = actividad.horario.split(':').map(Number);
+        if (!isNaN(hora) && !isNaN(minutos)) {
+          const ampm = hora >= 12 ? 'PM' : 'AM';
+          let hora12 = hora % 12;
+          hora12 = hora12 ? hora12 : 12;
+          return `${hora12.toString().padStart(2, '0')}:${minutos.toString().padStart(2, '0')} ${ampm}`;
+        }
+      } catch {
+        // Si falla el parseo, continuar con la fecha
+      }
+    }
+    
+    // Si no hay horario o falló el parseo, usar la hora de la fecha
+    return this.formatTime(actividad.fecha);
+  }
+
   alternarFormulario(): void {
     if (this.esJefatura) return;
     
