@@ -2,8 +2,8 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-const API_URL = 'http://localhost:3000/actividad-practica';
-const API_BASE_URL = 'http://localhost:3000';
+const API_URL = '/actividad-practica';
+const API_BASE_URL = '';
 
 // Interfaz que coincide con el modelo de Prisma (lo que devuelve el backend)
 export interface Actividad {
