@@ -1,8 +1,9 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
+import { environment } from '../../environments/environment';
 
-const API = '/api/auth';
+const API = `${environment.apiUrl}/auth`;
 
 export interface LoginResponse {
   accessToken: string;
@@ -49,9 +50,9 @@ export class AuthService {
   }
 
   forgotPassword(email: string) {
-    return this.http.post<{ message: string }>(
-      '/api/auth/forgot-password',
-      { email }
+  return this.http.post<{ message: string }>(
+    `${API}/forgot-password`,
+    { email }
     );
   }
 }

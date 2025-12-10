@@ -10,45 +10,48 @@ async function bootstrap() {
 
   app.enableCors();
 
+  // ============================
+  // 1) TODAS LAS RUTAS TENDRÁN PREFIJO /api
+  // ============================
+  app.setGlobalPrefix('api');
+
   const rootPath = process.cwd();
   const uploadsPath = join(rootPath, 'uploads');
   const clientPath = join(rootPath, 'public');
 
-  // Servir uploads
+  // ============================
+  // Servir archivos subidos
+  // ============================
   app.useStaticAssets(uploadsPath, { prefix: '/uploads' });
 
-  // Servir frontend Angular
+  // ============================
+  // Servir Frontend Angular
+  // ============================
   app.useStaticAssets(clientPath);
 
-  // Fallback SOLO para rutas que no sean API (y solo GET)
+  // ============================
+  // 2) Fallback para SPA Angular
+  // ============================
   app.use((req, res, next) => {
     const url = req.url;
 
-    // Si NO es GET, que lo maneje Nest (POST, PUT, DELETE, etc.)
+    // No interceptar NADA de la API
+    if (url.startsWith('/api') || url.startsWith('/uploads')) {
+      return next();
+    }
+
+    // Solo GET debe servir Angular (POST/PUT/DELETE → backend)
     if (req.method !== 'GET') {
       return next();
     }
 
-    // Rutas de API que NO debemos interceptar
-    if (
-      url.startsWith('/api') ||
-      url.startsWith('/centros') ||
-      url.startsWith('/trabajadores') ||
-      url.startsWith('/practicas') ||
-      url.startsWith('/estudiante') ||
-      url.startsWith('/colaboradores') ||
-      url.startsWith('/tutores') ||
-      url.startsWith('/encuestas') ||
-      url.startsWith('/actividad-practica') ||
-      url.startsWith('/uploads')
-    ) {
-      return next();
-    }
-
-    // Para el resto (rutas de Angular), servir index.html
+    // Servir Angular index.html
     return res.sendFile(join(clientPath, 'index.html'));
   });
 
+  // ============================
+  // Validaciones globales
+  // ============================
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,

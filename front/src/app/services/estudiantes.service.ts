@@ -1,10 +1,12 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export type EstadoPractica = 'EN_CURSO' | 'APROBADO' | 'REPROBADO';
 
-const API_URL = '/estudiante';
+const API_URL = `${environment.apiUrl}/estudiante`;
+
 
 export interface UltimaPractica {
   fecha_inicio: string;

@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
+import { environment } from '../../environments/environment';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-// ANTES: const API_URL = '/colaboradores';
-const API_URL = '/api/colaboradores';
+const API_URL = `${environment.apiUrl}/colaboradores`;
 
 export interface Colaborador {
   id: number;
