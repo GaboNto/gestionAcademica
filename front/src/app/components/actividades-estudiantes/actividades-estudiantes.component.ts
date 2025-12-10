@@ -2,9 +2,6 @@ import { Component, inject, PLATFORM_ID, OnInit } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { MatAutocompleteModule } from '@angular/material/autocomplete';
-import { MatChipsModule } from '@angular/material/chips';
-import { EstudiantesService, EstudianteResumen } from '../../services/estudiantes.service';
 
 // Angular Material
 import { MatButtonModule } from '@angular/material/button';
@@ -91,9 +88,7 @@ export const MY_DATE_FORMATS = {
     MatPaginatorModule,
     MatSelectModule,
     MatSnackBarModule,
-    MatProgressSpinnerModule,
-    MatAutocompleteModule,
-    MatChipsModule,
+    MatProgressSpinnerModule
   ],
   providers: [
     { provide: DateAdapter, useClass: CustomDateAdapter },
@@ -109,8 +104,6 @@ export class ActividadesEstudiantesComponent implements OnInit {
   
   searchTerm: string = '';
   selectedMes: string = 'all';
-  selectedAnio: number | 'all' = 'all';
-  aniosDisponibles: number[] = [];
   cargando: boolean = false;
   
   // Lista de meses disponibles
@@ -171,9 +164,8 @@ export class ActividadesEstudiantesComponent implements OnInit {
   
   actividades: Actividad[] = [];
 
-    ngOnInit(): void {
+  ngOnInit(): void {
     this.cargarActividades();
-    this.cargarEstudiantes();
   }
 
   cargarActividades(): void {
@@ -185,7 +177,6 @@ export class ActividadesEstudiantesComponent implements OnInit {
       next: (response) => {
         this.actividades = response.items || [];
         this.cargando = false;
-        this.construirAniosDisponibles();
         this.actualizarPaginacion();
       },
       error: (err) => {
@@ -195,71 +186,6 @@ export class ActividadesEstudiantesComponent implements OnInit {
       }
     });
   }
-  cargarEstudiantes(): void {
-    this.estudiantesService.listar().subscribe({
-      next: (lista) => {
-        this.allEstudiantes = lista || [];
-        this.estudiantesFiltrados = [...this.allEstudiantes];
-      },
-      error: (err) => {
-        console.error('Error al cargar estudiantes:', err);
-        this.snack.open('Error al cargar estudiantes', 'Cerrar', { duration: 3000 });
-      }
-    });
-  }
-
-    private construirAniosDisponibles(): void {
-    const set = new Set<number>();
-
-    for (const act of this.actividades) {
-      let d: Date;
-
-      if (typeof act.fecha === 'string') {
-        // Manejar fecha tipo "YYYY-MM-DD" o ISO
-        const fechaStr = act.fecha.includes('T')
-          ? act.fecha.split('T')[0]
-          : act.fecha;
-        const [year, month, day] = fechaStr.split('-').map(Number);
-        d = new Date(year, (month || 1) - 1, day || 1);
-      } else {
-        d = act.fecha;
-      }
-
-      if (!isNaN(d.getTime())) {
-        set.add(d.getFullYear());
-      }
-    }
-
-    this.aniosDisponibles = Array.from(set).sort((a, b) => b - a); // descendente
-  }
-
-
-
-    filtrarEstudiantes(term: string): void {
-    const value = term?.toLowerCase() || '';
-    if (!value) {
-      this.estudiantesFiltrados = [...this.allEstudiantes];
-      return;
-    }
-
-    this.estudiantesFiltrados = this.allEstudiantes.filter(e =>
-      (e.nombre || '').toLowerCase().includes(value) ||
-      (e.rut || '').toLowerCase().includes(value)
-    );
-  }
-
-  onSelectEstudiante(est: EstudianteResumen): void {
-    const yaExiste = this.estudiantesSeleccionados.some(e => e.rut === est.rut);
-    if (!yaExiste) {
-      this.estudiantesSeleccionados.push(est);
-    }
-  }
-
-  removeEstudiante(est: EstudianteResumen): void {
-    this.estudiantesSeleccionados = this.estudiantesSeleccionados.filter(e => e.rut !== est.rut);
-  }
-
-
 
   // ===== filtros - aplicados localmente =====
   get filtradas(): Actividad[] {
@@ -278,25 +204,6 @@ export class ActividadesEstudiantesComponent implements OnInit {
       resultado = resultado.filter(actividad =>
         actividad.mes === this.selectedMes
       );
-    }
-
-    // Filtrar por año
-    if (this.selectedAnio && this.selectedAnio !== 'all') {
-      resultado = resultado.filter(actividad => {
-        let d: Date;
-
-        if (typeof actividad.fecha === 'string') {
-          const fechaStr = actividad.fecha.includes('T')
-            ? actividad.fecha.split('T')[0]
-            : actividad.fecha;
-          const [year, month, day] = fechaStr.split('-').map(Number);
-          d = new Date(year, (month || 1) - 1, day || 1);
-        } else {
-          d = actividad.fecha;
-        }
-
-        return !isNaN(d.getTime()) && d.getFullYear() === this.selectedAnio;
-      });
     }
 
     return resultado;
@@ -326,11 +233,6 @@ export class ActividadesEstudiantesComponent implements OnInit {
   }
 
   onMesChange(): void {
-    this.pageIndex = 0;
-    this.actualizarPaginacion();
-  }
-
-  onAnioChange(): void {
     this.pageIndex = 0;
     this.actualizarPaginacion();
   }
@@ -412,6 +314,7 @@ export class ActividadesEstudiantesComponent implements OnInit {
   }
 
   alternarFormulario(): void {
+    // Si es jefatura, no permitir abrir el formulario
     if (this.esJefatura) return;
     
     this.mostrarFormulario = !this.mostrarFormulario;
@@ -421,7 +324,6 @@ export class ActividadesEstudiantesComponent implements OnInit {
       this.formularioActividad.reset();
       this.archivosSeleccionados = [];
       this.archivoZip = null;
-      this.estudiantesSeleccionados = [];
     }
   }
 
@@ -434,7 +336,6 @@ export class ActividadesEstudiantesComponent implements OnInit {
       this.formularioActividad.reset();
       this.archivosSeleccionados = [];
       this.archivoZip = null;
-      this.estudiantesSeleccionados = [];
       this.mostrarFormulario = true;
     }
   }
@@ -461,13 +362,16 @@ export class ActividadesEstudiantesComponent implements OnInit {
     try {
       const zip = new JSZip();
 
+      // Agregar cada archivo al ZIP
       for (const file of this.archivosSeleccionados) {
         const fileData = await this.leerArchivoComoArrayBuffer(file);
         zip.file(file.name, fileData);
       }
 
+      // Generar el ZIP como Blob
       const zipBlob = await zip.generateAsync({ type: 'blob' });
 
+      // Convertir el ZIP a File para poder enviarlo
       const zipFile = new File([zipBlob], `archivos_actividad_${Date.now()}.zip`, {
         type: 'application/zip'
       });
@@ -529,18 +433,12 @@ export class ActividadesEstudiantesComponent implements OnInit {
       }
     }
 
-    const estudiantesTexto = this.estudiantesSeleccionados.length
-      ? this.estudiantesSeleccionados
-          .map(e => `${e.rut} - ${e.nombre}`)
-          .join(', ')
-      : (formValue.estudiantes || '');
-
     const actividadData: Partial<Actividad> = {
       nombre_actividad: formValue.nombre_actividad,
       fecha: fechaCompleta,
       horario: formValue.horario || undefined,
       lugar: formValue.lugar || undefined,
-      estudiantes: estudiantesTexto || undefined,
+      estudiantes: formValue.estudiantes || undefined,
     };
 
     // Determinar qué archivo enviar (el ZIP comprimido)
@@ -576,8 +474,10 @@ export class ActividadesEstudiantesComponent implements OnInit {
         archivoParaEnviar
       ).subscribe({
         next: (actividadActualizada) => {
-          // Recargar las actividades para asegurar que los datos estén sincronizados
-          this.cargarActividades();
+          const index = this.actividades.findIndex(a => a.id === actividadActualizada.id);
+          if (index !== -1) {
+            this.actividades[index] = actividadActualizada;
+          }
           this.snack.open(
             `✓ ${actividadActualizada.nombre_actividad} actualizada correctamente`,
             'Cerrar',
@@ -588,6 +488,8 @@ export class ActividadesEstudiantesComponent implements OnInit {
               panelClass: ['success-snackbar'],
             }
           );
+          this.cargando = false;
+          this.actualizarPaginacion();
           this.alternarFormulario();
         },
         error: (err) => {
@@ -609,7 +511,7 @@ export class ActividadesEstudiantesComponent implements OnInit {
         next: (nuevaActividad) => {
           this.actividades.push(nuevaActividad);
           this.snack.open(
-            `✓ ${nuevaActividad.nombre_actividad} agregado correctamente`,
+            `✓ ${nuevaActividad.nombre_actividad} agregada correctamente`,
             'Cerrar',
             {
               duration: 4000,
@@ -637,14 +539,6 @@ export class ActividadesEstudiantesComponent implements OnInit {
     }
   }
 
-  private estudiantesService = inject(EstudiantesService);
-
-  // Estudiantes para el selector
-  allEstudiantes: EstudianteResumen[] = [];
-  estudiantesFiltrados: EstudianteResumen[] = [];
-  estudiantesSeleccionados: EstudianteResumen[] = [];
-
-
   viewActivity(actividad: Actividad): void {
     // Cargar detalles completos desde el backend
     this.actividadesService.obtenerPorId(actividad.id).subscribe({
@@ -665,26 +559,6 @@ export class ActividadesEstudiantesComponent implements OnInit {
    */
   getArchivoUrl(archivoPath: string | undefined): string | null {
     return this.actividadesService.getArchivoUrl(archivoPath);
-  }
-
-  /**
-   * Descargar archivo adjunto al hacer clic en el icono de evidencias
-   */
-  descargarArchivo(archivoPath: string): void {
-    const url = this.getArchivoUrl(archivoPath);
-    if (!url) {
-      this.snack.open('No se pudo obtener la URL del archivo', 'Cerrar', { duration: 3000 });
-      return;
-    }
-
-    // Crear un enlace temporal y hacer clic para descargar
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'archivos_adjuntos.zip';
-    link.target = '_blank';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
   }
 
   cerrarDetalles(): void {
@@ -774,4 +648,3 @@ export class ActividadesEstudiantesComponent implements OnInit {
     });
   }
 }
-

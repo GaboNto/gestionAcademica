@@ -14,52 +14,31 @@
 
   <!-- FILTROS DE BÚSQUEDA -->
   <mat-card class="FiltersCard Elev">
-  <mat-card-header>
-    <mat-card-title>
-      <mat-icon>search</mat-icon>
-      Filtros de Búsqueda
-    </mat-card-title>
-  </mat-card-header>
-
-  <mat-card-content>
-    <div class="FiltersRow3">
-
-      <!-- BUSCAR (ocupa más espacio) -->
-      <mat-form-field appearance="outline" class="FieldBuscar">
-        <mat-label>Buscar</mat-label>
-        <input
-          matInput
-          [(ngModel)]="searchTerm"
-          (ngModelChange)="filterActivities()"
-          placeholder="Buscar por nombre de actividad..." />
-        <mat-icon matSuffix>search</mat-icon>
-      </mat-form-field>
-
-      <!-- MES -->
-      <mat-form-field appearance="outline" class="Fieldsmall">
-        <mat-label>Mes</mat-label>
-        <mat-select [(ngModel)]="selectedMes" (ngModelChange)="onMesChange()">
-          <mat-option *ngFor="let mes of meses" [value]="mes.value">
-            {{ mes.label }}
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
-
-      <!-- AÑO -->
-      <mat-form-field appearance="outline" class="Fieldsmall">
-        <mat-label>Año</mat-label>
-        <mat-select [(ngModel)]="selectedAnio" (ngModelChange)="onAnioChange()">
-          <mat-option [value]="'all'">Todos los años</mat-option>
-          <mat-option *ngFor="let anio of aniosDisponibles" [value]="anio">
-            {{ anio }}
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
-
-    </div>
-  </mat-card-content>
-</mat-card>
-
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>search</mat-icon>
+        Filtros de Búsqueda
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="FiltersGrid">
+        <mat-form-field appearance="outline" class="SearchField">
+          <mat-label>Buscar</mat-label>
+          <input matInput [(ngModel)]="searchTerm" (ngModelChange)="filterActivities()" placeholder="Buscar por nombre de actividad..." />
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+        
+        <mat-form-field appearance="outline" class="FilterField">
+          <mat-label>Mes</mat-label>
+          <mat-select [(ngModel)]="selectedMes" (ngModelChange)="onMesChange()">
+            <mat-option *ngFor="let mes of meses" [value]="mes.value">
+              {{ mes.label }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </mat-card-content>
+  </mat-card>
 
   <!-- FORMULARIO -->
   <div class="FormContainer" [class.FormOpen]="mostrarFormulario" *ngIf="!esJefatura">
@@ -110,7 +89,7 @@
               </mat-form-field>
             </div>
 
-                        <div class="FormRow">
+            <div class="FormRow">
               <mat-form-field appearance="outline" class="FormField">
                 <mat-label>Ubicación</mat-label>
                 <input matInput formControlName="lugar" placeholder="Ej: Sala A, Auditorio, Online" />
@@ -118,42 +97,9 @@
 
               <mat-form-field appearance="outline" class="FormField">
                 <mat-label>Estudiantes</mat-label>
-
-                <!-- Chips con estudiantes seleccionados -->
-                <mat-chip-grid #chipGrid aria-label="Estudiantes seleccionados">
-                  <mat-chip-row
-                    *ngFor="let est of estudiantesSeleccionados"
-                    (removed)="removeEstudiante(est)">
-                    {{ est.rut }} - {{ est.nombre }}
-                    <button matChipRemove>
-                      <mat-icon>close</mat-icon>
-                    </button>
-                  </mat-chip-row>
-
-                  <!-- Input con autocomplete -->
-                  <input
-                    #estudianteInput
-                    placeholder="Escribe nombre o RUT..."
-                    [matAutocomplete]="autoEstudiantes"
-                    [matChipInputFor]="chipGrid"
-                    (input)="filtrarEstudiantes(estudianteInput.value)" />
-                </mat-chip-grid>
-
-                <mat-autocomplete
-                  #autoEstudiantes="matAutocomplete"
-                  (optionSelected)="onSelectEstudiante($event.option.value); estudianteInput.value=''; filtrarEstudiantes('')">
-                  <mat-option *ngFor="let est of estudiantesFiltrados | slice:0:5" [value]="est">
-                    {{ est.rut }} - {{ est.nombre }}
-                  </mat-option>
-
-                  <!-- Mostrar mensaje cuando hay más resultados -->
-                  
-                  </mat-autocomplete>
-
-                <mat-hint>Puedes seleccionar más de un estudiante</mat-hint>
+                <input matInput formControlName="estudiantes" placeholder="Ej: Ana Torres, Carlos Sanchez, ..." />
               </mat-form-field>
             </div>
-
 
             <div class="FormRow">
               <div class="FormField FullWidth">
@@ -243,7 +189,7 @@
         <div class="TableHeader">
           <div class="HeaderCell HeaderCell--name">NOMBRE ACTIVIDAD</div>
           <div class="HeaderCell HeaderCell--date">FECHA</div>
-          <div class="HeaderCell HeaderCell--time">HORARIO</div>
+          <div class="HeaderCell HeaderCell--time">HORA</div>
           <div class="HeaderCell HeaderCell--location">UBICACIÓN</div>
           <div class="HeaderCell HeaderCell--students">ESTUDIANTES</div>
           <div class="HeaderCell HeaderCell--evidence">EVIDENCIAS</div>
@@ -269,14 +215,7 @@
           </div>
           <div class="TableCell TableCell--evidence">
             <div class="EvidenceText">
-              <button 
-                mat-icon-button 
-                *ngIf="actividad.archivo_adjunto" 
-                (click)="descargarArchivo(actividad.archivo_adjunto!)"
-                title="Descargar archivos adjuntos"
-                style="padding: 0; width: 24px; height: 24px;">
-                <mat-icon style="font-size: 20px; width: 20px; height: 20px;">attach_file</mat-icon>
-              </button>
+              <mat-icon *ngIf="actividad.archivo_adjunto">attach_file</mat-icon>
               <span *ngIf="!actividad.archivo_adjunto">—</span>
             </div>
           </div>
@@ -349,7 +288,7 @@
 
             <div class="DetailItem">
               <label>Hora:</label>
-              <span>{{ formatTime(actividadSeleccionada.fecha) }}</span>
+              <span>{{ formatHorario(actividadSeleccionada) }}</span>
             </div>
 
             <div class="DetailItem">
@@ -365,6 +304,16 @@
             <div class="DetailItem">
               <label>Estudiantes:</label>
               <span>{{ actividadSeleccionada.estudiantes || 'No especificados' }}</span>
+            </div>
+
+            <div class="DetailItem" *ngIf="actividadSeleccionada.archivo_adjunto">
+              <label>Archivos adjuntos:</label>
+              <span>
+                <a [href]="getArchivoUrl(actividadSeleccionada.archivo_adjunto)!" [download]="'archivos_adjuntos.zip'" target="_blank" rel="noopener noreferrer">
+                  <mat-icon style="vertical-align: middle; font-size: 18px; width: 18px; height: 18px;">download</mat-icon>
+                  Descargar ZIP con archivos
+                </a>
+              </span>
             </div>
           </div>
         </div>
